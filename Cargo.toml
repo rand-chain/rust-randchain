@@ -4,3 +4,18 @@ version = "0.0.1"
 license = "GPL-3.0"
 authors = ["Parity Technologies <admin@parity.io>", "Haoyu Lin <chris.haoyul@gmail.com>"]
 description = "Parity randchain client."
+
+[profile.dev]
+debug = true
+panic = 'abort'
+
+[profile.release]
+debug = true
+panic = 'abort'
+
+[profile.test]
+debug = true
+
+[[bin]]
+path = "prandchain/main.rs"
+name = "prandchain"
