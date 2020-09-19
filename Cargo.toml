@@ -1,9 +1,9 @@
 [package]
-name = "prandchain"
+name = "randchaind"
 version = "0.0.1"
 license = "GPL-3.0"
-authors = ["Parity Technologies <admin@parity.io>", "Haoyu Lin <chris.haoyul@gmail.com>"]
-description = "Parity randchain client."
+authors = [Haoyu Lin <chris.haoyul@gmail.com>"]
+description = "RandChain client."
 
 [profile.dev]
 debug = true
@@ -17,5 +17,5 @@ panic = 'abort'
 debug = true
 
 [[bin]]
-path = "prandchain/main.rs"
-name = "prandchain"
+path = "randchaind/main.rs"
+name = "randchaind"
