@@ -9,12 +9,6 @@ args:
     - regtest:
         long: regtest
         help: Use a private network for regression tests.
-    - btc:
-        long: btc
-        help: Use Bitcoin Core verification rules (BTC).
-    - bch:
-        long: bch
-        help: Use Bitcoin Cash verification rules (BCH).
     - connect:
         short: c
         long: connect
@@ -101,16 +95,3 @@ args:
         help: Non-default verification-level is applied until a block with given hash is met.
         takes_value: true
         value_name: BLOCK
-subcommands:
-    - import:
-        about: Import blocks from a Bitcoin Core database.
-        args:
-            - PATH:
-                required: true
-                help: Path of the Bitcoin Core database.
-    - rollback:
-        about: Rollback the database to given canonical-chain block.
-        args:
-            - BLOCK:
-                required: true
-                help: Either block hash, or block number.

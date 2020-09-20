@@ -11,11 +11,9 @@ pub trait CanonStore: Store + Forkable + ConfigStore {
 
 /// Configuration storage interface
 pub trait ConfigStore {
-    /// get consensus_fork this database is configured for
-    fn consensus_fork(&self) -> Result<Option<String>, Error>;
-
-    /// set consensus_fork this database is configured for
-    fn set_consensus_fork(&self, consensus_fork: &str) -> Result<(), Error>;
+    // TODO:
+    // + get something
+    // + set something
 }
 
 /// Blockchain storage interface

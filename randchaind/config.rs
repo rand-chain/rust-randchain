@@ -202,35 +202,8 @@ fn parse_consensus_fork(
     db: &storage::SharedStore,
     matches: &clap::ArgMatches,
 ) -> Result<ConsensusFork, String> {
-    let old_consensus_fork = db.consensus_fork()?;
-    let new_consensus_fork = match (matches.is_present("btc"), matches.is_present("bch")) {
-        (false, false) => match &old_consensus_fork {
-            &Some(ref old_consensus_fork) => old_consensus_fork,
-            &None => return Err("You must select fork on first run: --btc, --bch".into()),
-        },
-        (true, false) => "btc",
-        (false, true) => "bch",
-        _ => return Err("You can only pass single fork argument: --btc, --bch".into()),
-    };
-
-    match &old_consensus_fork {
-        &None => db.set_consensus_fork(new_consensus_fork)?,
-        &Some(ref old_consensus_fork) if old_consensus_fork == new_consensus_fork => (),
-        &Some(ref old_consensus_fork) => {
-            return Err(format!(
-                "Cannot select '{}' fork with non-empty database of '{}' fork",
-                new_consensus_fork, old_consensus_fork
-            ))
-        }
-    }
-
-    return match new_consensus_fork {
-        "btc" => Ok(ConsensusFork::BitcoinCore),
-        "bch" => Ok(ConsensusFork::BitcoinCash(BitcoinCashConsensusParams::new(
-            network,
-        ))),
-        _ => Err(String::from("Fork mandatory")),
-    };
+    // TODO:
+    Ok(ConsensusFork::BitcoinCore)
 }
 
 fn parse_rpc_config(network: Network, matches: &clap::ArgMatches) -> Result<RpcHttpConfig, String> {

@@ -665,27 +665,7 @@ impl<T> ConfigStore for BlockChainDatabase<T>
 where
     T: KeyValueDatabase,
 {
-    fn consensus_fork(&self) -> Result<Option<String>, Error> {
-        match self
-            .db
-            .get(&Key::Configuration("consensus_fork"))
-            .map(KeyState::into_option)
-            .map(|x| x.and_then(Value::as_configuration))
-        {
-            Ok(Some(consensus_fork)) => String::from_utf8(consensus_fork.into())
-                .map_err(|e| Error::DatabaseError(format!("{}", e)))
-                .map(Some),
-            Ok(None) => Ok(None),
-            Err(e) => Err(Error::DatabaseError(e.into())),
-        }
-    }
-
-    fn set_consensus_fork(&self, consensus_fork: &str) -> Result<(), Error> {
-        let mut update = DBTransaction::new();
-        update.insert(KeyValue::Configuration(
-            "consensus_fork",
-            consensus_fork.as_bytes().into(),
-        ));
-        self.db.write(update).map_err(Error::DatabaseError)
-    }
+    // TODO:
+    // + get something
+    // + set something
 }
