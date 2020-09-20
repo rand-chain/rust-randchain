@@ -85,6 +85,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
 
     let port = match matches.value_of("port") {
         Some(port) => port.parse().map_err(|_| "Invalid port".to_owned())?,
+        // TODO:
         None => network.port(),
     };
 
@@ -99,20 +100,13 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         None => None,
     };
 
+    // TODO:
     let seednodes: Vec<String> = match matches.value_of("seednode") {
         Some(s) => vec![s.parse().map_err(|_| "Invalid seednode".to_owned())?],
-        None => match (network, &consensus.fork) {
-            (Network::Mainnet, &ConsensusFork::BitcoinCash(_)) => bitcoin_cash_seednodes()
-                .into_iter()
-                .map(Into::into)
-                .collect(),
-            (Network::Testnet, &ConsensusFork::BitcoinCash(_)) => bitcoin_cash_testnet_seednodes()
-                .into_iter()
-                .map(Into::into)
-                .collect(),
-            (Network::Mainnet, _) => mainnet_seednodes().into_iter().map(Into::into).collect(),
-            (Network::Testnet, _) => testnet_seednodes().into_iter().map(Into::into).collect(),
-            (Network::Other(_), _) | (Network::Regtest, _) | (Network::Unitest, _) => Vec::new(),
+        None => match network {
+            Network::Mainnet => mainnet_seednodes().into_iter().map(Into::into).collect(),
+            Network::Testnet => testnet_seednodes().into_iter().map(Into::into).collect(),
+            Network::Other(_) | Network::Regtest | Network::Unitest => Vec::new(),
         },
     };
 
@@ -155,6 +149,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         None => VerificationLevel::Full,
     };
 
+    // TODO:
     let verification_edge = match matches.value_of("verification-edge") {
         Some(s) if verification_level != VerificationLevel::Full => {
             let edge: H256 = s
