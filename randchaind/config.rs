@@ -62,7 +62,8 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         (true, true) => return Err("Only one testnet option can be used".into()),
     };
 
-    let consensus_fork = parse_consensus_fork(network, &db, &matches)?;
+    // TODO:
+    let consensus_fork = ConsensusFork::BitcoinCore;
     let consensus = ConsensusParams::new(network, consensus_fork);
 
     let (in_connections, out_connections) = match network {
@@ -75,14 +76,9 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         Network::Regtest | Network::Unitest => 1,
     };
 
-    // to skip idiotic 30 seconds delay in test-scripts
-    let user_agent_suffix = match consensus.fork {
-        ConsensusFork::BitcoinCore => "",
-        ConsensusFork::BitcoinCash(_) => "/UAHF",
-    };
     let user_agent = match network {
         Network::Testnet | Network::Mainnet | Network::Unitest | Network::Other(_) => {
-            format!("{}{}", USER_AGENT, user_agent_suffix)
+            USER_AGENT.into()
         }
         Network::Regtest => REGTEST_USER_AGENT.into(),
     };
@@ -195,15 +191,6 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     };
 
     Ok(config)
-}
-
-fn parse_consensus_fork(
-    network: Network,
-    db: &storage::SharedStore,
-    matches: &clap::ArgMatches,
-) -> Result<ConsensusFork, String> {
-    // TODO:
-    Ok(ConsensusFork::BitcoinCore)
 }
 
 fn parse_rpc_config(network: Network, matches: &clap::ArgMatches) -> Result<RpcHttpConfig, String> {
