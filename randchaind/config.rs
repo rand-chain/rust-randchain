@@ -103,7 +103,6 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         None => None,
     };
 
-    // TODO:
     let seednodes: Vec<String> = match matches.value_of("seednode") {
         Some(s) => vec![s.parse().map_err(|_| "Invalid seednode".to_owned())?],
         None => match network {
