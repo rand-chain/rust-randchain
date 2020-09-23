@@ -1,8 +1,8 @@
 use chain::IndexedBlockHeader;
 use std::sync::Arc;
 use {
-    BestBlock, BlockChain, BlockHeaderProvider, BlockProvider, Error, Forkable,
-    TransactionMetaProvider, TransactionOutputProvider, TransactionProvider,
+    BestBlock, BlockChain, BlockHeaderProvider, BlockProvider, Forkable, TransactionMetaProvider,
+    TransactionOutputProvider, TransactionProvider,
 };
 
 pub trait CanonStore: Store + Forkable + ConfigStore {
