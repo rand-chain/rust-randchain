@@ -1,13 +1,16 @@
 use clap;
 use message::Services;
-use network::{BitcoinCashConsensusParams, ConsensusFork, ConsensusParams, Network};
+use network::{
+    // TODO:
+    ConsensusFork,
+    ConsensusParams,
+    Network,
+};
 use p2p::InternetProtocol;
 use primitives::hash::H256;
 use rpc::HttpConfiguration as RpcHttpConfig;
 use rpc_apis::ApiSet;
-use seednodes::{
-    bitcoin_cash_seednodes, bitcoin_cash_testnet_seednodes, mainnet_seednodes, testnet_seednodes,
-};
+use seednodes::{mainnet_seednodes, testnet_seednodes};
 use std::net;
 use storage;
 use sync::VerificationParameters;
