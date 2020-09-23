@@ -2,6 +2,7 @@ use hash::H256;
 use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use std::io;
 
+// TODO:
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(u32)]
 pub enum InventoryType {
@@ -15,6 +16,7 @@ pub enum InventoryType {
     MessageWitnessFilteredBlock = 0x40000003,
 }
 
+// TODO:
 impl InventoryType {
     pub fn from_u32(v: u32) -> Option<Self> {
         match v {
@@ -60,6 +62,7 @@ pub struct InventoryVector {
 }
 
 impl InventoryVector {
+    // TODO:
     pub fn tx(hash: H256) -> Self {
         InventoryVector {
             inv_type: InventoryType::MessageTx,
@@ -67,6 +70,7 @@ impl InventoryVector {
         }
     }
 
+    // TODO:
     pub fn witness_tx(hash: H256) -> Self {
         InventoryVector {
             inv_type: InventoryType::MessageWitnessTx,

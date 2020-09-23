@@ -3,7 +3,7 @@ use message::{common, types};
 use parking_lot::{Condvar, Mutex};
 use primitives::hash::H256;
 use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
@@ -493,7 +493,9 @@ where
             .storage
             .block_transaction_hashes(message.request.blockhash.clone().into());
         let block_transactions_len = block_transactions.len();
-        let requested_len = message.request.indexes.len();
+        // TODO:
+        // let requested_len = message.request.indexes.len();
+        let requested_len = 0;
         if requested_len > block_transactions_len {
             // peer has requested more transactions, than there are
             self.peers.misbehaving(
@@ -506,42 +508,43 @@ where
             return;
         }
 
-        let mut requested_indexes = HashSet::new();
-        let mut transactions = Vec::with_capacity(message.request.indexes.len());
-        for transaction_index in message.request.indexes {
-            if transaction_index >= block_transactions_len {
-                // peer has requested index, larger than index of last transaction
-                self.peers.misbehaving(peer_index, &format!("Got 'getblocktxn' message with index {}, larger than index of last transaction {}", transaction_index, block_transactions_len - 1));
-                return;
-            }
-            if !requested_indexes.insert(transaction_index) {
-                // peer has requested same index several times
-                self.peers.misbehaving(peer_index, &format!("Got 'getblocktxn' message where same index {} has been requested several times", transaction_index));
-                return;
-            }
+        // TODO:
+        // let mut requested_indexes = HashSet::new();
+        // let mut transactions = Vec::with_capacity(message.request.indexes.len());
+        // for transaction_index in message.request.indexes {
+        //     if transaction_index >= block_transactions_len {
+        //         // peer has requested index, larger than index of last transaction
+        //         self.peers.misbehaving(peer_index, &format!("Got 'getblocktxn' message with index {}, larger than index of last transaction {}", transaction_index, block_transactions_len - 1));
+        //         return;
+        //     }
+        //     if !requested_indexes.insert(transaction_index) {
+        //         // peer has requested same index several times
+        //         self.peers.misbehaving(peer_index, &format!("Got 'getblocktxn' message where same index {} has been requested several times", transaction_index));
+        //         return;
+        //     }
 
-            if let Some(transaction) = self
-                .storage
-                .transaction(&block_transactions[transaction_index])
-            {
-                transactions.push(transaction);
-            } else {
-                // we have just got this hash using block_transactions_hashes
-                // => this is either some db error, or db has been pruned
-                // => we can not skip transactions, according to protocol description
-                // => ignore
-                warn!(target: "sync", "'getblocktxn' request from peer#{} is ignored as we have failed to find transaction {} in storage", peer_index, block_transactions[transaction_index].to_reversed_str());
-                return;
-            }
-        }
+        //     if let Some(transaction) = self
+        //         .storage
+        //         .transaction(&block_transactions[transaction_index])
+        //     {
+        //         transactions.push(transaction);
+        //     } else {
+        //         // we have just got this hash using block_transactions_hashes
+        //         // => this is either some db error, or db has been pruned
+        //         // => we can not skip transactions, according to protocol description
+        //         // => ignore
+        //         warn!(target: "sync", "'getblocktxn' request from peer#{} is ignored as we have failed to find transaction {} in storage", peer_index, block_transactions[transaction_index].to_reversed_str());
+        //         return;
+        //     }
+        // }
 
-        trace!(target: "sync", "'getblocktxn' response to peer#{} is ready with {} transactions", peer_index, transactions.len());
+        // trace!(target: "sync", "'getblocktxn' response to peer#{} is ready with {} transactions", peer_index, transactions.len());
+        trace!(target: "sync", "'getblocktxn' response to peer#{} is ready", peer_index);
         self.executor.execute(Task::BlockTxn(
             peer_index,
             types::BlockTxn {
                 request: common::BlockTransactions {
                     blockhash: message.request.blockhash,
-                    transactions: transactions.into_iter().map(|tx| tx.raw).collect(),
                 },
             },
         ));

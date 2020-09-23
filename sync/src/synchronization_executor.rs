@@ -157,11 +157,13 @@ impl LocalSynchronizationTaskExecutor {
         }
     }
 
-    fn execute_block_txn(&self, peer_index: PeerIndex, blocktxn: types::BlockTxn) {
-        if let Some(connection) = self.peers.connection(peer_index) {
-            trace!(target: "sync", "Sending blocktxn with {} transactions to peer#{}", blocktxn.request.transactions.len(), peer_index);
-            connection.send_block_txn(&blocktxn);
-        }
+    fn execute_block_txn(&self, _peer_index: PeerIndex, _blocktxn: types::BlockTxn) {
+        // TODO:
+        unimplemented!()
+        // if let Some(connection) = self.peers.connection(peer_index) {
+        //     trace!(target: "sync", "Sending blocktxn with {} transactions to peer#{}", blocktxn.request.transactions.len(), peer_index);
+        //     connection.send_block_txn(&blocktxn);
+        // }
     }
 
     fn execute_notfound(&self, peer_index: PeerIndex, notfound: types::NotFound) {

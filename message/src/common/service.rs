@@ -23,10 +23,12 @@ impl Services {
         self
     }
 
+    // TODO:
     pub fn getutxo(&self) -> bool {
         self.bit_at(1)
     }
 
+    // TODO:
     pub fn with_getutxo(mut self, v: bool) -> Self {
         self.set_bit(1, v);
         self
@@ -59,10 +61,12 @@ impl Services {
         self
     }
 
+    // TODO:
     pub fn bitcoin_cash(&self) -> bool {
         self.bit_at(5)
     }
 
+    // TODO:
     pub fn with_bitcoin_cash(mut self, v: bool) -> Self {
         self.set_bit(5, v);
         self
