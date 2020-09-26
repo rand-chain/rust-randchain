@@ -1,4 +1,4 @@
-use chain::{IndexedBlock, IndexedTransaction};
+use chain::IndexedBlock;
 use network::ConsensusParams;
 use parking_lot::Mutex;
 use primitives::hash::H256;
@@ -22,16 +22,8 @@ pub trait BlockVerificationSink: Send + Sync + 'static {
     fn on_block_verification_error(&self, err: &str, hash: &H256);
 }
 
-/// Transaction verification events sink
-pub trait TransactionVerificationSink: Send + Sync + 'static {
-    /// When transaction verification has completed successfully.
-    fn on_transaction_verification_success(&self, transaction: IndexedTransaction);
-    /// When transaction verification has failed.
-    fn on_transaction_verification_error(&self, err: &str, hash: &H256);
-}
-
 /// Verification events sink
-pub trait VerificationSink: BlockVerificationSink + TransactionVerificationSink {}
+pub trait VerificationSink: BlockVerificationSink {}
 
 /// Verification thread tasks
 #[derive(Debug)]
@@ -346,30 +338,6 @@ pub mod tests {
                             );
                         } else {
                             sink.on_block_verification_success(block);
-                        }
-                    }
-                },
-                None => panic!("call set_sink"),
-            }
-        }
-
-        fn verify_transaction(&self, _height: BlockHeight, transaction: IndexedTransaction) {
-            match self.sink {
-                Some(ref sink) => match self.errors.get(&transaction.hash) {
-                    Some(err) => sink.on_transaction_verification_error(&err, &transaction.hash),
-                    None => {
-                        if self.actual_checks.contains(&transaction.hash) {
-                            let next_block_height =
-                                self.storage.as_ref().unwrap().best_block().number + 1;
-                            AsyncVerifier::execute_single_task(
-                                sink,
-                                self.storage.as_ref().unwrap(),
-                                self.memory_pool.as_ref().unwrap(),
-                                self.verifier.as_ref().unwrap(),
-                                VerificationTask::VerifyTransaction(next_block_height, transaction),
-                            );
-                        } else {
-                            sink.on_transaction_verification_success(transaction.into());
                         }
                     }
                 },

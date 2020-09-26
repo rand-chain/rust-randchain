@@ -1,16 +1,13 @@
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use futures::{finished, lazy};
 use message::types;
 use miner::BlockAssembler;
 use miner::BlockTemplate;
 use network::ConsensusParams;
-use parking_lot::{Condvar, Mutex};
-use primitives::hash::H256;
 use std::sync::Arc;
 use synchronization_client::Client;
 use synchronization_peers::{BlockAnnouncementType, TransactionAnnouncementType};
 use synchronization_server::{Server, ServerTask};
-use synchronization_verifier::TransactionVerificationSink;
 use time;
 use types::{
     ClientRef, MemoryPoolRef, PeerIndex, PeersRef, RequestId, ServerRef, StorageRef,
@@ -34,17 +31,6 @@ pub struct LocalNode<U: Server, V: Client> {
     client: ClientRef<V>,
     /// Synchronization server
     server: ServerRef<U>,
-}
-
-/// Transaction accept verification sink
-struct TransactionAcceptSink {
-    data: Arc<TransactionAcceptSinkData>,
-}
-
-#[derive(Default)]
-struct TransactionAcceptSinkData {
-    result: Mutex<Option<Result<H256, String>>>,
-    waiter: Condvar,
 }
 
 impl<U, V> LocalNode<U, V>
@@ -270,40 +256,6 @@ where
     /// Install synchronization events listener
     pub fn install_sync_listener(&self, listener: SyncListenerRef) {
         self.client.install_sync_listener(listener);
-    }
-}
-
-impl TransactionAcceptSink {
-    pub fn new(data: Arc<TransactionAcceptSinkData>) -> Self {
-        TransactionAcceptSink { data: data }
-    }
-
-    pub fn boxed(self) -> Box<Self> {
-        Box::new(self)
-    }
-}
-
-impl TransactionAcceptSinkData {
-    pub fn wait(&self) -> Result<H256, String> {
-        let mut lock = self.result.lock();
-        if lock.is_some() {
-            return lock.take().expect("checked line above");
-        }
-
-        self.waiter.wait(&mut lock);
-        lock.take().expect("waiter.wait returns only when result is set; lock.take() takes result from waiter.result; qed")
-    }
-}
-
-impl TransactionVerificationSink for TransactionAcceptSink {
-    fn on_transaction_verification_success(&self, tx: IndexedTransaction) {
-        *self.data.result.lock() = Some(Ok(tx.hash));
-        self.data.waiter.notify_all();
-    }
-
-    fn on_transaction_verification_error(&self, err: &str, _hash: &H256) {
-        *self.data.result.lock() = Some(Err(err.to_owned()));
-        self.data.waiter.notify_all();
     }
 }
 

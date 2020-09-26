@@ -16,9 +16,7 @@ use synchronization_manager::ManagementWorker;
 #[cfg(test)]
 use synchronization_peers_tasks::Information as PeersTasksInformation;
 use synchronization_peers_tasks::PeersTasks;
-use synchronization_verifier::{
-    BlockVerificationSink, TransactionVerificationSink, VerificationSink, VerificationTask,
-};
+use synchronization_verifier::{BlockVerificationSink, VerificationSink, VerificationTask};
 use time::precise_time_s;
 use types::{
     BlockHeight, ClientCoreRef, EmptyBoxFuture, PeerIndex, PeersRef, SyncListenerRef,
@@ -89,11 +87,6 @@ pub trait ClientCore {
     ) -> Option<VecDeque<IndexedTransaction>>;
     fn on_notfound(&mut self, peer_index: PeerIndex, message: types::NotFound);
     fn after_peer_nearly_blocks_verified(&mut self, peer_index: PeerIndex, future: EmptyBoxFuture);
-    fn accept_transaction(
-        &mut self,
-        transaction: IndexedTransaction,
-        sink: Box<dyn TransactionVerificationSink>,
-    ) -> Result<VecDeque<IndexedTransaction>, String>;
     fn install_sync_listener(&mut self, listener: SyncListenerRef);
     fn execute_synchronization_tasks(
         &mut self,
@@ -138,8 +131,6 @@ pub struct SynchronizationClientCore<T: TaskExecutor> {
     verifying_blocks_by_peer: HashMap<H256, PeerIndex>,
     /// Verifying blocks futures
     verifying_blocks_futures: HashMap<PeerIndex, (HashSet<H256>, Vec<EmptyBoxFuture>)>,
-    /// Verifying transactions futures
-    verifying_transactions_sinks: HashMap<H256, Box<dyn TransactionVerificationSink>>,
     /// Hashes of items we do not want to relay after verification is completed
     do_not_relay: HashSet<H256>,
     /// Block processing speed meter
@@ -657,26 +648,6 @@ where
         }
     }
 
-    fn accept_transaction(
-        &mut self,
-        transaction: IndexedTransaction,
-        sink: Box<dyn TransactionVerificationSink>,
-    ) -> Result<VecDeque<IndexedTransaction>, String> {
-        let hash = transaction.hash;
-        match self.try_append_transaction(transaction, true) {
-            Err(AppendTransactionError::Orphan(_)) => {
-                Err("Cannot append transaction as its inputs are unknown".to_owned())
-            }
-            Err(AppendTransactionError::Synchronizing) => {
-                Err("Cannot append transaction as node is not yet fully synchronized".to_owned())
-            }
-            Ok(transactions) => {
-                self.verifying_transactions_sinks.insert(hash, sink);
-                Ok(transactions)
-            }
-        }
-    }
-
     fn install_sync_listener(&mut self, listener: SyncListenerRef) {
         // currently single, single-setup listener is supported
         assert!(self.listener.is_none());
@@ -936,25 +907,6 @@ where
     }
 }
 
-impl<T> TransactionVerificationSink for CoreVerificationSink<T>
-where
-    T: TaskExecutor,
-{
-    /// Process successful transaction verification
-    fn on_transaction_verification_success(&self, transaction: IndexedTransaction) {
-        self.core
-            .lock()
-            .on_transaction_verification_success(transaction)
-    }
-
-    /// Process failed transaction verification
-    fn on_transaction_verification_error(&self, err: &str, hash: &H256) {
-        self.core
-            .lock()
-            .on_transaction_verification_error(err, hash)
-    }
-}
-
 impl<T> SynchronizationClientCore<T>
 where
     T: TaskExecutor,
@@ -982,7 +934,6 @@ where
             verify_headers: true,
             verifying_blocks_by_peer: HashMap::new(),
             verifying_blocks_futures: HashMap::new(),
-            verifying_transactions_sinks: HashMap::new(),
             do_not_relay: HashSet::new(),
             block_speed_meter: AverageSpeedMeter::with_inspect_items(SYNC_SPEED_BLOCKS_TO_INSPECT),
             sync_speed_meter: AverageSpeedMeter::with_inspect_items(BLOCKS_SPEED_BLOCKS_TO_INSPECT),
@@ -1446,38 +1397,6 @@ where
 
         // start new tasks
         self.execute_synchronization_tasks(None, None);
-    }
-
-    fn on_transaction_verification_success(&mut self, transaction: IndexedTransaction) {
-        // insert transaction to the memory pool
-        // remove transaction from verification queue
-        // if it is not in the queue => it was removed due to error or reorganization
-        if !self.chain.forget_verifying_transaction(&transaction.hash) {
-            return;
-        }
-
-        // transaction was in verification queue => insert to memory pool
-        self.chain.insert_verified_transaction(transaction.clone());
-
-        // call verification future, if any
-        if let Some(future_sink) = self.verifying_transactions_sinks.remove(&transaction.hash) {
-            future_sink.on_transaction_verification_success(transaction);
-        }
-    }
-
-    fn on_transaction_verification_error(&mut self, err: &str, hash: &H256) {
-        warn!(target: "sync", "Transaction {} verification failed with error {:?}", hash.to_reversed_str(), err);
-
-        // remove flags
-        self.do_not_relay.remove(hash);
-
-        // forget for this transaction and all its children
-        self.chain.forget_verifying_transaction_with_children(hash);
-
-        // call verification future, if any
-        if let Some(future_sink) = self.verifying_transactions_sinks.remove(hash) {
-            future_sink.on_transaction_verification_error(err, hash);
-        }
     }
 
     /// Execute futures, which were waiting for this block verification

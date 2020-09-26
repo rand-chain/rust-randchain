@@ -8,8 +8,7 @@ use std::sync::Arc;
 use storage;
 use synchronization_chain::Chain;
 use synchronization_verifier::{
-    BlockVerificationSink, SyncVerifier, TransactionVerificationSink, VerificationSink,
-    VerificationTask, Verifier,
+    BlockVerificationSink, SyncVerifier, VerificationSink, VerificationTask, Verifier,
 };
 use types::StorageRef;
 use utils::OrphanBlocksPool;
@@ -142,16 +141,6 @@ impl BlockVerificationSink for BlocksWriterSink {
 
     fn on_block_verification_error(&self, err: &str, _hash: &H256) {
         self.data.lock().err = Some(Error::Verification(err.into()));
-    }
-}
-
-impl TransactionVerificationSink for BlocksWriterSink {
-    fn on_transaction_verification_success(&self, _transaction: chain::IndexedTransaction) {
-        unreachable!("not intended to verify transactions")
-    }
-
-    fn on_transaction_verification_error(&self, _err: &str, _hash: &H256) {
-        unreachable!("not intended to verify transactions")
     }
 }
 
