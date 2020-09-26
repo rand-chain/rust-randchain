@@ -1,10 +1,10 @@
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use message::types;
 use parking_lot::Mutex;
 use std::sync::Arc;
 use synchronization_client_core::{ClientCore, SynchronizationClientCore};
 use synchronization_executor::TaskExecutor;
-use synchronization_verifier::{TransactionVerificationSink, Verifier};
+use synchronization_verifier::Verifier;
 use types::{ClientCoreRef, EmptyBoxFuture, PeerIndex, SyncListenerRef, SynchronizationStateRef};
 
 #[cfg_attr(feature = "cargo-clippy", allow(doc_markdown))]
@@ -126,14 +126,8 @@ pub trait Client: Send + Sync + 'static {
     fn on_inventory(&self, peer_index: PeerIndex, message: types::Inv);
     fn on_headers(&self, peer_index: PeerIndex, headers: Vec<IndexedBlockHeader>);
     fn on_block(&self, peer_index: PeerIndex, block: IndexedBlock);
-    fn on_transaction(&self, peer_index: PeerIndex, transaction: IndexedTransaction);
     fn on_notfound(&self, peer_index: PeerIndex, message: types::NotFound);
     fn after_peer_nearly_blocks_verified(&self, peer_index: PeerIndex, future: EmptyBoxFuture);
-    fn accept_transaction(
-        &self,
-        transaction: IndexedTransaction,
-        sink: Box<dyn TransactionVerificationSink>,
-    ) -> Result<(), String>;
     fn install_sync_listener(&self, listener: SyncListenerRef);
 }
 
@@ -196,24 +190,6 @@ where
         }
     }
 
-    fn on_transaction(&self, peer_index: PeerIndex, transaction: IndexedTransaction) {
-        // block can became:
-        // ignored, orphaned => no verification should occur
-        // on-time => this transaction + all dependent orphaned should be verified
-        let transactions_to_verify = self.core.lock().on_transaction(peer_index, transaction);
-
-        if let Some(mut transactions_to_verify) = transactions_to_verify {
-            // it is not actual height of block this transaction will be included to
-            // => it possibly will be invalid if included in later blocks
-            // => mined block can be rejected
-            // => we should verify blocks we mine
-            let next_block_height = self.shared_state.best_storage_block_height() + 1;
-            while let Some(tx) = transactions_to_verify.pop_front() {
-                self.verifier.verify_transaction(next_block_height, tx);
-            }
-        }
-    }
-
     fn on_notfound(&self, peer_index: PeerIndex, message: types::NotFound) {
         self.core.lock().on_notfound(peer_index, message);
     }
@@ -222,20 +198,6 @@ where
         self.core
             .lock()
             .after_peer_nearly_blocks_verified(peer_index, future);
-    }
-
-    fn accept_transaction(
-        &self,
-        transaction: IndexedTransaction,
-        sink: Box<dyn TransactionVerificationSink>,
-    ) -> Result<(), String> {
-        let mut transactions_to_verify = self.core.lock().accept_transaction(transaction, sink)?;
-
-        let next_block_height = self.shared_state.best_storage_block_height() + 1;
-        while let Some(tx) = transactions_to_verify.pop_front() {
-            self.verifier.verify_transaction(next_block_height, tx);
-        }
-        Ok(())
     }
 
     fn install_sync_listener(&self, listener: SyncListenerRef) {

@@ -1,47 +1,14 @@
-use chain::{IndexedTransaction as GlobalIndexedTransaction, Transaction as GlobalTransaction};
-use global_script::Script;
-use jsonrpc_core::Error;
-use jsonrpc_macros::Trailing;
-use keys::Address;
-use network::{ConsensusFork, Network};
-use primitives::bytes::Bytes as GlobalBytes;
-use primitives::hash::H256 as GlobalH256;
-use ser::{deserialize, serialize, Reader, Serializable, SERIALIZE_TRANSACTION_WITNESS};
+use network::Network;
 use storage;
 use sync;
-use v1::helpers::errors::{
-    execution, invalid_params, transaction_not_found, transaction_of_side_branch,
-};
 use v1::traits::Raw;
-use v1::types::H256;
-use v1::types::{
-    GetRawTransactionResponse, RawTransaction, SignedTransactionInput, SignedTransactionOutput,
-    Transaction, TransactionInput, TransactionInputScript, TransactionOutput,
-    TransactionOutputScript, TransactionOutputs,
-};
 
 pub struct RawClient<T: RawClientCoreApi> {
     core: T,
 }
 
-pub trait RawClientCoreApi: Send + Sync + 'static {
-    fn accept_transaction(&self, transaction: GlobalTransaction) -> Result<GlobalH256, String>;
-    fn create_raw_transaction(
-        &self,
-        inputs: Vec<TransactionInput>,
-        outputs: TransactionOutputs,
-        lock_time: Trailing<u32>,
-    ) -> Result<GlobalTransaction, String>;
-    fn get_raw_transaction(
-        &self,
-        hash: GlobalH256,
-        verbose: bool,
-    ) -> Result<GetRawTransactionResponse, Error>;
-    fn transaction_to_verbose_transaction(
-        &self,
-        transaction: GlobalIndexedTransaction,
-    ) -> Transaction;
-}
+// TODO:
+pub trait RawClientCoreApi: Send + Sync + 'static {}
 
 pub struct RawClientCore {
     network: Network,
@@ -49,6 +16,7 @@ pub struct RawClientCore {
     storage: storage::SharedStore,
 }
 
+// TODO:
 impl RawClientCore {
     pub fn new(
         network: Network,
@@ -61,239 +29,10 @@ impl RawClientCore {
             storage,
         }
     }
-
-    pub fn do_create_raw_transaction(
-        inputs: Vec<TransactionInput>,
-        outputs: TransactionOutputs,
-        lock_time: Trailing<u32>,
-    ) -> Result<GlobalTransaction, String> {
-        use global_script::Builder as ScriptBuilder;
-
-        // to make lock_time work at least one input must have sequnce < SEQUENCE_FINAL
-        let lock_time = lock_time.unwrap_or_default();
-        let default_sequence = if lock_time != 0 {
-            chain::constants::SEQUENCE_FINAL - 1
-        } else {
-            chain::constants::SEQUENCE_FINAL
-        };
-
-        // prepare inputs
-        let inputs: Vec<_> = inputs
-            .into_iter()
-            .map(|input| chain::TransactionInput {
-                previous_output: chain::OutPoint {
-                    hash: Into::<GlobalH256>::into(input.txid).reversed(),
-                    index: input.vout,
-                },
-                script_sig: GlobalBytes::new(), // default script
-                sequence: input.sequence.unwrap_or(default_sequence),
-                script_witness: vec![],
-            })
-            .collect();
-
-        // prepare outputs
-        let outputs: Vec<_> = outputs
-            .outputs
-            .into_iter()
-            .map(|output| match output {
-                TransactionOutput::Address(with_address) => {
-                    let amount_in_satoshis =
-                        (with_address.amount * (chain::constants::SATOSHIS_IN_COIN as f64)) as u64;
-                    let script = match with_address.address.kind {
-                        keys::Type::P2PKH => ScriptBuilder::build_p2pkh(&with_address.address.hash),
-                        keys::Type::P2SH => ScriptBuilder::build_p2sh(&with_address.address.hash),
-                    };
-
-                    chain::TransactionOutput {
-                        value: amount_in_satoshis,
-                        script_pubkey: script.to_bytes(),
-                    }
-                }
-                TransactionOutput::ScriptData(with_script_data) => {
-                    let script = ScriptBuilder::default()
-                        .return_bytes(&*with_script_data.script_data)
-                        .into_script();
-
-                    chain::TransactionOutput {
-                        value: 0,
-                        script_pubkey: script.to_bytes(),
-                    }
-                }
-            })
-            .collect();
-
-        // now construct && serialize transaction
-        let transaction = GlobalTransaction {
-            version: 1,
-            inputs: inputs,
-            outputs: outputs,
-            lock_time: lock_time,
-        };
-
-        Ok(transaction)
-    }
 }
 
-impl RawClientCoreApi for RawClientCore {
-    fn accept_transaction(&self, transaction: GlobalTransaction) -> Result<GlobalH256, String> {
-        self.local_sync_node
-            .accept_transaction(GlobalIndexedTransaction::from_raw(transaction))
-    }
-
-    fn create_raw_transaction(
-        &self,
-        inputs: Vec<TransactionInput>,
-        outputs: TransactionOutputs,
-        lock_time: Trailing<u32>,
-    ) -> Result<GlobalTransaction, String> {
-        RawClientCore::do_create_raw_transaction(inputs, outputs, lock_time)
-    }
-
-    fn get_raw_transaction(
-        &self,
-        hash: GlobalH256,
-        verbose: bool,
-    ) -> Result<GetRawTransactionResponse, Error> {
-        let transaction = match self.storage.transaction(&hash) {
-            Some(transaction) => transaction,
-            None => return Err(transaction_not_found(hash)),
-        };
-
-        let transaction_bytes = serialize(&transaction.raw);
-        let raw_transaction = RawTransaction::new(transaction_bytes.take());
-
-        if verbose {
-            let meta = match self.storage.transaction_meta(&hash) {
-                Some(meta) => meta,
-                None => return Err(transaction_of_side_branch(hash)),
-            };
-
-            let block_header = match self.storage.block_header(meta.height().into()) {
-                Some(block_header) => block_header,
-                None => return Err(transaction_not_found(hash)),
-            };
-
-            let best_block = self.storage.best_block();
-            if best_block.number < meta.height() {
-                return Err(transaction_not_found(hash));
-            }
-
-            let blockhash: H256 = block_header.hash.into();
-
-            let mut verbose_transaction = self.transaction_to_verbose_transaction(transaction);
-            verbose_transaction.hex = Some(raw_transaction);
-            verbose_transaction.blockhash = Some(blockhash.reversed());
-            verbose_transaction.confirmations = Some(best_block.number - meta.height() + 1);
-            verbose_transaction.time = Some(block_header.raw.time);
-            verbose_transaction.blocktime = Some(block_header.raw.time);
-
-            Ok(GetRawTransactionResponse::Verbose(verbose_transaction))
-        } else {
-            Ok(GetRawTransactionResponse::Raw(raw_transaction))
-        }
-    }
-
-    fn transaction_to_verbose_transaction(
-        &self,
-        transaction: GlobalIndexedTransaction,
-    ) -> Transaction {
-        let txid: H256 = transaction.hash.into();
-        let hash: H256 = transaction.raw.witness_hash().into();
-
-        let inputs = transaction
-            .raw
-            .inputs
-            .clone()
-            .into_iter()
-            .map(|input| {
-                let txid: H256 = input.previous_output.hash.into();
-                let script_sig_bytes = input.script_sig;
-                let script_sig: Script = script_sig_bytes.clone().into();
-                let script_sig_asm = format!("{}", script_sig);
-                SignedTransactionInput {
-                    txid: txid.reversed(),
-                    vout: input.previous_output.index,
-                    script_sig: TransactionInputScript {
-                        asm: script_sig_asm,
-                        hex: script_sig_bytes.clone().into(),
-                    },
-                    sequence: input.sequence,
-                    txinwitness: if input.script_witness.is_empty() {
-                        None
-                    } else {
-                        Some(
-                            input
-                                .script_witness
-                                .into_iter()
-                                .map(|s| s.clone().into())
-                                .collect(),
-                        )
-                    },
-                }
-            })
-            .collect();
-
-        let outputs = transaction
-            .raw
-            .outputs
-            .clone()
-            .into_iter()
-            .enumerate()
-            .map(|(index, output)| {
-                let script_pubkey_bytes = output.script_pubkey;
-                let script_pubkey: Script = script_pubkey_bytes.clone().into();
-                let script_pubkey_asm = format!("{}", script_pubkey);
-                let script_addresses = script_pubkey.extract_destinations().unwrap_or(vec![]);
-                SignedTransactionOutput {
-                    value: 0.00000001f64 * output.value as f64,
-                    n: index as u32,
-                    script: TransactionOutputScript {
-                        asm: script_pubkey_asm,
-                        hex: script_pubkey_bytes.clone().into(),
-                        req_sigs: script_pubkey.num_signatures_required() as u32,
-                        script_type: script_pubkey.script_type().into(),
-                        addresses: script_addresses
-                            .into_iter()
-                            .map(|address| Address {
-                                hash: address.hash,
-                                kind: address.kind,
-                                network: match self.network {
-                                    Network::Mainnet => keys::Network::Mainnet,
-                                    _ => keys::Network::Testnet,
-                                },
-                            })
-                            .collect(),
-                    },
-                }
-            })
-            .collect();
-
-        let tx_size = transaction
-            .raw
-            .serialized_size_with_flags(SERIALIZE_TRANSACTION_WITNESS);
-        let weight = transaction.raw.serialized_size()
-            * (ConsensusFork::witness_scale_factor() - 1)
-            + tx_size;
-        let tx_vsize = (weight + ConsensusFork::witness_scale_factor() - 1)
-            / ConsensusFork::witness_scale_factor();
-
-        Transaction {
-            hex: None,
-            txid: txid.reversed(),
-            hash: hash.reversed(),
-            size: tx_size,
-            vsize: tx_vsize,
-            version: transaction.raw.version,
-            locktime: transaction.raw.lock_time as i32,
-            vin: inputs,
-            vout: outputs,
-            blockhash: None,
-            confirmations: None,
-            time: None,
-            blocktime: None,
-        }
-    }
-}
+// TODO:
+impl RawClientCoreApi for RawClientCore {}
 
 impl<T> RawClient<T>
 where
@@ -304,63 +43,8 @@ where
     }
 }
 
-impl<T> Raw for RawClient<T>
-where
-    T: RawClientCoreApi,
-{
-    fn send_raw_transaction(&self, raw_transaction: RawTransaction) -> Result<H256, Error> {
-        let raw_transaction_data: Vec<u8> = raw_transaction.into();
-        let transaction =
-            deserialize(Reader::new(&raw_transaction_data)).map_err(|e| invalid_params("tx", e))?;
-        self.core
-            .accept_transaction(transaction)
-            .map(|h| h.reversed().into())
-            .map_err(|e| execution(e))
-    }
-
-    fn create_raw_transaction(
-        &self,
-        inputs: Vec<TransactionInput>,
-        outputs: TransactionOutputs,
-        lock_time: Trailing<u32>,
-    ) -> Result<RawTransaction, Error> {
-        // reverse hashes of inputs
-        let inputs: Vec<_> = inputs
-            .into_iter()
-            .map(|mut input| {
-                input.txid = input.txid.reversed();
-                input
-            })
-            .collect();
-
-        let transaction = self
-            .core
-            .create_raw_transaction(inputs, outputs, lock_time)
-            .map_err(|e| execution(e))?;
-        let transaction = serialize(&transaction);
-        Ok(transaction.into())
-    }
-
-    fn decode_raw_transaction(
-        &self,
-        raw_transaction: RawTransaction,
-    ) -> Result<Transaction, Error> {
-        let raw_transaction_data: Vec<u8> = raw_transaction.into();
-        let transaction =
-            deserialize(Reader::new(&raw_transaction_data)).map_err(|e| invalid_params("tx", e))?;
-        Ok(self.core.transaction_to_verbose_transaction(transaction))
-    }
-
-    fn get_raw_transaction(
-        &self,
-        hash: H256,
-        verbose: Trailing<bool>,
-    ) -> Result<GetRawTransactionResponse, Error> {
-        let global_hash: GlobalH256 = hash.clone().into();
-        self.core
-            .get_raw_transaction(global_hash.reversed(), verbose.unwrap_or_default())
-    }
-}
+// TODO:
+impl<T> Raw for RawClient<T> where T: RawClientCoreApi {}
 
 #[cfg(test)]
 pub mod tests {

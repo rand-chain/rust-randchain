@@ -1401,19 +1401,8 @@ where
                 }
 
                 // deal with block transactions
-                let mut verification_tasks: Vec<VerificationTask> =
-                    Vec::with_capacity(insert_result.transactions_to_reverify.len());
-                let next_block_height = self.chain.best_block().number + 1;
-                for tx in insert_result.transactions_to_reverify {
-                    // do not relay resurrected transactions again
-                    if let Some(tx_orphans) = self.process_peer_transaction(None, tx.into(), false)
-                    {
-                        let tx_tasks = tx_orphans
-                            .into_iter()
-                            .map(|tx| VerificationTask::VerifyTransaction(next_block_height, tx));
-                        verification_tasks.extend(tx_tasks);
-                    };
-                }
+                let verification_tasks: Vec<VerificationTask> = Vec::with_capacity(0);
+                // Vec::with_capacity(insert_result.transactions_to_reverify.len());
                 Some(verification_tasks)
             }
             Err(e) => {

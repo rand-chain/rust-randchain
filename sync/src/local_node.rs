@@ -115,12 +115,6 @@ where
         self.client.on_headers(peer_index, headers);
     }
 
-    /// When transaction is received
-    pub fn on_transaction(&self, peer_index: PeerIndex, tx: IndexedTransaction) {
-        trace!(target: "sync", "Got `transaction` message from peer#{}. Tx hash: {}", peer_index, tx.hash.to_reversed_str());
-        self.client.on_transaction(peer_index, tx);
-    }
-
     /// When block is received
     pub fn on_block(&self, peer_index: PeerIndex, block: IndexedBlock) {
         trace!(target: "sync", "Got `block` message from peer#{}. Block hash: {}", peer_index, block.header.hash.to_reversed_str());
@@ -237,18 +231,6 @@ where
         // we never ask compact block from peers => misbehaving
         self.peers
             .misbehaving(peer_index, "Got unrequested 'cmpctblock' message");
-    }
-
-    /// Verify and then schedule new transaction
-    pub fn accept_transaction(&self, transaction: IndexedTransaction) -> Result<H256, String> {
-        let sink_data = Arc::new(TransactionAcceptSinkData::default());
-        let sink = TransactionAcceptSink::new(sink_data.clone()).boxed();
-        {
-            if let Err(err) = self.client.accept_transaction(transaction, sink) {
-                return Err(err.into());
-            }
-        }
-        sink_data.wait()
     }
 
     /// Get block template for mining

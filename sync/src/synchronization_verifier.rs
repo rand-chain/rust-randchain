@@ -7,8 +7,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Arc;
 use std::thread;
-use time::get_time;
-use types::{BlockHeight, MemoryPoolRef, StorageRef};
+use types::{MemoryPoolRef, StorageRef};
 use verification::{
     BackwardsCompatibleChainVerifier as ChainVerifier, Error as VerificationError,
     VerificationLevel, Verify as VerificationVerify,
@@ -47,8 +46,6 @@ pub enum VerificationTask {
 pub trait Verifier: Send + Sync + 'static {
     /// Verify block
     fn verify_block(&self, block: IndexedBlock);
-    /// Verify transaction
-    fn verify_transaction(&self, height: BlockHeight, transaction: IndexedTransaction);
 }
 
 /// Asynchronous synchronization verifier
@@ -106,15 +103,7 @@ impl ChainVerifierWrapper {
     }
 }
 
-impl VerificationTask {
-    /// Returns transaction reference if it is transaction verification task
-    pub fn transaction(&self) -> Option<&IndexedTransaction> {
-        match *self {
-            VerificationTask::VerifyTransaction(_, ref transaction) => Some(transaction),
-            _ => None,
-        }
-    }
-}
+impl VerificationTask {}
 
 impl AsyncVerifier {
     /// Create new async verifier
@@ -223,14 +212,6 @@ impl Verifier for AsyncVerifier {
             .send(VerificationTask::VerifyBlock(block))
             .expect("Verification thread have the same lifetime as `AsyncVerifier`");
     }
-
-    /// Verify transaction
-    fn verify_transaction(&self, height: BlockHeight, transaction: IndexedTransaction) {
-        self.verification_work_sender
-            .lock()
-            .send(VerificationTask::VerifyTransaction(height, transaction))
-            .expect("Verification thread have the same lifetime as `AsyncVerifier`");
-    }
 }
 
 /// Synchronous synchronization verifier
@@ -278,11 +259,6 @@ where
                 .sink
                 .on_block_verification_error(&format!("{:?}", e), block.hash()),
         }
-    }
-
-    /// Verify transaction
-    fn verify_transaction(&self, _height: BlockHeight, _transaction: IndexedTransaction) {
-        unimplemented!() // sync verifier is currently only used for blocks verification
     }
 }
 
