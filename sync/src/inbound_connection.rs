@@ -192,14 +192,6 @@ impl InboundSyncConnection for InboundConnection {
         self.node.on_compact_block(self.peer_index, message);
     }
 
-    fn on_get_block_txn(&self, message: types::GetBlockTxn) {
-        self.node.on_get_block_txn(self.peer_index, message);
-    }
-
-    fn on_block_txn(&self, message: types::BlockTxn) {
-        self.node.on_block_txn(self.peer_index, message);
-    }
-
     fn on_notfound(&self, message: types::NotFound) {
         self.node.on_notfound(self.peer_index, message);
     }

@@ -170,18 +170,6 @@ where
         self.server.execute(ServerTask::Mempool(peer_index));
     }
 
-    /// When peer asks us from specific transactions from specific block
-    pub fn on_get_block_txn(&self, peer_index: PeerIndex, message: types::GetBlockTxn) {
-        if self.state.synchronizing() {
-            trace!(target: "sync", "Ignored `getblocktxn` message from peer#{}", peer_index);
-            return;
-        }
-
-        trace!(target: "sync", "Got `getblocktxn` message from peer#{}", peer_index);
-        self.server
-            .execute(ServerTask::GetBlockTxn(peer_index, message));
-    }
-
     /// When peer sets bloom filter for connection
     pub fn on_filterload(&self, peer_index: PeerIndex, message: types::FilterLoad) {
         trace!(target: "sync", "Got `filterload` message from peer#{}", peer_index);
@@ -249,14 +237,6 @@ where
         // we never ask compact block from peers => misbehaving
         self.peers
             .misbehaving(peer_index, "Got unrequested 'cmpctblock' message");
-    }
-
-    /// When peer sents us specific transactions for specific block
-    pub fn on_block_txn(&self, peer_index: PeerIndex, _message: types::BlockTxn) {
-        trace!(target: "sync", "Got `blocktxn` message from peer#{}", peer_index);
-        // we never ask for this => misbehaving
-        self.peers
-            .misbehaving(peer_index, "Got unrequested 'blocktxn' message");
     }
 
     /// Verify and then schedule new transaction

@@ -31,8 +31,6 @@ pub enum Task {
     CompactBlock(PeerIndex, H256, types::CompactBlock),
     /// Send block with witness data
     WitnessBlock(PeerIndex, IndexedBlock),
-    /// Send block transactions
-    BlockTxn(PeerIndex, types::BlockTxn),
     /// Send notfound
     NotFound(PeerIndex, types::NotFound),
     /// Send inventory
@@ -127,15 +125,6 @@ impl LocalSynchronizationTaskExecutor {
         }
     }
 
-    fn execute_block_txn(&self, _peer_index: PeerIndex, _blocktxn: types::BlockTxn) {
-        // TODO:
-        unimplemented!()
-        // if let Some(connection) = self.peers.connection(peer_index) {
-        //     trace!(target: "sync", "Sending blocktxn with {} transactions to peer#{}", blocktxn.request.transactions.len(), peer_index);
-        //     connection.send_block_txn(&blocktxn);
-        // }
-    }
-
     fn execute_notfound(&self, peer_index: PeerIndex, notfound: types::NotFound) {
         if let Some(connection) = self.peers.connection(peer_index) {
             trace!(target: "sync", "Sending notfound to peer#{} with {} items", peer_index, notfound.inventory.len());
@@ -212,7 +201,6 @@ impl TaskExecutor for LocalSynchronizationTaskExecutor {
                 self.execute_compact_block(peer_index, hash, block)
             }
             Task::WitnessBlock(peer_index, block) => self.execute_witness_block(peer_index, block),
-            Task::BlockTxn(peer_index, blocktxn) => self.execute_block_txn(peer_index, blocktxn),
             Task::NotFound(peer_index, notfound) => self.execute_notfound(peer_index, notfound),
             Task::Inventory(peer_index, inventory) => self.execute_inventory(peer_index, inventory),
             Task::Headers(peer_index, headers, request_id) => {
