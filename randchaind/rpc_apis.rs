@@ -5,8 +5,6 @@ use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum Api {
-    /// Raw methods
-    Raw,
     /// Miner-related methods
     Miner,
     /// BlockChain-related methods
@@ -23,7 +21,7 @@ pub enum ApiSet {
 impl Default for ApiSet {
     fn default() -> Self {
         ApiSet::List(
-            vec![Api::Raw, Api::Miner, Api::BlockChain, Api::Network]
+            vec![Api::Miner, Api::BlockChain, Api::Network]
                 .into_iter()
                 .collect(),
         )
@@ -35,7 +33,6 @@ impl FromStr for Api {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "raw" => Ok(Api::Raw),
             "miner" => Ok(Api::Miner),
             "blockchain" => Ok(Api::BlockChain),
             "network" => Ok(Api::Network),
@@ -61,14 +58,6 @@ pub fn setup_rpc(
 
     for api in apis.list_apis() {
         match api {
-            Api::Raw => handler.extend_with(
-                RawClient::new(RawClientCore::new(
-                    deps.network,
-                    deps.local_sync_node.clone(),
-                    deps.storage.clone(),
-                ))
-                .to_delegate(),
-            ),
             Api::Miner => handler.extend_with(
                 MinerClient::new(MinerClientCore::new(deps.local_sync_node.clone())).to_delegate(),
             ),
