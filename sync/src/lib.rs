@@ -135,7 +135,6 @@ pub fn create_local_sync_node(
     let sync_server = Arc::new(ServerImpl::new(
         peers.clone(),
         db.clone(),
-        memory_pool.clone(),
         sync_executor.clone(),
     ));
     let sync_client_core = SynchronizationClientCore::new(

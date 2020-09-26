@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
 use synchronization_executor::{Task, TaskExecutor};
-use types::{BlockHeight, ExecutorRef, MemoryPoolRef, PeerIndex, PeersRef, RequestId, StorageRef};
+use types::{BlockHeight, ExecutorRef, PeerIndex, PeersRef, RequestId, StorageRef};
 use utils::KnownHashType;
 
 /// Synchronization server task
@@ -87,13 +87,8 @@ impl ServerTask {
 }
 
 impl ServerImpl {
-    pub fn new<T: TaskExecutor>(
-        peers: PeersRef,
-        storage: StorageRef,
-        memory_pool: MemoryPoolRef,
-        executor: Arc<T>,
-    ) -> Self {
-        let executor = ServerTaskExecutor::new(peers, storage, memory_pool, executor);
+    pub fn new<T: TaskExecutor>(peers: PeersRef, storage: StorageRef, executor: Arc<T>) -> Self {
+        let executor = ServerTaskExecutor::new(peers, storage, executor);
         let queue_ready = Arc::new(Condvar::new());
         let queue = Arc::new(Mutex::new(ServerQueue::new(queue_ready.clone())));
         let mut server = ServerImpl {
@@ -229,13 +224,7 @@ impl<TExecutor> ServerTaskExecutor<TExecutor>
 where
     TExecutor: TaskExecutor,
 {
-    pub fn new(
-        peers: PeersRef,
-        storage: StorageRef,
-        // TODO:
-        memory_pool: MemoryPoolRef,
-        executor: ExecutorRef<TExecutor>,
-    ) -> Self {
+    pub fn new(peers: PeersRef, storage: StorageRef, executor: ExecutorRef<TExecutor>) -> Self {
         ServerTaskExecutor {
             peers: peers,
             storage: storage,
