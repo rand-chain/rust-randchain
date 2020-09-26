@@ -1,4 +1,4 @@
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use message::types;
 use p2p::{InboundSyncConnection, InboundSyncConnectionRef, InboundSyncConnectionStateRef};
 use types::{LocalNodeRef, PeerIndex, PeersRef, RequestId};
@@ -87,13 +87,6 @@ impl InboundSyncConnection for InboundConnection {
 
     fn on_getheaders(&self, message: types::GetHeaders, id: RequestId) {
         self.node.on_getheaders(self.peer_index, message, id);
-    }
-
-    fn on_transaction(&self, message: types::Tx) {
-        let tx = IndexedTransaction::from_raw(message.transaction);
-        self.peers
-            .hash_known_as(self.peer_index, tx.hash.clone(), KnownHashType::Transaction);
-        self.node.on_transaction(self.peer_index, tx);
     }
 
     fn on_block(&self, message: types::Block) {

@@ -7,11 +7,11 @@ use std::io;
 #[repr(u32)]
 pub enum InventoryType {
     Error = 0,
-    MessageTx = 1,
+    // MessageTx = 1,
     MessageBlock = 2,
     MessageFilteredBlock = 3,
     MessageCompactBlock = 4,
-    MessageWitnessTx = 0x40000001,
+    // MessageWitnessTx = 0x40000001,
     MessageWitnessBlock = 0x40000002,
     MessageWitnessFilteredBlock = 0x40000003,
 }
@@ -21,11 +21,11 @@ impl InventoryType {
     pub fn from_u32(v: u32) -> Option<Self> {
         match v {
             0 => Some(InventoryType::Error),
-            1 => Some(InventoryType::MessageTx),
+            // 1 => Some(InventoryType::MessageTx),
             2 => Some(InventoryType::MessageBlock),
             3 => Some(InventoryType::MessageFilteredBlock),
             4 => Some(InventoryType::MessageCompactBlock),
-            0x40000001 => Some(InventoryType::MessageWitnessTx),
+            // 0x40000001 => Some(InventoryType::MessageWitnessTx),
             0x40000002 => Some(InventoryType::MessageWitnessBlock),
             0x40000003 => Some(InventoryType::MessageWitnessFilteredBlock),
             _ => None,
@@ -62,22 +62,6 @@ pub struct InventoryVector {
 }
 
 impl InventoryVector {
-    // TODO:
-    pub fn tx(hash: H256) -> Self {
-        InventoryVector {
-            inv_type: InventoryType::MessageTx,
-            hash: hash,
-        }
-    }
-
-    // TODO:
-    pub fn witness_tx(hash: H256) -> Self {
-        InventoryVector {
-            inv_type: InventoryType::MessageWitnessTx,
-            hash: hash,
-        }
-    }
-
     pub fn block(hash: H256) -> Self {
         InventoryVector {
             inv_type: InventoryType::MessageBlock,

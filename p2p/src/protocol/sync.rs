@@ -31,7 +31,6 @@ pub trait InboundSyncConnection: Send + Sync {
     fn on_getdata(&self, message: types::GetData);
     fn on_getblocks(&self, message: types::GetBlocks);
     fn on_getheaders(&self, message: types::GetHeaders, id: u32);
-    fn on_transaction(&self, message: types::Tx);
     fn on_block(&self, message: types::Block);
     fn on_headers(&self, message: types::Headers);
     fn on_mempool(&self, message: types::MemPool);
@@ -53,9 +52,7 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn send_getdata(&self, message: &types::GetData);
     fn send_getblocks(&self, message: &types::GetBlocks);
     fn send_getheaders(&self, message: &types::GetHeaders);
-    fn send_transaction(&self, message: &types::Tx);
     fn send_block(&self, message: &types::Block);
-    fn send_witness_transaction(&self, message: &types::Tx);
     fn send_witness_block(&self, message: &types::Block);
     fn send_headers(&self, message: &types::Headers);
     fn respond_headers(&self, message: &types::Headers, id: u32);
@@ -102,17 +99,8 @@ impl OutboundSyncConnection for OutboundSync {
         self.context.send_request(message);
     }
 
-    fn send_transaction(&self, message: &types::Tx) {
-        self.context.send_request(message);
-    }
-
     fn send_block(&self, message: &types::Block) {
         self.context.send_request(message);
-    }
-
-    fn send_witness_transaction(&self, message: &types::Tx) {
-        self.context
-            .send_request_with_flags(message, SERIALIZE_TRANSACTION_WITNESS);
     }
 
     fn send_witness_block(&self, message: &types::Block) {
@@ -260,16 +248,6 @@ impl Protocol for SyncProtocol {
                 types::GetHeaders::command()
             );
             self.inbound_connection.on_getheaders(message, id);
-        } else if command == &types::Tx::command() {
-            // we ignore all transactions while synchronizing, as memory pool contains
-            // only verified transactions && we can not verify on-top transactions while
-            // we are not on the top
-            if self.state.synchronizing() {
-                return Ok(());
-            }
-
-            let message: types::Tx = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_transaction(message);
         } else if command == &types::Block::command() {
             let message: types::Block = deserialize_payload(payload, version)?;
             self.inbound_connection.on_block(message);
@@ -307,6 +285,7 @@ impl Protocol for SyncProtocol {
         } else if command == &types::CompactBlock::command() {
             let message: types::CompactBlock = deserialize_payload(payload, version)?;
             self.inbound_connection.on_compact_block(message);
+        // TODO:
         } else if command == &types::GetBlockTxn::command() {
             if self.state.synchronizing() {
                 return Ok(());

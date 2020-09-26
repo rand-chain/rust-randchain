@@ -2,7 +2,6 @@ use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction};
 use futures::Future;
 use message::common::{InventoryType, InventoryVector};
 use message::types;
-use miner::transaction_fee_rate;
 use parking_lot::Mutex;
 use primitives::hash::H256;
 use std::cmp::{max, min};
@@ -256,11 +255,6 @@ where
             .into_iter()
             .filter(|item| {
                 match item.inv_type {
-                    // check that transaction is unknown to us
-                    InventoryType::MessageTx | InventoryType::MessageWitnessTx => {
-                        self.chain.transaction_state(&item.hash) == TransactionState::Unknown
-                            && !self.orphaned_transactions_pool.contains(&item.hash)
-                    }
                     // check that block is unknown to us
                     InventoryType::MessageBlock | InventoryType::MessageWitnessBlock => match self
                         .chain
@@ -307,10 +301,6 @@ where
                     item
                 } else {
                     match item.inv_type {
-                        InventoryType::MessageTx => InventoryVector {
-                            inv_type: InventoryType::MessageWitnessTx,
-                            hash: item.hash,
-                        },
                         InventoryType::MessageBlock => InventoryVector {
                             inv_type: InventoryType::MessageWitnessBlock,
                             hash: item.hash,
@@ -1470,9 +1460,6 @@ where
     }
 
     fn on_transaction_verification_success(&mut self, transaction: IndexedTransaction) {
-        // remove flags
-        let needs_relay = !self.do_not_relay.remove(&transaction.hash);
-
         // insert transaction to the memory pool
         // remove transaction from verification queue
         // if it is not in the queue => it was removed due to error or reorganization
@@ -1482,17 +1469,6 @@ where
 
         // transaction was in verification queue => insert to memory pool
         self.chain.insert_verified_transaction(transaction.clone());
-
-        // calculate transaction fee rate
-        let transaction_fee_rate = transaction_fee_rate(&self.chain, &transaction.raw);
-
-        // relay transaction to peers
-        if needs_relay {
-            self.executor.execute(Task::RelayNewTransaction(
-                transaction.clone(),
-                transaction_fee_rate,
-            ));
-        }
 
         // call verification future, if any
         if let Some(future_sink) = self.verifying_transactions_sinks.remove(&transaction.hash) {

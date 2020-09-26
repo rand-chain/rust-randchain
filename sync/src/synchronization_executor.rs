@@ -1,9 +1,9 @@
-use chain::{IndexedBlock, IndexedTransaction};
+use chain::IndexedBlock;
 use message::common::InventoryVector;
 use message::types;
 use primitives::hash::H256;
 use std::sync::Arc;
-use synchronization_peers::{BlockAnnouncementType, TransactionAnnouncementType};
+use synchronization_peers::BlockAnnouncementType;
 use types::{PeerIndex, PeersRef, RequestId};
 use utils::KnownHashType;
 
@@ -31,10 +31,6 @@ pub enum Task {
     CompactBlock(PeerIndex, H256, types::CompactBlock),
     /// Send block with witness data
     WitnessBlock(PeerIndex, IndexedBlock),
-    /// Send transaction
-    Transaction(PeerIndex, IndexedTransaction),
-    /// Send transaction with witness data
-    WitnessTransaction(PeerIndex, IndexedTransaction),
     /// Send block transactions
     BlockTxn(PeerIndex, types::BlockTxn),
     /// Send notfound
@@ -45,8 +41,6 @@ pub enum Task {
     Headers(PeerIndex, types::Headers, Option<RequestId>),
     /// Relay new block to peers
     RelayNewBlock(IndexedBlock),
-    /// Relay new transaction to peers
-    RelayNewTransaction(IndexedTransaction, u64),
 }
 
 /// Synchronization tasks executor
@@ -133,30 +127,6 @@ impl LocalSynchronizationTaskExecutor {
         }
     }
 
-    fn execute_transaction(&self, peer_index: PeerIndex, transaction: IndexedTransaction) {
-        if let Some(connection) = self.peers.connection(peer_index) {
-            trace!(target: "sync", "Sending transaction {} to peer#{}", transaction.hash.to_reversed_str(), peer_index);
-            self.peers
-                .hash_known_as(peer_index, transaction.hash, KnownHashType::Transaction);
-            let transaction = types::Tx {
-                transaction: transaction.raw,
-            };
-            connection.send_transaction(&transaction);
-        }
-    }
-
-    fn execute_witness_transaction(&self, peer_index: PeerIndex, transaction: IndexedTransaction) {
-        if let Some(connection) = self.peers.connection(peer_index) {
-            trace!(target: "sync", "Sending witness transaction {} to peer#{}", transaction.hash.to_reversed_str(), peer_index);
-            self.peers
-                .hash_known_as(peer_index, transaction.hash, KnownHashType::Transaction);
-            let transaction = types::Tx {
-                transaction: transaction.raw,
-            };
-            connection.send_witness_transaction(&transaction);
-        }
-    }
-
     fn execute_block_txn(&self, _peer_index: PeerIndex, _blocktxn: types::BlockTxn) {
         // TODO:
         unimplemented!()
@@ -223,21 +193,6 @@ impl LocalSynchronizationTaskExecutor {
             }
         }
     }
-
-    fn execute_relay_transaction(&self, transaction: IndexedTransaction, fee_rate: u64) {
-        for peer_index in self.peers.enumerate() {
-            match self
-                .peers
-                .filter_transaction(peer_index, &transaction, Some(fee_rate))
-            {
-                TransactionAnnouncementType::SendInventory => self.execute_inventory(
-                    peer_index,
-                    types::Inv::with_inventory(vec![InventoryVector::tx(transaction.hash.clone())]),
-                ),
-                TransactionAnnouncementType::DoNotAnnounce => (),
-            }
-        }
-    }
 }
 
 impl TaskExecutor for LocalSynchronizationTaskExecutor {
@@ -257,12 +212,6 @@ impl TaskExecutor for LocalSynchronizationTaskExecutor {
                 self.execute_compact_block(peer_index, hash, block)
             }
             Task::WitnessBlock(peer_index, block) => self.execute_witness_block(peer_index, block),
-            Task::Transaction(peer_index, transaction) => {
-                self.execute_transaction(peer_index, transaction)
-            }
-            Task::WitnessTransaction(peer_index, transaction) => {
-                self.execute_witness_transaction(peer_index, transaction)
-            }
             Task::BlockTxn(peer_index, blocktxn) => self.execute_block_txn(peer_index, blocktxn),
             Task::NotFound(peer_index, notfound) => self.execute_notfound(peer_index, notfound),
             Task::Inventory(peer_index, inventory) => self.execute_inventory(peer_index, inventory),
@@ -270,9 +219,6 @@ impl TaskExecutor for LocalSynchronizationTaskExecutor {
                 self.execute_headers(peer_index, headers, request_id)
             }
             Task::RelayNewBlock(block) => self.execute_relay_block(block),
-            Task::RelayNewTransaction(transaction, fee_rate) => {
-                self.execute_relay_transaction(transaction, fee_rate)
-            }
         }
     }
 }

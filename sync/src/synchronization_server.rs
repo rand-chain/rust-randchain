@@ -1,4 +1,3 @@
-use chain::IndexedTransaction;
 use message::{common, types};
 use parking_lot::{Condvar, Mutex};
 use primitives::hash::H256;
@@ -62,8 +61,6 @@ where
     executor: ExecutorRef<T>,
     /// Storage reference
     storage: StorageRef,
-    /// Memory pool reference
-    memory_pool: MemoryPoolRef,
 }
 
 impl Server for ServerImpl {
@@ -235,13 +232,13 @@ where
     pub fn new(
         peers: PeersRef,
         storage: StorageRef,
+        // TODO:
         memory_pool: MemoryPoolRef,
         executor: ExecutorRef<TExecutor>,
     ) -> Self {
         ServerTaskExecutor {
             peers: peers,
             storage: storage,
-            memory_pool: memory_pool,
             executor: executor,
         }
     }
@@ -303,28 +300,6 @@ where
         };
 
         match next_item.inv_type {
-            common::InventoryType::MessageTx => {
-                // only transaction from memory pool can be requested
-                if let Some(transaction) = self.memory_pool.read().read_by_hash(&next_item.hash) {
-                    trace!(target: "sync", "'getblocks' response to peer#{} is ready with tx {}", peer_index, next_item.hash.to_reversed_str());
-                    let transaction = IndexedTransaction::new(next_item.hash, transaction.clone());
-                    self.executor
-                        .execute(Task::Transaction(peer_index, transaction));
-                } else {
-                    notfound.inventory.push(next_item);
-                }
-            }
-            common::InventoryType::MessageWitnessTx => {
-                // only transaction from memory pool can be requested
-                if let Some(transaction) = self.memory_pool.read().read_by_hash(&next_item.hash) {
-                    trace!(target: "sync", "'getblocks' response to peer#{} is ready with witness-tx {}", peer_index, next_item.hash.to_reversed_str());
-                    let transaction = IndexedTransaction::new(next_item.hash, transaction.clone());
-                    self.executor
-                        .execute(Task::WitnessTransaction(peer_index, transaction));
-                } else {
-                    notfound.inventory.push(next_item);
-                }
-            }
             common::InventoryType::MessageBlock => {
                 if let Some(block) = self.storage.block(next_item.hash.clone().into()) {
                     trace!(target: "sync", "'getblocks' response to peer#{} is ready with block {}", peer_index, next_item.hash.to_reversed_str());
@@ -344,13 +319,6 @@ where
                             *block.hash(),
                             message_artefacts.merkleblock,
                         ));
-
-                        // also send all matched transactions
-                        for matched_transaction in message_artefacts.matching_transactions {
-                            trace!(target: "sync", "'getblocks' response to peer#{} is ready with merkletx {}", peer_index, matched_transaction.hash.to_reversed_str());
-                            self.executor
-                                .execute(Task::Transaction(peer_index, matched_transaction));
-                        }
                     } else {
                         notfound.inventory.push(next_item);
                     }
@@ -451,24 +419,9 @@ where
         }
     }
 
+    // TODO:
     fn serve_mempool(&self, peer_index: PeerIndex) {
-        let inventory: Vec<_> = self
-            .memory_pool
-            .read()
-            .get_transactions_ids()
-            .into_iter()
-            .map(common::InventoryVector::tx)
-            .collect();
-        // empty inventory messages are invalid according to regtests, while empty headers messages are valid
-        if !inventory.is_empty() {
-            trace!(target: "sync", "'mempool' response to peer#{} is ready with {} transactions", peer_index, inventory.len());
-            self.executor.execute(Task::Inventory(
-                peer_index,
-                types::Inv::with_inventory(inventory),
-            ));
-        } else {
-            trace!(target: "sync", "'mempool' request from peer#{} is ignored as pool is empty", peer_index);
-        }
+        trace!(target: "sync", "'mempool' request from peer#{} is ignored as pool is empty", peer_index);
     }
 
     fn serve_get_block_txn(&self, peer_index: PeerIndex, message: types::GetBlockTxn) {

@@ -21,7 +21,6 @@ mod pong;
 pub mod reject;
 mod sendcompact;
 mod sendheaders;
-mod tx;
 mod verack;
 pub mod version;
 
@@ -49,6 +48,5 @@ pub use self::pong::Pong;
 pub use self::reject::Reject;
 pub use self::sendcompact::SendCompact;
 pub use self::sendheaders::SendHeaders;
-pub use self::tx::Tx;
 pub use self::verack::Verack;
 pub use self::version::Version;
