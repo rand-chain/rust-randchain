@@ -9,7 +9,6 @@ use std::sync::Arc;
 use std::thread;
 use time::get_time;
 use types::{BlockHeight, MemoryPoolRef, StorageRef};
-use utils::MemoryPoolTransactionOutputProvider;
 use verification::{
     BackwardsCompatibleChainVerifier as ChainVerifier, Error as VerificationError,
     VerificationLevel, Verify as VerificationVerify,
@@ -40,8 +39,6 @@ pub trait VerificationSink: BlockVerificationSink + TransactionVerificationSink 
 pub enum VerificationTask {
     /// Verify single block
     VerifyBlock(IndexedBlock),
-    /// Verify single transaction
-    VerifyTransaction(BlockHeight, IndexedTransaction),
     /// Stop verification thread
     Stop,
 }
@@ -196,40 +193,6 @@ impl AsyncVerifier {
                             sink.on_block_verification_error(&format!("{:?}", e), block.hash())
                         }
                     }
-                }
-                VerificationTask::VerifyTransaction(height, transaction) => {
-                    // output provider must check previous outputs in both storage && memory pool
-                    match MemoryPoolTransactionOutputProvider::for_transaction(
-                        storage.clone(),
-                        memory_pool,
-                        &transaction.raw,
-                    ) {
-                        Err(e) => {
-                            sink.on_transaction_verification_error(
-                                &format!("{:?}", e),
-                                &transaction.hash,
-                            );
-                            continue; // with new verification sub-task
-                        }
-                        Ok(tx_output_provider) => {
-                            let time: u32 = get_time().sec as u32;
-                            match verifier.verifier.verify_mempool_transaction(
-                                storage.as_block_header_provider(),
-                                &tx_output_provider,
-                                height,
-                                time,
-                                &transaction,
-                            ) {
-                                Ok(_) => {
-                                    sink.on_transaction_verification_success(transaction.into())
-                                }
-                                Err(e) => sink.on_transaction_verification_error(
-                                    &format!("{:?}", e),
-                                    &transaction.hash,
-                                ),
-                            }
-                        }
-                    };
                 }
                 VerificationTask::Stop => return false,
             }
