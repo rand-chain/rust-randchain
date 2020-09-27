@@ -15,7 +15,6 @@ extern crate miner;
 extern crate network;
 extern crate p2p;
 extern crate primitives;
-extern crate script as global_script;
 extern crate serialization as ser;
 extern crate storage;
 extern crate sync;

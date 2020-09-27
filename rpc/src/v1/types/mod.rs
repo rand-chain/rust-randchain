@@ -6,7 +6,6 @@ mod bytes;
 mod get_block_response;
 mod hash;
 mod nodes;
-mod script;
 mod uint;
 
 pub use self::block::RawBlock;
@@ -16,5 +15,4 @@ pub use self::bytes::Bytes;
 pub use self::get_block_response::{GetBlockResponse, VerboseBlock};
 pub use self::hash::{H160, H256};
 pub use self::nodes::{AddNodeOperation, NodeInfo};
-pub use self::script::ScriptType;
 pub use self::uint::U256;
