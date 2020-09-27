@@ -1,22 +1,14 @@
-use chain::OutPoint;
-use global_script::Script;
 use jsonrpc_core::Error;
 use jsonrpc_macros::Trailing;
-use keys::{self, Address};
 use network::Network;
 use primitives::hash::H256 as GlobalH256;
 use ser::serialize;
 use storage;
-use v1::helpers::errors::{
-    block_at_height_not_found, block_not_found, transaction_not_found, transaction_of_side_branch,
-    transaction_output_not_found,
-};
+use v1::helpers::errors::{block_at_height_not_found, block_not_found};
 use v1::traits::BlockChain;
-use v1::types::GetTxOutSetInfoResponse;
 use v1::types::H256;
 use v1::types::U256;
 use v1::types::{GetBlockResponse, RawBlock, VerboseBlock};
-use v1::types::{GetTxOutResponse, TransactionOutputScript};
 use verification;
 
 pub struct BlockChainClient<T: BlockChainClientCoreApi> {
@@ -30,7 +22,6 @@ pub trait BlockChainClientCoreApi: Send + Sync + 'static {
     fn difficulty(&self) -> f64;
     fn raw_block(&self, hash: GlobalH256) -> Option<RawBlock>;
     fn verbose_block(&self, hash: GlobalH256) -> Option<VerboseBlock>;
-    fn verbose_transaction_out(&self, prev_out: OutPoint) -> Result<GetTxOutResponse, Error>;
 }
 
 pub struct BlockChainClientCore {
@@ -110,68 +101,6 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
             }
         })
     }
-
-    fn verbose_transaction_out(&self, prev_out: OutPoint) -> Result<GetTxOutResponse, Error> {
-        let transaction = match self.storage.transaction(&prev_out.hash) {
-            Some(transaction) => transaction,
-            // no transaction => no response
-            None => return Err(transaction_not_found(prev_out.hash)),
-        };
-
-        if prev_out.index >= transaction.raw.outputs.len() as u32 {
-            return Err(transaction_output_not_found(prev_out));
-        }
-
-        let meta = match self.storage.transaction_meta(&prev_out.hash) {
-            Some(meta) => meta,
-            // not in the main branch => no response
-            None => return Err(transaction_of_side_branch(prev_out.hash)),
-        };
-
-        let block_header = match self.storage.block_header(meta.height().into()) {
-            Some(block_header) => block_header,
-            // this is possible during reorgs
-            None => return Err(transaction_not_found(prev_out.hash)),
-        };
-
-        let best_block = self.storage.best_block();
-        if best_block.number < meta.height() {
-            // this is possible during reorgs
-            return Err(transaction_not_found(prev_out.hash));
-        }
-
-        let ref script_bytes = transaction.raw.outputs[prev_out.index as usize].script_pubkey;
-        let script: Script = script_bytes.clone().into();
-        let script_asm = format!("{}", script);
-        let script_addresses = script.extract_destinations().unwrap_or(vec![]);
-
-        Ok(GetTxOutResponse {
-            bestblock: block_header.hash.into(),
-            confirmations: best_block.number - meta.height() + 1,
-            value: 0.00000001f64 * (transaction.raw.outputs[prev_out.index as usize].value as f64),
-            script: TransactionOutputScript {
-                asm: script_asm,
-                hex: script_bytes.clone().into(),
-                req_sigs: script.num_signatures_required() as u32,
-                script_type: script.script_type().into(),
-                addresses: script_addresses
-                    .into_iter()
-                    .map(|a| Address {
-                        network: match self.network {
-                            Network::Mainnet => keys::Network::Mainnet,
-                            // there's no correct choices for Regtests && Other networks
-                            // => let's just make Testnet key
-                            _ => keys::Network::Testnet,
-                        },
-                        hash: a.hash,
-                        kind: a.kind,
-                    })
-                    .collect(),
-            },
-            version: transaction.raw.version,
-            coinbase: transaction.raw.is_coinbase(),
-        })
-    }
 }
 
 impl<T> BlockChainClient<T>
@@ -227,29 +156,6 @@ where
                 .map(|block| GetBlockResponse::Raw(block))
         }
         .ok_or(block_not_found(hash))
-    }
-
-    fn transaction_out(
-        &self,
-        transaction_hash: H256,
-        out_index: u32,
-        _include_mempool: Trailing<bool>,
-    ) -> Result<GetTxOutResponse, Error> {
-        // TODO: include_mempool
-        let transaction_hash: GlobalH256 = transaction_hash.into();
-        self.core
-            .verbose_transaction_out(OutPoint {
-                hash: transaction_hash.reversed(),
-                index: out_index,
-            })
-            .map(|mut response| {
-                response.bestblock = response.bestblock.reversed();
-                response
-            })
-    }
-
-    fn transaction_out_set_info(&self) -> Result<GetTxOutSetInfoResponse, Error> {
-        rpc_unimplemented!()
     }
 }
 

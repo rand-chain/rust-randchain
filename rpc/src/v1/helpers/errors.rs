@@ -15,12 +15,6 @@ mod codes {
 use jsonrpc_core::{Error, ErrorCode, Value};
 use std::fmt;
 
-macro_rules! rpc_unimplemented {
-    () => {
-        Err(::v1::helpers::errors::unimplemented(None))
-    };
-}
-
 pub fn unimplemented(details: Option<String>) -> Error {
     Error {
         code: ErrorCode::InternalError,
