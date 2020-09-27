@@ -1,6 +1,5 @@
 use jsonrpc_core::Error;
 use jsonrpc_macros::Trailing;
-use network::Network;
 use primitives::hash::H256 as GlobalH256;
 use ser::serialize;
 use storage;
@@ -25,16 +24,12 @@ pub trait BlockChainClientCoreApi: Send + Sync + 'static {
 }
 
 pub struct BlockChainClientCore {
-    network: Network,
     storage: storage::SharedStore,
 }
 
 impl BlockChainClientCore {
-    pub fn new(network: Network, storage: storage::SharedStore) -> Self {
-        BlockChainClientCore {
-            network: network,
-            storage: storage,
-        }
+    pub fn new(storage: storage::SharedStore) -> Self {
+        BlockChainClientCore { storage: storage }
     }
 }
 
