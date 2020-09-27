@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Arc;
 use std::thread;
-use types::{MemoryPoolRef, StorageRef};
+use types::StorageRef;
 use verification::{
     BackwardsCompatibleChainVerifier as ChainVerifier, Error as VerificationError,
     VerificationLevel, Verify as VerificationVerify,
@@ -102,7 +102,6 @@ impl AsyncVerifier {
     pub fn new<T: VerificationSink>(
         verifier: Arc<ChainVerifier>,
         storage: StorageRef,
-        memory_pool: MemoryPoolRef,
         sink: Arc<T>,
         verification_params: VerificationParameters,
     ) -> Self {
@@ -117,8 +116,6 @@ impl AsyncVerifier {
                             ChainVerifierWrapper::new(verifier, &storage, verification_params);
                         AsyncVerifier::verification_worker_proc(
                             sink,
-                            storage,
-                            memory_pool,
                             verifier,
                             verification_work_receiver,
                         )
@@ -131,13 +128,11 @@ impl AsyncVerifier {
     /// Thread procedure for handling verification tasks
     fn verification_worker_proc<T: VerificationSink>(
         sink: Arc<T>,
-        storage: StorageRef,
-        memory_pool: MemoryPoolRef,
         verifier: ChainVerifierWrapper,
         work_receiver: Receiver<VerificationTask>,
     ) {
         while let Ok(task) = work_receiver.recv() {
-            if !AsyncVerifier::execute_single_task(&sink, &storage, &memory_pool, &verifier, task) {
+            if !AsyncVerifier::execute_single_task(&sink, &verifier, task) {
                 break;
             }
         }
@@ -148,8 +143,6 @@ impl AsyncVerifier {
     /// Execute single verification task
     pub fn execute_single_task<T: VerificationSink>(
         sink: &Arc<T>,
-        storage: &StorageRef,
-        memory_pool: &MemoryPoolRef,
         verifier: &ChainVerifierWrapper,
         task: VerificationTask,
     ) -> bool {

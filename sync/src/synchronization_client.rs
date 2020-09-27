@@ -5,7 +5,7 @@ use std::sync::Arc;
 use synchronization_client_core::{ClientCore, SynchronizationClientCore};
 use synchronization_executor::TaskExecutor;
 use synchronization_verifier::Verifier;
-use types::{ClientCoreRef, EmptyBoxFuture, PeerIndex, SyncListenerRef, SynchronizationStateRef};
+use types::{ClientCoreRef, EmptyBoxFuture, PeerIndex, SyncListenerRef};
 
 #[cfg_attr(feature = "cargo-clippy", allow(doc_markdown))]
 ///! TODO: update with headers-first corrections
@@ -135,8 +135,6 @@ pub trait Client: Send + Sync + 'static {
 pub struct SynchronizationClient<T: TaskExecutor, U: Verifier> {
     /// Verification mutex
     verification_lock: Mutex<()>,
-    /// Shared client state
-    shared_state: SynchronizationStateRef,
     /// Client core
     core: ClientCoreRef<SynchronizationClientCore<T>>,
     /// Verifier
@@ -211,14 +209,9 @@ where
     U: Verifier,
 {
     /// Create new synchronization client
-    pub fn new(
-        shared_state: SynchronizationStateRef,
-        core: ClientCoreRef<SynchronizationClientCore<T>>,
-        verifier: U,
-    ) -> Arc<Self> {
+    pub fn new(core: ClientCoreRef<SynchronizationClientCore<T>>, verifier: U) -> Arc<Self> {
         Arc::new(SynchronizationClient {
             verification_lock: Mutex::new(()),
-            shared_state: shared_state,
             core: core,
             verifier: verifier,
         })

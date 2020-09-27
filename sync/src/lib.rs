@@ -149,11 +149,10 @@ pub fn create_local_sync_node(
     let verifier = AsyncVerifier::new(
         chain_verifier,
         db.clone(),
-        memory_pool.clone(),
         verifier_sink,
         verification_params,
     );
-    let sync_client = SynchronizationClient::new(sync_state.clone(), sync_client_core, verifier);
+    let sync_client = SynchronizationClient::new(sync_client_core, verifier);
     Arc::new(SyncNode::new(
         consensus,
         db,
