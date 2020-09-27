@@ -22,7 +22,6 @@ storage = { path = "storage" }
 db = { path = "db" }
 verification = { path = "verification" }
 sync = { path = "sync" }
-import = { path = "import" }
 logs = { path = "logs" }
 rpc = { path = "rpc" }
 primitives = { path = "primitives" }

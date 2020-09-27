@@ -10,7 +10,6 @@ extern crate libc;
 
 extern crate chain;
 extern crate db;
-extern crate import;
 extern crate keys;
 extern crate logs;
 extern crate message;
