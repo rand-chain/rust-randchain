@@ -1,6 +1,4 @@
 use super::hash::H256;
-use super::transaction::RawTransaction;
-use chain;
 use miner;
 use std::collections::HashMap;
 
@@ -23,16 +21,12 @@ pub struct BlockTemplate {
     pub vbrequired: Option<u32>,
     /// The hash of previous (best known) block
     pub previousblockhash: H256,
-    /// Contents of non-coinbase transactions that should be included in the next block
-    pub transactions: Vec<BlockTemplateTransaction>,
     /// Data that should be included in the coinbase's scriptSig content
     /// Keys: ignored
     /// Values: value to be included in scriptSig
     pub coinbaseaux: Option<HashMap<String, String>>,
     /// Maximum allowable input to coinbase transaction, including the generation award and transaction fees (in Satoshis)
     pub coinbasevalue: Option<u64>,
-    /// information for coinbase transaction
-    pub coinbasetxn: Option<BlockTemplateTransaction>,
     /// The hash target
     pub target: H256,
     /// The minimum timestamp appropriate for next block time in seconds since epoch (Jan 1 1970 GMT)
@@ -55,30 +49,6 @@ pub struct BlockTemplate {
     pub height: u32,
 }
 
-/// Transaction data as included in `BlockTemplate`
-#[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq, Clone)]
-pub struct BlockTemplateTransaction {
-    /// Transaction data encoded in hexadecimal
-    pub data: RawTransaction,
-    /// Transaction id encoded in little-endian hexadecimal
-    pub txid: Option<H256>,
-    /// Hash encoded in little-endian hexadecimal (including witness data)
-    pub hash: Option<H256>,
-    /// Transactions before this one (by 1-based index in 'transactions' list) that must be present in the final block if this one is
-    pub depends: Option<Vec<u64>>,
-    /// Difference in value between transaction inputs and outputs (in Satoshis).
-    /// For coinbase transactions, this is a negative Number of the total collected block fees (ie, not including the block subsidy).
-    /// If key is not present, fee is unknown and clients MUST NOT assume there isn't one
-    pub fee: Option<i64>,
-    /// Total SigOps cost, as counted for purposes of block limits.
-    /// If key is not present, sigop cost is unknown and clients MUST NOT assume it is zero.
-    pub sigops: Option<i64>,
-    /// Total transaction weight, as counted for purposes of block limits.
-    pub weight: Option<i64>,
-    /// If provided and true, this transaction must be in the final block
-    pub required: bool,
-}
-
 impl From<miner::BlockTemplate> for BlockTemplate {
     fn from(block: miner::BlockTemplate) -> Self {
         BlockTemplate {
@@ -87,21 +57,9 @@ impl From<miner::BlockTemplate> for BlockTemplate {
             curtime: block.time,
             bits: block.bits.into(),
             height: block.height,
-            transactions: block.transactions.into_iter().map(Into::into).collect(),
             coinbasevalue: Some(block.coinbase_value),
             sizelimit: Some(block.size_limit),
             sigoplimit: Some(block.sigop_limit),
-            ..Default::default()
-        }
-    }
-}
-
-impl From<chain::IndexedTransaction> for BlockTemplateTransaction {
-    fn from(transaction: chain::IndexedTransaction) -> Self {
-        use ser::serialize;
-        let serialize = serialize(&transaction.raw);
-        BlockTemplateTransaction {
-            data: RawTransaction::new(Vec::from((*serialize).clone())),
             ..Default::default()
         }
     }
