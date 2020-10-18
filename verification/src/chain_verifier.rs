@@ -1,17 +1,13 @@
 //! Bitcoin chain verifier
 
 use accept_chain::ChainAcceptor;
-use accept_transaction::MemoryPoolTransactionAcceptor;
-use canon::{CanonBlock, CanonTransaction};
-use chain::{BlockHeader, IndexedBlock, IndexedBlockHeader, IndexedTransaction};
+use canon::CanonBlock;
+use chain::{BlockHeader, IndexedBlock, IndexedBlockHeader};
 use deployments::{BlockDeployments, Deployments};
-use error::{Error, TransactionError};
+use error::Error;
 use hash::H256;
 use network::ConsensusParams;
-use storage::{
-    BlockHeaderProvider, BlockOrigin, CachedTransactionOutputProvider,
-    DuplexTransactionOutputProvider, NoopStore, SharedStore, TransactionOutputProvider,
-};
+use storage::{BlockHeaderProvider, BlockOrigin, CachedTransactionOutputProvider, SharedStore};
 use timestamp::median_timestamp_inclusive;
 use verify_chain::ChainVerifier;
 use verify_header::HeaderVerifier;
