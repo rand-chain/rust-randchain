@@ -1,11 +1,10 @@
 use chain::IndexedBlockHeader;
-use network::{ConsensusFork, ConsensusParams, Network};
+use network::{ConsensusParams, Network};
 use primitives::bigint::U256;
 use primitives::compact::Compact;
 use primitives::hash::H256;
 use std::cmp;
 use storage::{BlockHeaderProvider, BlockRef};
-use work_bch::work_required_bitcoin_cash;
 
 use constants::{
     DOUBLE_SPACING_SECONDS, MAX_TIMESPAN, MIN_TIMESPAN, RETARGETING_INTERVAL,
@@ -72,21 +71,6 @@ pub fn work_required(
     let parent_header = store
         .block_header(parent_hash.clone().into())
         .expect("self.height != 0; qed");
-
-    match consensus.fork {
-        ConsensusFork::BitcoinCash(ref fork) if height >= fork.height => {
-            return work_required_bitcoin_cash(
-                parent_header,
-                time,
-                height,
-                store,
-                consensus,
-                fork,
-                max_bits,
-            )
-        }
-        _ => (),
-    }
 
     if is_retarget_height(height) {
         return work_required_retarget(parent_header, height, store, max_bits);
