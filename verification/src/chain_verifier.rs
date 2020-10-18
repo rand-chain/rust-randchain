@@ -70,7 +70,6 @@ impl BackwardsCompatibleChainVerifier {
                 let tx_out_provider = CachedTransactionOutputProvider::new(
                     self.store.as_store().as_transaction_output_provider(),
                 );
-                let tx_meta_provider = self.store.as_store().as_transaction_meta_provider();
                 let header_provider = self.store.as_store().as_block_header_provider();
                 let deployments = BlockDeployments::new(
                     &self.deployments,
@@ -80,7 +79,6 @@ impl BackwardsCompatibleChainVerifier {
                 );
                 let chain_acceptor = ChainAcceptor::new(
                     &tx_out_provider,
-                    tx_meta_provider,
                     header_provider,
                     &self.consensus,
                     canon_block,
@@ -96,7 +94,6 @@ impl BackwardsCompatibleChainVerifier {
                 let tx_out_provider = CachedTransactionOutputProvider::new(
                     fork.store().as_transaction_output_provider(),
                 );
-                let tx_meta_provider = fork.store().as_transaction_meta_provider();
                 let header_provider = fork.store().as_block_header_provider();
                 let deployments = BlockDeployments::new(
                     &self.deployments,
@@ -106,7 +103,6 @@ impl BackwardsCompatibleChainVerifier {
                 );
                 let chain_acceptor = ChainAcceptor::new(
                     &tx_out_provider,
-                    tx_meta_provider,
                     header_provider,
                     &self.consensus,
                     canon_block,
@@ -122,7 +118,6 @@ impl BackwardsCompatibleChainVerifier {
                 let tx_out_provider = CachedTransactionOutputProvider::new(
                     fork.store().as_transaction_output_provider(),
                 );
-                let tx_meta_provider = fork.store().as_transaction_meta_provider();
                 let header_provider = fork.store().as_block_header_provider();
                 let deployments = BlockDeployments::new(
                     &self.deployments,
@@ -132,7 +127,6 @@ impl BackwardsCompatibleChainVerifier {
                 );
                 let chain_acceptor = ChainAcceptor::new(
                     &tx_out_provider,
-                    tx_meta_provider,
                     header_provider,
                     &self.consensus,
                     canon_block,
