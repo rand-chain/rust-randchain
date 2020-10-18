@@ -4,10 +4,7 @@ use canon::CanonBlock;
 use deployments::BlockDeployments;
 use error::Error;
 use network::ConsensusParams;
-use storage::{
-    BlockHeaderProvider, DuplexTransactionOutputProvider, TransactionMetaProvider,
-    TransactionOutputProvider,
-};
+use storage::{BlockHeaderProvider, TransactionMetaProvider, TransactionOutputProvider};
 
 pub struct ChainAcceptor<'a> {
     pub block: BlockAcceptor<'a>,
@@ -26,7 +23,6 @@ impl<'a> ChainAcceptor<'a> {
         deployments: &'a BlockDeployments,
     ) -> Self {
         trace!(target: "verification", "Block verification {}", block.hash().to_reversed_str());
-        let output_store = DuplexTransactionOutputProvider::new(tx_out_provider, block.raw());
 
         ChainAcceptor {
             block: BlockAcceptor::new(
