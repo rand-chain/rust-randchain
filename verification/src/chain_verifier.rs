@@ -15,7 +15,6 @@ use storage::{
 use timestamp::median_timestamp_inclusive;
 use verify_chain::ChainVerifier;
 use verify_header::HeaderVerifier;
-use verify_transaction::MemoryPoolTransactionVerifier;
 use {VerificationLevel, Verify};
 
 pub struct BackwardsCompatibleChainVerifier {
@@ -190,10 +189,8 @@ impl BackwardsCompatibleChainVerifier {
             block_header_provider,
             &self.consensus,
         );
-        let tx_verifier =
-            MemoryPoolTransactionVerifier::new(&transaction, &self.consensus, &deployments);
-        tx_verifier.check()?;
 
+        // TODO:
         let canon_tx = CanonTransaction::new(&transaction);
         // now let's do full verification
         let noop = NoopStore;

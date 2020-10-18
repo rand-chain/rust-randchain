@@ -81,7 +81,6 @@ mod work;
 mod verify_block;
 mod verify_chain;
 mod verify_header;
-mod verify_transaction;
 
 // full verification
 mod accept_block;
@@ -103,7 +102,6 @@ pub use canon::{CanonBlock, CanonHeader, CanonTransaction};
 pub use verify_block::BlockVerifier;
 pub use verify_chain::ChainVerifier;
 pub use verify_header::HeaderVerifier;
-pub use verify_transaction::{MemoryPoolTransactionVerifier, TransactionVerifier};
 
 pub use chain_verifier::BackwardsCompatibleChainVerifier;
 pub use deployments::Deployments;
