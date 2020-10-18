@@ -65,6 +65,7 @@ impl BackwardsCompatibleChainVerifier {
                 // there should be no known blocks at this point
                 unreachable!();
             }
+            // TODO:
             BlockOrigin::CanonChain { block_number } => {
                 let tx_out_provider = CachedTransactionOutputProvider::new(
                     self.store.as_store().as_transaction_output_provider(),
