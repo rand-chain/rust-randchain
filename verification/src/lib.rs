@@ -86,7 +86,6 @@ mod verify_header;
 mod accept_block;
 mod accept_chain;
 mod accept_header;
-mod accept_transaction;
 
 // backwards compatibility
 mod chain_verifier;
@@ -96,7 +95,6 @@ pub use primitives::{bigint, compact, hash};
 pub use accept_block::BlockAcceptor;
 pub use accept_chain::ChainAcceptor;
 pub use accept_header::HeaderAcceptor;
-pub use accept_transaction::{MemoryPoolTransactionAcceptor, TransactionAcceptor};
 pub use canon::{CanonBlock, CanonHeader, CanonTransaction};
 
 pub use verify_block::BlockVerifier;

@@ -1,11 +1,9 @@
 use accept_block::BlockAcceptor;
 use accept_header::HeaderAcceptor;
-use accept_transaction::TransactionAcceptor;
 use canon::CanonBlock;
 use deployments::BlockDeployments;
 use error::Error;
 use network::ConsensusParams;
-use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use storage::{
     BlockHeaderProvider, DuplexTransactionOutputProvider, TransactionMetaProvider,
     TransactionOutputProvider,
@@ -15,7 +13,6 @@ use VerificationLevel;
 pub struct ChainAcceptor<'a> {
     pub block: BlockAcceptor<'a>,
     pub header: HeaderAcceptor<'a>,
-    pub transactions: Vec<TransactionAcceptor<'a>>,
 }
 
 impl<'a> ChainAcceptor<'a> {
@@ -50,46 +47,12 @@ impl<'a> ChainAcceptor<'a> {
                 height,
                 deployments,
             ),
-            transactions: block
-                .transactions()
-                .into_iter()
-                .enumerate()
-                .map(|(tx_index, tx)| {
-                    TransactionAcceptor::new(
-                        tx_meta_provider,
-                        output_store,
-                        consensus,
-                        tx,
-                        verification_level,
-                        block.hash(),
-                        height,
-                        block.header.raw.time,
-                        median_time_past,
-                        tx_index,
-                        deployments,
-                    )
-                })
-                .collect(),
         }
     }
 
     pub fn check(&self) -> Result<(), Error> {
         self.block.check()?;
         self.header.check()?;
-        self.check_transactions()?;
         Ok(())
-    }
-
-    fn check_transactions(&self) -> Result<(), Error> {
-        self.transactions
-            .par_iter()
-            .enumerate()
-            .fold(
-                || Ok(()),
-                |result, (index, tx)| {
-                    result.and_then(|_| tx.check().map_err(|err| Error::Transaction(index, err)))
-                },
-            )
-            .reduce(|| Ok(()), |acc, check| acc.and(check))
     }
 }
