@@ -13,6 +13,7 @@ pub struct ChainAcceptor<'a> {
 
 impl<'a> ChainAcceptor<'a> {
     pub fn new(
+        // TODO:
         tx_out_provider: &'a dyn TransactionOutputProvider,
         header_provider: &'a dyn BlockHeaderProvider,
         consensus: &'a ConsensusParams,
