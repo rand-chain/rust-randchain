@@ -170,50 +170,6 @@ impl BackwardsCompatibleChainVerifier {
         let header_verifier = HeaderVerifier::new(&header, self.consensus.network, current_time);
         header_verifier.check()
     }
-
-    pub fn verify_mempool_transaction<T>(
-        &self,
-        block_header_provider: &dyn BlockHeaderProvider,
-        prevout_provider: &T,
-        height: u32,
-        time: u32,
-        transaction: &IndexedTransaction,
-    ) -> Result<(), TransactionError>
-    where
-        T: TransactionOutputProvider,
-    {
-        // let's do preverification first
-        let deployments = BlockDeployments::new(
-            &self.deployments,
-            height,
-            block_header_provider,
-            &self.consensus,
-        );
-
-        // TODO:
-        let canon_tx = CanonTransaction::new(&transaction);
-        // now let's do full verification
-        let noop = NoopStore;
-        let output_store = DuplexTransactionOutputProvider::new(prevout_provider, &noop);
-        let previous_block_number = height.checked_sub(1)
-			.expect("height is the height of future block of new tx; genesis block can't be in the future; qed");
-        let previous_block_header = block_header_provider
-            .block_header(previous_block_number.into())
-            .expect("blocks up to height should be in db; qed");
-        let median_time_past =
-            median_timestamp_inclusive(previous_block_header.hash, block_header_provider);
-        let tx_acceptor = MemoryPoolTransactionAcceptor::new(
-            self.store.as_transaction_meta_provider(),
-            output_store,
-            &self.consensus,
-            canon_tx,
-            height,
-            time,
-            median_time_past,
-            &deployments,
-        );
-        tx_acceptor.check()
-    }
 }
 
 impl Verify for BackwardsCompatibleChainVerifier {
