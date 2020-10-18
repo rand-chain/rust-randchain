@@ -8,7 +8,6 @@ use storage::{
     BlockHeaderProvider, DuplexTransactionOutputProvider, TransactionMetaProvider,
     TransactionOutputProvider,
 };
-use VerificationLevel;
 
 pub struct ChainAcceptor<'a> {
     pub block: BlockAcceptor<'a>,
@@ -21,7 +20,6 @@ impl<'a> ChainAcceptor<'a> {
         tx_meta_provider: &'a dyn TransactionMetaProvider,
         header_provider: &'a dyn BlockHeaderProvider,
         consensus: &'a ConsensusParams,
-        verification_level: VerificationLevel,
         block: CanonBlock<'a>,
         height: u32,
         median_time_past: u32,
