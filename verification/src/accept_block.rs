@@ -5,7 +5,6 @@ use error::{Error, TransactionError};
 use network::{ConsensusFork, ConsensusParams, TransactionOrdering};
 use script;
 use ser::Stream;
-use sigops::{transaction_sigops, transaction_sigops_cost};
 use storage::{
     transaction_index_for_output_check, BlockHeaderProvider, DuplexTransactionOutputProvider,
     TransactionOutputProvider,
@@ -16,7 +15,6 @@ use work::block_reward_satoshi;
 pub struct BlockAcceptor<'a> {
     pub finality: BlockFinality<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
-    pub sigops: BlockSigops<'a>,
     pub coinbase_claim: BlockCoinbaseClaim<'a>,
     pub coinbase_script: BlockCoinbaseScript<'a>,
     pub witness: BlockWitness<'a>,
@@ -50,7 +48,6 @@ impl<'a> BlockAcceptor<'a> {
                 height,
                 median_time_past,
             ),
-            sigops: BlockSigops::new(block, store, consensus, height, median_time_past),
             witness: BlockWitness::new(block, deployments),
             ordering: BlockTransactionOrdering::new(block, consensus, median_time_past),
         }
@@ -58,7 +55,6 @@ impl<'a> BlockAcceptor<'a> {
 
     pub fn check(&self) -> Result<(), Error> {
         self.finality.check()?;
-        self.sigops.check()?;
         self.serialized_size.check()?;
         self.coinbase_claim.check()?;
         self.coinbase_script.check()?;
@@ -151,80 +147,6 @@ impl<'a> BlockSerializedSize<'a> {
             }
         }
         Ok(())
-    }
-}
-
-pub struct BlockSigops<'a> {
-    block: CanonBlock<'a>,
-    store: &'a dyn TransactionOutputProvider,
-    consensus: &'a ConsensusParams,
-    height: u32,
-    bip16_active: bool,
-    checkdatasig_active: bool,
-}
-
-impl<'a> BlockSigops<'a> {
-    fn new(
-        block: CanonBlock<'a>,
-        store: &'a dyn TransactionOutputProvider,
-        consensus: &'a ConsensusParams,
-        height: u32,
-        median_time_past: u32,
-    ) -> Self {
-        let bip16_active = block.header.raw.time >= consensus.bip16_time;
-        let checkdatasig_active = match consensus.fork {
-            ConsensusFork::BitcoinCash(ref fork) => median_time_past >= fork.magnetic_anomaly_time,
-            _ => false,
-        };
-
-        BlockSigops {
-            block: block,
-            store: store,
-            consensus: consensus,
-            height: height,
-            bip16_active,
-            checkdatasig_active,
-        }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        let store = DuplexTransactionOutputProvider::new(self.store, &*self.block);
-        let (sigops, sigops_cost) = self
-            .block
-            .transactions
-            .iter()
-            .map(|tx| {
-                let tx_sigops = transaction_sigops(
-                    &tx.raw,
-                    &store,
-                    self.bip16_active,
-                    self.checkdatasig_active,
-                );
-                let tx_sigops_cost = transaction_sigops_cost(&tx.raw, &store, tx_sigops);
-                (tx_sigops, tx_sigops_cost)
-            })
-            .fold((0, 0), |acc, (tx_sigops, tx_sigops_cost)| {
-                (acc.0 + tx_sigops, acc.1 + tx_sigops_cost)
-            });
-
-        // sigops check is valid for all forks:
-        // before SegWit: 20_000
-        // after SegWit: cost of sigops is sigops * 4 and max cost is 80_000 => max sigops is still 20_000
-        // after BitcoinCash fork: 20_000 sigops for each full/partial 1_000_000 bytes of block
-        let size = self.block.size();
-        if sigops > self.consensus.fork.max_block_sigops(self.height, size) {
-            return Err(Error::MaximumSigops);
-        }
-
-        // sigops check is valid for all forks:
-        // before SegWit: no witnesses => cost is sigops * 4 and max cost is 80_000
-        // after SegWit: it is main check for sigops
-        // after BitcoinCash fork: no witnesses => cost is sigops * 4 and max cost depends on block size
-        if sigops_cost > self.consensus.fork.max_block_sigops_cost(self.height, size) {
-            Err(Error::MaximumSigopsCost)
-        } else {
-            Ok(())
-        }
     }
 }
 
