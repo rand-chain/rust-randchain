@@ -7,7 +7,7 @@ use deployments::{BlockDeployments, Deployments};
 use error::Error;
 use hash::H256;
 use network::ConsensusParams;
-use storage::{BlockHeaderProvider, BlockOrigin, CachedTransactionOutputProvider, SharedStore};
+use storage::{BlockHeaderProvider, BlockOrigin, SharedStore};
 use timestamp::median_timestamp_inclusive;
 use verify_chain::ChainVerifier;
 use verify_header::HeaderVerifier;
@@ -67,9 +67,6 @@ impl BackwardsCompatibleChainVerifier {
             }
             // TODO:
             BlockOrigin::CanonChain { block_number } => {
-                let tx_out_provider = CachedTransactionOutputProvider::new(
-                    self.store.as_store().as_transaction_output_provider(),
-                );
                 let header_provider = self.store.as_store().as_block_header_provider();
                 let deployments = BlockDeployments::new(
                     &self.deployments,
@@ -78,7 +75,6 @@ impl BackwardsCompatibleChainVerifier {
                     &self.consensus,
                 );
                 let chain_acceptor = ChainAcceptor::new(
-                    &tx_out_provider,
                     header_provider,
                     &self.consensus,
                     canon_block,
@@ -91,9 +87,6 @@ impl BackwardsCompatibleChainVerifier {
             BlockOrigin::SideChain(origin) => {
                 let block_number = origin.block_number;
                 let fork = self.store.fork(origin)?;
-                let tx_out_provider = CachedTransactionOutputProvider::new(
-                    fork.store().as_transaction_output_provider(),
-                );
                 let header_provider = fork.store().as_block_header_provider();
                 let deployments = BlockDeployments::new(
                     &self.deployments,
@@ -102,7 +95,6 @@ impl BackwardsCompatibleChainVerifier {
                     &self.consensus,
                 );
                 let chain_acceptor = ChainAcceptor::new(
-                    &tx_out_provider,
                     header_provider,
                     &self.consensus,
                     canon_block,
@@ -115,9 +107,6 @@ impl BackwardsCompatibleChainVerifier {
             BlockOrigin::SideChainBecomingCanonChain(origin) => {
                 let block_number = origin.block_number;
                 let fork = self.store.fork(origin)?;
-                let tx_out_provider = CachedTransactionOutputProvider::new(
-                    fork.store().as_transaction_output_provider(),
-                );
                 let header_provider = fork.store().as_block_header_provider();
                 let deployments = BlockDeployments::new(
                     &self.deployments,
@@ -126,7 +115,6 @@ impl BackwardsCompatibleChainVerifier {
                     &self.consensus,
                 );
                 let chain_acceptor = ChainAcceptor::new(
-                    &tx_out_provider,
                     header_provider,
                     &self.consensus,
                     canon_block,

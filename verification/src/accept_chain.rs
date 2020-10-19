@@ -4,7 +4,7 @@ use canon::CanonBlock;
 use deployments::BlockDeployments;
 use error::Error;
 use network::ConsensusParams;
-use storage::{BlockHeaderProvider, TransactionOutputProvider};
+use storage::BlockHeaderProvider;
 
 pub struct ChainAcceptor<'a> {
     pub block: BlockAcceptor<'a>,
@@ -13,8 +13,6 @@ pub struct ChainAcceptor<'a> {
 
 impl<'a> ChainAcceptor<'a> {
     pub fn new(
-        // TODO:
-        tx_out_provider: &'a dyn TransactionOutputProvider,
         header_provider: &'a dyn BlockHeaderProvider,
         consensus: &'a ConsensusParams,
         block: CanonBlock<'a>,
@@ -26,7 +24,6 @@ impl<'a> ChainAcceptor<'a> {
 
         ChainAcceptor {
             block: BlockAcceptor::new(
-                tx_out_provider,
                 consensus,
                 block,
                 height,

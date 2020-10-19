@@ -2,7 +2,7 @@ use canon::CanonBlock;
 use deployments::BlockDeployments;
 use error::Error;
 use network::{ConsensusFork, ConsensusParams};
-use storage::{BlockHeaderProvider, TransactionOutputProvider};
+use storage::BlockHeaderProvider;
 
 /// Flexible verification of ordered block
 pub struct BlockAcceptor<'a> {
@@ -13,7 +13,6 @@ pub struct BlockAcceptor<'a> {
 
 impl<'a> BlockAcceptor<'a> {
     pub fn new(
-        store: &'a dyn TransactionOutputProvider,
         consensus: &'a ConsensusParams,
         block: CanonBlock<'a>,
         height: u32,
