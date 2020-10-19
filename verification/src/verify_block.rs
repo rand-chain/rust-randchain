@@ -2,7 +2,6 @@ use chain::IndexedBlock;
 use error::{Error, TransactionError};
 use network::ConsensusFork;
 use sigops::transaction_sigops;
-use std::collections::HashSet;
 use storage::NoopStore;
 
 pub struct BlockVerifier<'a> {
@@ -10,7 +9,6 @@ pub struct BlockVerifier<'a> {
     pub coinbase: BlockCoinbase<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
     pub extra_coinbases: BlockExtraCoinbases<'a>,
-    pub transactions_uniqueness: BlockTransactionsUniqueness<'a>,
     pub sigops: BlockSigops<'a>,
     pub merkle_root: BlockMerkleRoot<'a>,
 }
@@ -25,7 +23,6 @@ impl<'a> BlockVerifier<'a> {
                 ConsensusFork::absolute_maximum_block_size(),
             ),
             extra_coinbases: BlockExtraCoinbases::new(block),
-            transactions_uniqueness: BlockTransactionsUniqueness::new(block),
             sigops: BlockSigops::new(block, ConsensusFork::absolute_maximum_block_sigops()),
             merkle_root: BlockMerkleRoot::new(block),
         }
@@ -36,7 +33,6 @@ impl<'a> BlockVerifier<'a> {
         self.coinbase.check()?;
         self.serialized_size.check()?;
         self.extra_coinbases.check()?;
-        self.transactions_uniqueness.check()?;
         self.sigops.check()?;
         self.merkle_root.check()?;
         Ok(())
@@ -131,30 +127,6 @@ impl<'a> BlockExtraCoinbases<'a> {
                 TransactionError::MisplacedCoinbase,
             )),
             None => Ok(()),
-        }
-    }
-}
-
-pub struct BlockTransactionsUniqueness<'a> {
-    block: &'a IndexedBlock,
-}
-
-impl<'a> BlockTransactionsUniqueness<'a> {
-    fn new(block: &'a IndexedBlock) -> Self {
-        BlockTransactionsUniqueness { block: block }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        let hashes = self
-            .block
-            .transactions
-            .iter()
-            .map(|tx| tx.hash.clone())
-            .collect::<HashSet<_>>();
-        if hashes.len() == self.block.transactions.len() {
-            Ok(())
-        } else {
-            Err(Error::DuplicatedTransactions)
         }
     }
 }
