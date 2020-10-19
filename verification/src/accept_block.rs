@@ -67,7 +67,6 @@ impl<'a> BlockAcceptor<'a> {
 pub struct BlockFinality<'a> {
     block: CanonBlock<'a>,
     height: u32,
-    csv_active: bool,
     headers: &'a dyn BlockHeaderProvider,
 }
 
@@ -75,15 +74,12 @@ impl<'a> BlockFinality<'a> {
     fn new(
         block: CanonBlock<'a>,
         height: u32,
-        deployments: &'a BlockDeployments<'a>,
+        _deployments: &'a BlockDeployments<'a>,
         headers: &'a dyn BlockHeaderProvider,
     ) -> Self {
-        let csv_active = deployments.csv();
-
         BlockFinality {
             block: block,
             height: height,
-            csv_active: csv_active,
             headers: headers,
         }
     }
