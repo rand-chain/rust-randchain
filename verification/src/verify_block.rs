@@ -3,7 +3,6 @@ use error::{Error, TransactionError};
 use network::ConsensusFork;
 
 pub struct BlockVerifier<'a> {
-    pub coinbase: BlockCoinbase<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
     pub extra_coinbases: BlockExtraCoinbases<'a>,
     pub merkle_root: BlockMerkleRoot<'a>,
@@ -12,7 +11,6 @@ pub struct BlockVerifier<'a> {
 impl<'a> BlockVerifier<'a> {
     pub fn new(block: &'a IndexedBlock) -> Self {
         BlockVerifier {
-            coinbase: BlockCoinbase::new(block),
             serialized_size: BlockSerializedSize::new(
                 block,
                 ConsensusFork::absolute_maximum_block_size(),
@@ -23,7 +21,6 @@ impl<'a> BlockVerifier<'a> {
     }
 
     pub fn check(&self) -> Result<(), Error> {
-        self.coinbase.check()?;
         self.serialized_size.check()?;
         self.extra_coinbases.check()?;
         self.merkle_root.check()?;
@@ -50,30 +47,6 @@ impl<'a> BlockSerializedSize<'a> {
             Err(Error::Size(size))
         } else {
             Ok(())
-        }
-    }
-}
-
-pub struct BlockCoinbase<'a> {
-    block: &'a IndexedBlock,
-}
-
-impl<'a> BlockCoinbase<'a> {
-    fn new(block: &'a IndexedBlock) -> Self {
-        BlockCoinbase { block: block }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        if self
-            .block
-            .transactions
-            .first()
-            .map(|tx| tx.raw.is_coinbase())
-            .unwrap_or(false)
-        {
-            Ok(())
-        } else {
-            Err(Error::Coinbase)
         }
     }
 }
