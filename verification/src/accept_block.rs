@@ -10,7 +10,6 @@ use storage::{
     transaction_index_for_output_check, BlockHeaderProvider, DuplexTransactionOutputProvider,
     TransactionOutputProvider,
 };
-use timestamp::median_timestamp;
 use work::block_reward_satoshi;
 
 /// Flexible verification of ordered block
@@ -94,22 +93,8 @@ impl<'a> BlockFinality<'a> {
     }
 
     fn check(&self) -> Result<(), Error> {
-        let time_cutoff = if self.csv_active {
-            median_timestamp(&self.block.header.raw, self.headers)
-        } else {
-            self.block.header.raw.time
-        };
-
-        if self
-            .block
-            .transactions
-            .iter()
-            .all(|tx| tx.raw.is_final_in_block(self.height, time_cutoff))
-        {
-            Ok(())
-        } else {
-            Err(Error::NonFinalBlock)
-        }
+        // TODO:
+        Ok(())
     }
 }
 
