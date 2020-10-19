@@ -1,5 +1,5 @@
 use chain::IndexedBlock;
-use error::{Error, TransactionError};
+use error::Error;
 use network::ConsensusFork;
 
 pub struct BlockVerifier<'a> {
@@ -20,7 +20,6 @@ impl<'a> BlockVerifier<'a> {
 
     pub fn check(&self) -> Result<(), Error> {
         self.serialized_size.check()?;
-        self.extra_coinbases.check()?;
         self.merkle_root.check()?;
         Ok(())
     }
