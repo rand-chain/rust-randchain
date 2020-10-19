@@ -1,6 +1,6 @@
 use hex::FromHex;
 use ser::deserialize;
-use {BlockHeader, Transaction};
+use BlockHeader;
 
 #[cfg(any(test, feature = "test-helpers"))]
 use hash::H256;
@@ -10,7 +10,6 @@ use merkle_root::merkle_root;
 #[derive(Debug, PartialEq, Clone, Serializable, Deserializable)]
 pub struct Block {
     pub block_header: BlockHeader,
-    pub transactions: Vec<Transaction>,
 }
 
 impl From<&'static str> for Block {
@@ -20,10 +19,9 @@ impl From<&'static str> for Block {
 }
 
 impl Block {
-    pub fn new(header: BlockHeader, transactions: Vec<Transaction>) -> Self {
+    pub fn new(header: BlockHeader) -> Self {
         Block {
             block_header: header,
-            transactions: transactions,
         }
     }
 
@@ -50,10 +48,6 @@ impl Block {
             }
         };
         merkle_root(&hashes)
-    }
-
-    pub fn transactions(&self) -> &[Transaction] {
-        &self.transactions
     }
 
     pub fn header(&self) -> &BlockHeader {
