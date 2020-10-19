@@ -1,15 +1,12 @@
 use chain::IndexedBlock;
 use error::{Error, TransactionError};
 use network::ConsensusFork;
-use sigops::transaction_sigops;
-use storage::NoopStore;
 
 pub struct BlockVerifier<'a> {
     pub empty: BlockEmpty<'a>,
     pub coinbase: BlockCoinbase<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
     pub extra_coinbases: BlockExtraCoinbases<'a>,
-    pub sigops: BlockSigops<'a>,
     pub merkle_root: BlockMerkleRoot<'a>,
 }
 
@@ -23,7 +20,6 @@ impl<'a> BlockVerifier<'a> {
                 ConsensusFork::absolute_maximum_block_size(),
             ),
             extra_coinbases: BlockExtraCoinbases::new(block),
-            sigops: BlockSigops::new(block, ConsensusFork::absolute_maximum_block_sigops()),
             merkle_root: BlockMerkleRoot::new(block),
         }
     }
@@ -33,7 +29,6 @@ impl<'a> BlockVerifier<'a> {
         self.coinbase.check()?;
         self.serialized_size.check()?;
         self.extra_coinbases.check()?;
-        self.sigops.check()?;
         self.merkle_root.check()?;
         Ok(())
     }
@@ -127,36 +122,6 @@ impl<'a> BlockExtraCoinbases<'a> {
                 TransactionError::MisplacedCoinbase,
             )),
             None => Ok(()),
-        }
-    }
-}
-
-pub struct BlockSigops<'a> {
-    block: &'a IndexedBlock,
-    max_sigops: usize,
-}
-
-impl<'a> BlockSigops<'a> {
-    fn new(block: &'a IndexedBlock, max_sigops: usize) -> Self {
-        BlockSigops {
-            block: block,
-            max_sigops: max_sigops,
-        }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        // We cannot know if bip16 is enabled at this point so we disable it.
-        let sigops = self
-            .block
-            .transactions
-            .iter()
-            .map(|tx| transaction_sigops(&tx.raw, &NoopStore, false, false))
-            .sum::<usize>();
-
-        if sigops > self.max_sigops {
-            Err(Error::MaximumSigops)
-        } else {
-            Ok(())
         }
     }
 }
