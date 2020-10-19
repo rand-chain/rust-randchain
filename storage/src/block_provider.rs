@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use hash::H256;
 use BlockRef;
 
@@ -25,10 +25,4 @@ pub trait BlockProvider: BlockHeaderProvider {
     fn contains_block(&self, block_ref: BlockRef) -> bool {
         self.block_header_bytes(block_ref).is_some()
     }
-
-    /// resolves list of block transactions by block reference (number/hash)
-    fn block_transaction_hashes(&self, block_ref: BlockRef) -> Vec<H256>;
-
-    /// returns all transactions in the block by block reference (number/hash)
-    fn block_transactions(&self, block_ref: BlockRef) -> Vec<IndexedTransaction>;
 }
