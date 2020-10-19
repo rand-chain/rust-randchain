@@ -15,7 +15,6 @@ use work::block_reward_satoshi;
 pub struct BlockAcceptor<'a> {
     pub finality: BlockFinality<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
-    pub coinbase_claim: BlockCoinbaseClaim<'a>,
     pub coinbase_script: BlockCoinbaseScript<'a>,
     pub witness: BlockWitness<'a>,
     pub ordering: BlockTransactionOrdering<'a>,
@@ -41,13 +40,6 @@ impl<'a> BlockAcceptor<'a> {
                 median_time_past,
             ),
             coinbase_script: BlockCoinbaseScript::new(block, consensus, height),
-            coinbase_claim: BlockCoinbaseClaim::new(
-                block,
-                consensus,
-                store,
-                height,
-                median_time_past,
-            ),
             witness: BlockWitness::new(block, deployments),
             ordering: BlockTransactionOrdering::new(block, consensus, median_time_past),
         }
@@ -56,7 +48,6 @@ impl<'a> BlockAcceptor<'a> {
     pub fn check(&self) -> Result<(), Error> {
         self.finality.check()?;
         self.serialized_size.check()?;
-        self.coinbase_claim.check()?;
         self.coinbase_script.check()?;
         self.witness.check()?;
         self.ordering.check()?;
@@ -143,85 +134,6 @@ impl<'a> BlockSerializedSize<'a> {
             }
         }
         Ok(())
-    }
-}
-
-pub struct BlockCoinbaseClaim<'a> {
-    block: CanonBlock<'a>,
-    store: &'a dyn TransactionOutputProvider,
-    height: u32,
-    transaction_ordering: TransactionOrdering,
-}
-
-impl<'a> BlockCoinbaseClaim<'a> {
-    fn new(
-        block: CanonBlock<'a>,
-        consensus_params: &ConsensusParams,
-        store: &'a dyn TransactionOutputProvider,
-        height: u32,
-        median_time_past: u32,
-    ) -> Self {
-        BlockCoinbaseClaim {
-            block: block,
-            store: store,
-            height: height,
-            transaction_ordering: consensus_params.fork.transaction_ordering(median_time_past),
-        }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        let store = DuplexTransactionOutputProvider::new(self.store, &*self.block);
-
-        let mut fees: u64 = 0;
-
-        for (tx_idx, tx) in self.block.transactions.iter().enumerate().skip(1) {
-            // (1) Total sum of all referenced outputs
-            let mut incoming: u64 = 0;
-            for input in tx.raw.inputs.iter() {
-                let prevout_tx_idx =
-                    transaction_index_for_output_check(self.transaction_ordering, tx_idx);
-                let prevout = store.transaction_output(&input.previous_output, prevout_tx_idx);
-                let (sum, overflow) =
-                    incoming.overflowing_add(prevout.map(|o| o.value).unwrap_or(0));
-                if overflow {
-                    return Err(Error::ReferencedInputsSumOverflow);
-                }
-                incoming = sum;
-            }
-
-            // (2) Total sum of all outputs
-            let spends = tx.raw.total_spends();
-
-            // Difference between (1) and (2)
-            let (difference, overflow) = incoming.overflowing_sub(spends);
-            if overflow {
-                return Err(Error::Transaction(tx_idx, TransactionError::Overspend));
-            }
-
-            // Adding to total fees (with possible overflow)
-            let (sum, overflow) = fees.overflowing_add(difference);
-            if overflow {
-                return Err(Error::TransactionFeesOverflow);
-            }
-
-            fees = sum;
-        }
-
-        let claim = self.block.transactions[0].raw.total_spends();
-
-        let (reward, overflow) = fees.overflowing_add(block_reward_satoshi(self.height));
-        if overflow {
-            return Err(Error::TransactionFeeAndRewardOverflow);
-        }
-
-        if claim > reward {
-            Err(Error::CoinbaseOverspend {
-                expected_max: reward,
-                actual: claim,
-            })
-        } else {
-            Ok(())
-        }
     }
 }
 
