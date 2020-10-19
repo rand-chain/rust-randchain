@@ -126,17 +126,11 @@ impl<'a> BlockSerializedSize<'a> {
 
 pub struct BlockWitness<'a> {
     block: CanonBlock<'a>,
-    segwit_active: bool,
 }
 
 impl<'a> BlockWitness<'a> {
-    fn new(block: CanonBlock<'a>, deployments: &'a BlockDeployments<'a>) -> Self {
-        let segwit_active = deployments.segwit();
-
-        BlockWitness {
-            block: block,
-            segwit_active: segwit_active,
-        }
+    fn new(block: CanonBlock<'a>, _deployments: &'a BlockDeployments<'a>) -> Self {
+        BlockWitness { block: block }
     }
 
     // TODO:
