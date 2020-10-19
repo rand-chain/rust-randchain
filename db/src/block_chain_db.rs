@@ -521,25 +521,6 @@ where
             .and_then(|hash| self.get(Key::BlockHeader(hash)))
             .is_some()
     }
-
-    fn block_transaction_hashes(&self, block_ref: BlockRef) -> Vec<H256> {
-        self.resolve_hash(block_ref)
-            .and_then(|hash| self.get(Key::BlockTransactions(hash)))
-            .and_then(Value::as_block_transactions)
-            .map(List::into)
-            .unwrap_or_default()
-    }
-
-    fn block_transactions(&self, block_ref: BlockRef) -> Vec<IndexedTransaction> {
-        self.block_transaction_hashes(block_ref)
-            .into_iter()
-            .filter_map(|hash| {
-                self.get(Key::Transaction(hash))
-                    .and_then(Value::as_transaction)
-                    .map(|tx| IndexedTransaction::new(hash, tx))
-            })
-            .collect()
-    }
 }
 
 impl<T> TransactionMetaProvider for BlockChainDatabase<T>
