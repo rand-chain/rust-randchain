@@ -15,7 +15,6 @@ use work::block_reward_satoshi;
 pub struct BlockAcceptor<'a> {
     pub finality: BlockFinality<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
-    pub coinbase_script: BlockCoinbaseScript<'a>,
     pub witness: BlockWitness<'a>,
     pub ordering: BlockTransactionOrdering<'a>,
 }
@@ -39,7 +38,6 @@ impl<'a> BlockAcceptor<'a> {
                 height,
                 median_time_past,
             ),
-            coinbase_script: BlockCoinbaseScript::new(block, consensus, height),
             witness: BlockWitness::new(block, deployments),
             ordering: BlockTransactionOrdering::new(block, consensus, median_time_past),
         }
@@ -48,7 +46,6 @@ impl<'a> BlockAcceptor<'a> {
     pub fn check(&self) -> Result<(), Error> {
         self.finality.check()?;
         self.serialized_size.check()?;
-        self.coinbase_script.check()?;
         self.witness.check()?;
         self.ordering.check()?;
         Ok(())
@@ -134,46 +131,6 @@ impl<'a> BlockSerializedSize<'a> {
             }
         }
         Ok(())
-    }
-}
-
-pub struct BlockCoinbaseScript<'a> {
-    block: CanonBlock<'a>,
-    bip34_active: bool,
-    height: u32,
-}
-
-impl<'a> BlockCoinbaseScript<'a> {
-    fn new(block: CanonBlock<'a>, consensus_params: &ConsensusParams, height: u32) -> Self {
-        BlockCoinbaseScript {
-            block: block,
-            bip34_active: height >= consensus_params.bip34_height,
-            height: height,
-        }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        if !self.bip34_active {
-            return Ok(());
-        }
-
-        let prefix = script::Builder::default()
-            .push_num(self.height.into())
-            .into_script();
-
-        let matches = self
-            .block
-            .transactions
-            .first()
-            .and_then(|tx| tx.raw.inputs.first())
-            .map(|input| input.script_sig.starts_with(&prefix))
-            .unwrap_or(false);
-
-        if matches {
-            Ok(())
-        } else {
-            Err(Error::CoinbaseScript)
-        }
     }
 }
 
