@@ -2,7 +2,7 @@ use canon::CanonBlock;
 use crypto::dhash256;
 use deployments::BlockDeployments;
 use error::Error;
-use network::{ConsensusFork, ConsensusParams, TransactionOrdering};
+use network::{ConsensusFork, ConsensusParams};
 use script;
 use ser::Stream;
 use storage::{BlockHeaderProvider, TransactionOutputProvider};
@@ -12,7 +12,6 @@ pub struct BlockAcceptor<'a> {
     pub finality: BlockFinality<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
     pub witness: BlockWitness<'a>,
-    pub ordering: BlockTransactionOrdering<'a>,
 }
 
 impl<'a> BlockAcceptor<'a> {
@@ -35,7 +34,6 @@ impl<'a> BlockAcceptor<'a> {
                 median_time_past,
             ),
             witness: BlockWitness::new(block, deployments),
-            ordering: BlockTransactionOrdering::new(block, consensus, median_time_past),
         }
     }
 
@@ -43,7 +41,6 @@ impl<'a> BlockAcceptor<'a> {
         self.finality.check()?;
         self.serialized_size.check()?;
         self.witness.check()?;
-        self.ordering.check()?;
         Ok(())
     }
 }
@@ -198,42 +195,6 @@ impl<'a> BlockWitness<'a> {
         }
 
         Ok(())
-    }
-}
-
-pub struct BlockTransactionOrdering<'a> {
-    block: CanonBlock<'a>,
-    transaction_ordering: TransactionOrdering,
-}
-
-impl<'a> BlockTransactionOrdering<'a> {
-    fn new(block: CanonBlock<'a>, consensus: &'a ConsensusParams, median_time_past: u32) -> Self {
-        BlockTransactionOrdering {
-            block,
-            transaction_ordering: consensus.fork.transaction_ordering(median_time_past),
-        }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        match self.transaction_ordering {
-            // topological transaction ordering is checked in TransactionMissingInputs
-            TransactionOrdering::Topological => Ok(()),
-            // canonical transaction ordering means that transactions are ordered by
-            // their id (i.e. hash) in ascending order
-            TransactionOrdering::Canonical => {
-                if self
-                    .block
-                    .transactions
-                    .windows(2)
-                    .skip(1)
-                    .all(|w| w[0].hash < w[1].hash)
-                {
-                    Ok(())
-                } else {
-                    Err(Error::NonCanonicalTransactionOrdering)
-                }
-            }
-        }
     }
 }
 
