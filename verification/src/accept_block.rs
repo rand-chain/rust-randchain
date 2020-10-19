@@ -1,15 +1,11 @@
 use canon::CanonBlock;
 use crypto::dhash256;
 use deployments::BlockDeployments;
-use error::{Error, TransactionError};
+use error::Error;
 use network::{ConsensusFork, ConsensusParams, TransactionOrdering};
 use script;
 use ser::Stream;
-use storage::{
-    transaction_index_for_output_check, BlockHeaderProvider, DuplexTransactionOutputProvider,
-    TransactionOutputProvider,
-};
-use work::block_reward_satoshi;
+use storage::{BlockHeaderProvider, TransactionOutputProvider};
 
 /// Flexible verification of ordered block
 pub struct BlockAcceptor<'a> {
