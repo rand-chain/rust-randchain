@@ -20,7 +20,6 @@ mod block_ref;
 mod duplex_store;
 mod error;
 mod store;
-mod transaction_meta;
 
 pub use primitives::{bytes, hash};
 
@@ -34,4 +33,3 @@ pub use block_ref::BlockRef;
 pub use duplex_store::NoopStore;
 pub use error::Error;
 pub use store::{AsSubstore, CanonStore, ConfigStore, SharedStore, Store};
-pub use transaction_meta::TransactionMeta;
