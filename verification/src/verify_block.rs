@@ -3,7 +3,6 @@ use error::{Error, TransactionError};
 use network::ConsensusFork;
 
 pub struct BlockVerifier<'a> {
-    pub empty: BlockEmpty<'a>,
     pub coinbase: BlockCoinbase<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
     pub extra_coinbases: BlockExtraCoinbases<'a>,
@@ -13,7 +12,6 @@ pub struct BlockVerifier<'a> {
 impl<'a> BlockVerifier<'a> {
     pub fn new(block: &'a IndexedBlock) -> Self {
         BlockVerifier {
-            empty: BlockEmpty::new(block),
             coinbase: BlockCoinbase::new(block),
             serialized_size: BlockSerializedSize::new(
                 block,
@@ -25,30 +23,11 @@ impl<'a> BlockVerifier<'a> {
     }
 
     pub fn check(&self) -> Result<(), Error> {
-        self.empty.check()?;
         self.coinbase.check()?;
         self.serialized_size.check()?;
         self.extra_coinbases.check()?;
         self.merkle_root.check()?;
         Ok(())
-    }
-}
-
-pub struct BlockEmpty<'a> {
-    block: &'a IndexedBlock,
-}
-
-impl<'a> BlockEmpty<'a> {
-    fn new(block: &'a IndexedBlock) -> Self {
-        BlockEmpty { block: block }
-    }
-
-    fn check(&self) -> Result<(), Error> {
-        if self.block.transactions.is_empty() {
-            Err(Error::Empty)
-        } else {
-            Ok(())
-        }
     }
 }
 
