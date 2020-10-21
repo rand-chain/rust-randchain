@@ -152,9 +152,10 @@ impl Verify for BackwardsCompatibleChainVerifier {
     fn verify(&self, level: VerificationLevel, block: &IndexedBlock) -> Result<(), Error> {
         let result = self.verify_block(level, block);
         trace!(
-            target: "verification", "Block {} (transactions: {}) verification finished. Result {:?}",
+            // target: "verification", "Block {} (transactions: {}) verification finished. Result {:?}",
+            target: "verification", "Block {} verification finished. Result {:?}",
             block.hash().to_reversed_str(),
-            block.transactions.len(),
+            // block.transactions.len(),
             result,
         );
         result
