@@ -6,44 +6,31 @@ use {Deployment, Magic, Network};
 pub struct ConsensusParams {
     /// Network.
     pub network: Network,
-    /// Time when BIP16 becomes active.
-    /// See https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki
-    pub bip16_time: u32,
-    /// Block height at which BIP34 becomes active.
-    /// See https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki
-    pub bip34_height: u32,
-    /// Block height at which BIP65 becomes active.
-    /// See https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki
-    pub bip65_height: u32,
-    /// Block height at which BIP65 becomes active.
-    /// See https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki
-    pub bip66_height: u32,
-    /// Selected consensus fork.
-    pub fork: ConsensusFork,
+    //
+    // /// Time when BIP16 becomes active.
+    // /// See https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki
+    // pub bip16_time: u32,
+    // /// Block height at which BIP34 becomes active.
+    // /// See https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki
+    // pub bip34_height: u32,
+    // /// Block height at which BIP65 becomes active.
+    // /// See https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki
+    // pub bip65_height: u32,
+    // /// Block height at which BIP65 becomes active.
+    // /// See https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki
+    // pub bip66_height: u32,
+    // /// Selected consensus fork.
+    // pub fork: ConsensusFork,
+    //
     /// Version bits activation
     pub rule_change_activation_threshold: u32,
     /// Number of blocks with the same set of rules
     pub miner_confirmation_window: u32,
-    /// BIP68, BIP112, BIP113 deployment
-    pub csv_deployment: Option<Deployment>,
-    /// BIP141, BIP143, BIP147 deployment
-    pub segwit_deployment: Option<Deployment>,
-}
-
-#[derive(Debug, Clone)]
-/// Bitcoin cash consensus parameters.
-pub struct BitcoinCashConsensusParams {
-    /// Initial BCH hard fork height.
-    pub height: u32,
-    /// Height of difficulty adjustment hardfork.
-    /// https://reviews.bitcoinabc.org/D601
-    pub difficulty_adjustion_height: u32,
-    /// Time of monolith (aka May 2018) hardfork.
-    /// https://github.com/bitcoincashorg/spec/blob/4fbb0face661e293bcfafe1a2a4744dcca62e50d/may-2018-hardfork.md
-    pub monolith_time: u32,
-    /// Time of magnetic anomaly (aka Nov 2018) hardfork.
-    /// https://github.com/bitcoincashorg/bitcoincash.org/blob/f92f5412f2ed60273c229f68dd8703b6d5d09617/spec/2018-nov-upgrade.md
-    pub magnetic_anomaly_time: u32,
+    //
+    // /// BIP68, BIP112, BIP113 deployment
+    // pub csv_deployment: Option<Deployment>,
+    // /// BIP141, BIP143, BIP147 deployment
+    // pub segwit_deployment: Option<Deployment>,
 }
 
 #[derive(Debug, Clone)]
@@ -51,13 +38,6 @@ pub struct BitcoinCashConsensusParams {
 pub enum ConsensusFork {
     /// No fork.
     BitcoinCore,
-    /// Bitcoin Cash (aka UAHF).
-    /// `u32` is height of the first block, for which new consensus rules are applied.
-    /// Briefly: no SegWit + blocks up to 8MB + replay protection.
-    /// Technical specification:
-    /// UAHF Technical Specification - https://github.com/Bitcoin-UAHF/spec/blob/master/uahf-technical-spec.md
-    /// BUIP-HF Digest for replay protected signature verification across hard forks - https://github.com/Bitcoin-UAHF/spec/blob/master/replay-protected-sighash.md
-    BitcoinCash(BitcoinCashConsensusParams),
 }
 
 #[derive(Debug, Clone, Copy)]
