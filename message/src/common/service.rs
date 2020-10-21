@@ -61,17 +61,6 @@ impl Services {
         self
     }
 
-    // TODO:
-    pub fn bitcoin_cash(&self) -> bool {
-        self.bit_at(5)
-    }
-
-    // TODO:
-    pub fn with_bitcoin_cash(mut self, v: bool) -> Self {
-        self.set_bit(5, v);
-        self
-    }
-
     pub fn includes(&self, other: &Self) -> bool {
         self.0 & other.0 == other.0
     }

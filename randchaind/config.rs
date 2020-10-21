@@ -138,10 +138,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     };
 
     let services = Services::default().with_network(true);
-    let services = match &consensus.fork {
-        &ConsensusFork::BitcoinCash(_) => services.with_bitcoin_cash(true),
-        &ConsensusFork::BitcoinCore => services.with_witness(true),
-    };
+    services.with_witness(true);
 
     let verification_level = match matches.value_of("verification-level") {
         Some(s) if s == "full" => VerificationLevel::Full,
