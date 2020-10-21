@@ -6,10 +6,7 @@ use kv::{
     KeyValue, KeyValueDatabase, MemoryDatabase, OverlayDatabase, Transaction as DBTransaction,
     Value,
 };
-use kv::{
-    COL_BLOCK_HASHES, COL_BLOCK_HEADERS, COL_BLOCK_NUMBERS, COL_BLOCK_TRANSACTIONS, COL_COUNT,
-    COL_TRANSACTIONS, COL_TRANSACTIONS_META,
-};
+use kv::{COL_BLOCK_HASHES, COL_BLOCK_HEADERS, COL_BLOCK_NUMBERS, COL_COUNT};
 use parking_lot::RwLock;
 use ser::{deserialize, serialize};
 use std::fs;
@@ -60,15 +57,18 @@ impl BlockChainDatabase<CacheDatabase<AutoFlushingOverlayDatabase<DiskDatabase>>
         fs::create_dir_all(path.as_ref()).map_err(|err| Error::DatabaseError(err.to_string()))?;
         let mut cfg = DatabaseConfig::with_columns(Some(COL_COUNT));
 
-        cfg.set_cache(Some(COL_TRANSACTIONS), total_cache / 4);
-        cfg.set_cache(Some(COL_TRANSACTIONS_META), total_cache / 4);
+        // TODO:
+        // cfg.set_cache(Some(COL_TRANSACTIONS), total_cache / 4);
+        // cfg.set_cache(Some(COL_TRANSACTIONS_META), total_cache / 4);
         cfg.set_cache(Some(COL_BLOCK_HEADERS), total_cache / 4);
 
         cfg.set_cache(Some(COL_BLOCK_HASHES), total_cache / 12);
-        cfg.set_cache(Some(COL_BLOCK_TRANSACTIONS), total_cache / 12);
+        // TODO:
+        // cfg.set_cache(Some(COL_BLOCK_TRANSACTIONS), total_cache / 12);
         cfg.set_cache(Some(COL_BLOCK_NUMBERS), total_cache / 12);
 
-        cfg.bloom_filters.insert(Some(COL_TRANSACTIONS_META), 32);
+        // TODO:
+        // cfg.bloom_filters.insert(Some(COL_TRANSACTIONS_META), 32);
 
         match DiskDatabase::open(cfg, path) {
             Ok(db) => Ok(Self::open_with_cache(db)),
