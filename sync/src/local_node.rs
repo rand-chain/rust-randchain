@@ -10,8 +10,8 @@ use synchronization_peers::{BlockAnnouncementType, TransactionAnnouncementType};
 use synchronization_server::{Server, ServerTask};
 use time;
 use types::{
-    ClientRef, MemoryPoolRef, PeerIndex, PeersRef, RequestId, ServerRef, StorageRef,
-    SyncListenerRef, SynchronizationStateRef,
+    ClientRef, PeerIndex, PeersRef, RequestId, ServerRef, StorageRef, SyncListenerRef,
+    SynchronizationStateRef,
 };
 use verification::median_timestamp_inclusive;
 
@@ -21,8 +21,6 @@ pub struct LocalNode<U: Server, V: Client> {
     consensus: ConsensusParams,
     /// Storage reference
     storage: StorageRef,
-    /// Memory pool reference
-    memory_pool: MemoryPoolRef,
     /// Synchronization peers
     peers: PeersRef,
     /// Shared synchronization state
@@ -43,7 +41,6 @@ where
     pub fn new(
         consensus: ConsensusParams,
         storage: StorageRef,
-        memory_pool: MemoryPoolRef,
         peers: PeersRef,
         state: SynchronizationStateRef,
         client: ClientRef<V>,
@@ -52,7 +49,6 @@ where
         LocalNode {
             consensus: consensus,
             storage: storage,
-            memory_pool: memory_pool,
             peers: peers,
             state: state,
             client: client,
@@ -243,10 +239,8 @@ where
                 .max_block_sigops(new_block_height, max_block_size)
                 as u32,
         };
-        let memory_pool = &*self.memory_pool.read();
         block_assembler.create_new_block(
             &self.storage,
-            memory_pool,
             time::get_time().sec as u32,
             median_timestamp,
             &self.consensus,

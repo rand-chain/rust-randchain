@@ -38,9 +38,6 @@ impl BlockAssembler {
     pub fn create_new_block(
         &self,
         store: &SharedStore,
-        // TODO:
-        // mempool: &MemoryPool,
-        _mempool: u32,
         time: u32,
         // TODO:
         _median_timestamp: u32,
