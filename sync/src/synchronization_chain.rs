@@ -1,5 +1,4 @@
 use chain::{IndexedBlock, IndexedBlockHeader};
-use linked_hash_map::LinkedHashMap;
 use network::ConsensusParams;
 use primitives::bytes::Bytes;
 use primitives::hash::H256;
