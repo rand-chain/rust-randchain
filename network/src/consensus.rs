@@ -53,7 +53,7 @@ impl ConsensusParams {
     }
 
     pub fn magic(&self) -> Magic {
-        self.network.magic(&self.fork)
+        self.network.magic()
     }
 
     pub fn is_bip30_exception(&self, hash: &H256, height: u32) -> bool {

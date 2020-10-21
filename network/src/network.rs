@@ -50,16 +50,13 @@ pub enum Network {
 }
 
 impl Network {
-    pub fn magic(&self, fork: &ConsensusFork) -> Magic {
-        match (fork, *self) {
-            (&ConsensusFork::BitcoinCash(_), Network::Mainnet) => BITCOIN_CASH_MAGIC_MAINNET,
-            (&ConsensusFork::BitcoinCash(_), Network::Testnet) => BITCOIN_CASH_MAGIC_TESTNET,
-            (&ConsensusFork::BitcoinCash(_), Network::Regtest) => BITCOIN_CASH_MAGIC_REGTEST,
-            (_, Network::Mainnet) => MAGIC_MAINNET,
-            (_, Network::Testnet) => MAGIC_TESTNET,
-            (_, Network::Regtest) => MAGIC_REGTEST,
-            (_, Network::Unitest) => MAGIC_UNITEST,
-            (_, Network::Other(value)) => value,
+    pub fn magic(&self) -> Magic {
+        match *self {
+            Network::Mainnet => MAGIC_MAINNET,
+            Network::Testnet => MAGIC_TESTNET,
+            Network::Regtest => MAGIC_REGTEST,
+            Network::Unitest => MAGIC_UNITEST,
+            Network::Other(value) => value,
         }
     }
 
