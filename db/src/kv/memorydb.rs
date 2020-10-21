@@ -1,22 +1,17 @@
 use bytes::Bytes;
-use chain::{BlockHeader, Transaction as ChainTransaction};
+use chain::BlockHeader;
 use hash::H256;
 use kv::{Key, KeyState, KeyValue, KeyValueDatabase, Operation, Transaction, Value};
 use parking_lot::RwLock;
-use ser::List;
 use std::collections::HashMap;
 use std::mem::replace;
 use std::sync::Arc;
-use storage::TransactionMeta;
 
 #[derive(Default, Debug)]
 struct InnerDatabase {
     meta: HashMap<&'static str, KeyState<Bytes>>,
     block_hash: HashMap<u32, KeyState<H256>>,
     block_header: HashMap<H256, KeyState<BlockHeader>>,
-    block_transactions: HashMap<H256, KeyState<List<H256>>>,
-    transaction: HashMap<H256, KeyState<ChainTransaction>>,
-    transaction_meta: HashMap<H256, KeyState<TransactionMeta>>,
     block_number: HashMap<H256, KeyState<u32>>,
     configuration: HashMap<&'static str, KeyState<Bytes>>,
 }
@@ -45,24 +40,6 @@ impl MemoryDatabase {
                 state.into_operation(key, KeyValue::BlockHeader, Key::BlockHeader)
             });
 
-        let block_transactions = replace(&mut db.block_transactions, HashMap::default())
-            .into_iter()
-            .flat_map(|(key, state)| {
-                state.into_operation(key, KeyValue::BlockTransactions, Key::BlockTransactions)
-            });
-
-        let transaction = replace(&mut db.transaction, HashMap::default())
-            .into_iter()
-            .flat_map(|(key, state)| {
-                state.into_operation(key, KeyValue::Transaction, Key::Transaction)
-            });
-
-        let transaction_meta = replace(&mut db.transaction_meta, HashMap::default())
-            .into_iter()
-            .flat_map(|(key, state)| {
-                state.into_operation(key, KeyValue::TransactionMeta, Key::TransactionMeta)
-            });
-
         let block_number = replace(&mut db.block_number, HashMap::default())
             .into_iter()
             .flat_map(|(key, state)| {
@@ -79,9 +56,6 @@ impl MemoryDatabase {
             operations: meta
                 .chain(block_hash)
                 .chain(block_header)
-                .chain(block_transactions)
-                .chain(transaction)
-                .chain(transaction_meta)
                 .chain(block_number)
                 .chain(configuration)
                 .collect(),
@@ -104,15 +78,6 @@ impl KeyValueDatabase for MemoryDatabase {
                     KeyValue::BlockHeader(key, value) => {
                         db.block_header.insert(key, KeyState::Insert(value));
                     }
-                    KeyValue::BlockTransactions(key, value) => {
-                        db.block_transactions.insert(key, KeyState::Insert(value));
-                    }
-                    KeyValue::Transaction(key, value) => {
-                        db.transaction.insert(key, KeyState::Insert(value));
-                    }
-                    KeyValue::TransactionMeta(key, value) => {
-                        db.transaction_meta.insert(key, KeyState::Insert(value));
-                    }
                     KeyValue::BlockNumber(key, value) => {
                         db.block_number.insert(key, KeyState::Insert(value));
                     }
@@ -129,15 +94,6 @@ impl KeyValueDatabase for MemoryDatabase {
                     }
                     Key::BlockHeader(key) => {
                         db.block_header.insert(key, KeyState::Delete);
-                    }
-                    Key::BlockTransactions(key) => {
-                        db.block_transactions.insert(key, KeyState::Delete);
-                    }
-                    Key::Transaction(key) => {
-                        db.transaction.insert(key, KeyState::Delete);
-                    }
-                    Key::TransactionMeta(key) => {
-                        db.transaction_meta.insert(key, KeyState::Delete);
                     }
                     Key::BlockNumber(key) => {
                         db.block_number.insert(key, KeyState::Delete);
@@ -172,24 +128,6 @@ impl KeyValueDatabase for MemoryDatabase {
                 .cloned()
                 .unwrap_or_default()
                 .map(Value::BlockHeader),
-            Key::BlockTransactions(ref key) => db
-                .block_transactions
-                .get(key)
-                .cloned()
-                .unwrap_or_default()
-                .map(Value::BlockTransactions),
-            Key::Transaction(ref key) => db
-                .transaction
-                .get(key)
-                .cloned()
-                .unwrap_or_default()
-                .map(Value::Transaction),
-            Key::TransactionMeta(ref key) => db
-                .transaction_meta
-                .get(key)
-                .cloned()
-                .unwrap_or_default()
-                .map(Value::TransactionMeta),
             Key::BlockNumber(ref key) => db
                 .block_number
                 .get(key)
