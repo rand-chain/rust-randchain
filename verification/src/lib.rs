@@ -95,7 +95,7 @@ pub use primitives::{bigint, compact, hash};
 pub use accept_block::BlockAcceptor;
 pub use accept_chain::ChainAcceptor;
 pub use accept_header::HeaderAcceptor;
-pub use canon::{CanonBlock, CanonHeader, CanonTransaction};
+pub use canon::{CanonBlock, CanonHeader};
 
 pub use verify_block::BlockVerifier;
 pub use verify_chain::ChainVerifier;
