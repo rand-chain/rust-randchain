@@ -1,10 +1,8 @@
 use bit_vec::BitVec;
-use chain::{IndexedTransaction, OutPoint};
 use message::types;
 use murmur3::murmur3_32;
 use parking_lot::Mutex;
 use script::Script;
-use ser::serialize;
 
 /// Constant optimized to create large differences in the seed for different values of `hash_functions_num`.
 const SEED_OFFSET: u32 = 0xFBA4C795;
@@ -72,67 +70,6 @@ impl BloomFilter {
     /// Removes bloom filter, so that all transactions are now accepted by this filter
     pub fn remove_bloom_filter(&mut self) {
         self.bloom = None;
-    }
-
-    /// Filters transaction using bloom filter data
-    pub fn filter_transaction(&self, tx: &IndexedTransaction) -> bool {
-        // check with bloom filter, if set
-        match self.bloom {
-            // if no filter is set for the connection => match everything
-            None => true,
-            // filter using bloom filter, then update
-            Some(ref bloom) => {
-                let mut bloom = bloom.lock();
-                let mut is_match = false;
-
-                // match if filter contains any arbitrary script data element in any scriptPubKey in tx
-                for (output_index, output) in tx.raw.outputs.iter().enumerate() {
-                    let script = Script::new(output.script_pubkey.clone());
-                    let is_update_needed = self.filter_flags == types::FilterFlags::All
-                        || (self.filter_flags == types::FilterFlags::PubKeyOnly
-                            && (script.is_pay_to_public_key() || script.is_multisig_script()));
-                    if contains_any_instruction_data(&*bloom, script) {
-                        is_match = true;
-
-                        if is_update_needed {
-                            bloom.insert(&serialize(&OutPoint {
-                                hash: tx.hash.clone(),
-                                index: output_index as u32,
-                            }));
-                        }
-                    }
-                }
-
-                // filter is updated only above => we can early-return from now
-                if is_match {
-                    return is_match;
-                }
-
-                // match if filter contains transaction itself
-                if bloom.contains(&*tx.hash) {
-                    return true;
-                }
-
-                // match if filter contains an outpoint this transaction spends
-                for input in &tx.raw.inputs {
-                    // check if match previous output
-                    let previous_output = serialize(&input.previous_output);
-                    is_match = bloom.contains(&*previous_output);
-                    if is_match {
-                        return true;
-                    }
-
-                    // check if match any arbitrary script data element in any scriptSig in tx
-                    let script = Script::new(input.script_sig.clone());
-                    if contains_any_instruction_data(&*bloom, script) {
-                        return true;
-                    }
-                }
-
-                // no matches
-                false
-            }
-        }
     }
 }
 
