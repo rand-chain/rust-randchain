@@ -30,4 +30,5 @@ pub use self::script::{
 // pub use self::sign::{SignatureVersion, TransactionInputSigner, UnsignedTransactionInput};
 pub use self::sign::SignatureVersion;
 pub use self::stack::Stack;
-pub use self::verify::{NoopSignatureChecker, SignatureChecker, TransactionSignatureChecker};
+// pub use self::verify::{NoopSignatureChecker, SignatureChecker, TransactionSignatureChecker};
+pub use self::verify::{NoopSignatureChecker, SignatureChecker};
