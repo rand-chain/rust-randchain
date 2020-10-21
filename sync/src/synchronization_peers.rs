@@ -34,8 +34,6 @@ pub enum TransactionAnnouncementType {
 pub struct MerkleBlockArtefacts {
     /// `merkleblock` message
     pub merkleblock: types::MerkleBlock,
-    /// All matching transactions
-    pub matching_transactions: Vec<IndexedTransaction>,
 }
 
 /// Connected peers
@@ -77,13 +75,6 @@ pub trait PeersFilters {
     fn set_fee_filter(&self, peer_index: PeerIndex, filter: types::FeeFilter);
     /// Is block passing filters for the connection
     fn filter_block(&self, peer_index: PeerIndex, block: &IndexedBlock) -> BlockAnnouncementType;
-    /// Is block passing filters for the connection
-    fn filter_transaction(
-        &self,
-        peer_index: PeerIndex,
-        transaction: &IndexedTransaction,
-        transaction_fee_rate: Option<u64>,
-    ) -> TransactionAnnouncementType;
     /// Remember known hash
     fn hash_known_as(&self, peer_index: PeerIndex, hash: H256, hash_type: KnownHashType);
     /// Is given hash known by peer as hash of given type
@@ -261,24 +252,6 @@ impl PeersFilters for PeersImpl {
         }
 
         BlockAnnouncementType::DoNotAnnounce
-    }
-
-    fn filter_transaction(
-        &self,
-        peer_index: PeerIndex,
-        transaction: &IndexedTransaction,
-        transaction_fee_rate: Option<u64>,
-    ) -> TransactionAnnouncementType {
-        if let Some(peer) = self.peers.read().get(&peer_index) {
-            if peer
-                .filter
-                .filter_transaction(transaction, transaction_fee_rate)
-            {
-                return peer.transaction_announcement_type;
-            }
-        }
-
-        TransactionAnnouncementType::DoNotAnnounce
     }
 
     fn hash_known_as(&self, peer_index: PeerIndex, hash: H256, hash_type: KnownHashType) {

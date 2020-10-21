@@ -8,7 +8,6 @@ use {MessageResult, Payload};
 #[derive(Debug, PartialEq)]
 pub struct MerkleBlock {
     pub block_header: BlockHeader,
-    pub total_transactions: u32,
     pub hashes: Vec<H256>,
     pub flags: Bytes,
 }
@@ -28,7 +27,6 @@ impl Payload for MerkleBlock {
     {
         let merkle_block = MerkleBlock {
             block_header: reader.read()?,
-            total_transactions: reader.read()?,
             hashes: reader.read_list()?,
             flags: reader.read()?,
         };
@@ -39,7 +37,6 @@ impl Payload for MerkleBlock {
     fn serialize_payload(&self, stream: &mut Stream, _version: u32) -> MessageResult<()> {
         stream
             .append(&self.block_header)
-            .append(&self.total_transactions)
             .append_list(&self.hashes)
             .append(&self.flags);
         Ok(())
