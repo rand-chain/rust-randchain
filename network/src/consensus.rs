@@ -71,11 +71,7 @@ impl ConsensusParams {
 
     /// Returns true if SegWit is possible on this chain.
     pub fn is_segwit_possible(&self) -> bool {
-        match self.fork {
-            // SegWit is not supported in (our?) regtests
-            ConsensusFork::BitcoinCore if self.network != Network::Regtest => true,
-            ConsensusFork::BitcoinCore | ConsensusFork::BitcoinCash(_) => false,
-        }
+        self.network != Network::Regtest
     }
 }
 
