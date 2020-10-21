@@ -35,8 +35,6 @@ pub struct VerboseBlock {
     pub version_hex: String,
     /// Merkle root of this block
     pub merkleroot: H256,
-    /// Transactions ids
-    pub tx: Vec<H256>,
     /// Block time in seconds since epoch (Jan 1 1970 GMT)
     pub time: u32,
     /// Median block time in seconds since epoch (Jan 1 1970 GMT)
