@@ -263,31 +263,6 @@ impl ConsensusFork {
     }
 }
 
-impl BitcoinCashConsensusParams {
-    pub fn new(network: Network) -> Self {
-        match network {
-            Network::Mainnet | Network::Other(_) => BitcoinCashConsensusParams {
-                height: 478559,
-                difficulty_adjustion_height: 504031,
-                monolith_time: 1526400000,
-                magnetic_anomaly_time: 1542300000,
-            },
-            Network::Testnet => BitcoinCashConsensusParams {
-                height: 1155876,
-                difficulty_adjustion_height: 1188697,
-                monolith_time: 1526400000,
-                magnetic_anomaly_time: 1542300000,
-            },
-            Network::Regtest | Network::Unitest => BitcoinCashConsensusParams {
-                height: 0,
-                difficulty_adjustion_height: 0,
-                monolith_time: 1526400000,
-                magnetic_anomaly_time: 1542300000,
-            },
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::super::Network;
