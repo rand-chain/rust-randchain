@@ -5,7 +5,6 @@ use chain::IndexedBlock;
 use compact::Compact;
 use primitives::bigint::U256;
 use primitives::hash::H256;
-use ConsensusFork;
 
 const MAGIC_MAINNET: u32 = 0xD9B4BEF9;
 const MAGIC_TESTNET: u32 = 0x0709110B;

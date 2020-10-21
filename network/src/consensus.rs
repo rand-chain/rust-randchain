@@ -1,5 +1,5 @@
 use hash::H256;
-use {Deployment, Magic, Network};
+use {Magic, Network};
 
 #[derive(Debug, Clone)]
 /// Parameters that influence chain consensus.
@@ -69,6 +69,7 @@ impl ConsensusParams {
                     ))
     }
 
+    // TODO: remove this
     /// Returns true if SegWit is possible on this chain.
     pub fn is_segwit_possible(&self) -> bool {
         self.network != Network::Regtest
