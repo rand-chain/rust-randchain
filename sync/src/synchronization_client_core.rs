@@ -22,10 +22,7 @@ use types::{
     BlockHeight, ClientCoreRef, EmptyBoxFuture, PeerIndex, PeersRef, SyncListenerRef,
     SynchronizationStateRef,
 };
-use utils::{
-    AverageSpeedMeter, HashPosition, MessageBlockHeadersProvider, OrphanBlocksPool,
-    OrphanTransactionsPool,
-};
+use utils::{AverageSpeedMeter, HashPosition, MessageBlockHeadersProvider, OrphanBlocksPool};
 use verification::BackwardsCompatibleChainVerifier as ChainVerifier;
 
 /// Approximate maximal number of blocks hashes in scheduled queue.
@@ -116,8 +113,6 @@ pub struct SynchronizationClientCore<T: TaskExecutor> {
     chain: Chain,
     /// Orphaned blocks pool.
     orphaned_blocks_pool: OrphanBlocksPool,
-    /// Orphaned transactions pool.
-    orphaned_transactions_pool: OrphanTransactionsPool,
     /// Chain verifier
     chain_verifier: Arc<ChainVerifier>,
     /// Verify block headers?
@@ -909,7 +904,6 @@ where
             executor: executor,
             chain: chain,
             orphaned_blocks_pool: OrphanBlocksPool::new(),
-            orphaned_transactions_pool: OrphanTransactionsPool::new(),
             chain_verifier: chain_verifier,
             verify_headers: true,
             verifying_blocks_by_peer: HashMap::new(),
@@ -966,11 +960,6 @@ where
     /// Get orphaned blocks pool reference
     pub fn orphaned_blocks_pool(&mut self) -> &mut OrphanBlocksPool {
         &mut self.orphaned_blocks_pool
-    }
-
-    /// Get orphaned transactions pool reference
-    pub fn orphaned_transactions_pool(&mut self) -> &mut OrphanTransactionsPool {
-        &mut self.orphaned_transactions_pool
     }
 
     /// Verify block headers or not?
