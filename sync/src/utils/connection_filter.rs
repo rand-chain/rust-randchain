@@ -67,7 +67,8 @@ impl ConnectionFilter {
         }
 
         // prepare result
-        let mut result = MerkleBlockArtefacts {
+        let result = MerkleBlockArtefacts {
+            // let mut result = MerkleBlockArtefacts {
             merkleblock: types::MerkleBlock {
                 block_header: block.header.raw.clone(),
                 hashes: Vec::default(),

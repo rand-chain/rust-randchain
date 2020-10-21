@@ -166,12 +166,6 @@ pub struct BlocksRequestLimits {
     pub max_blocks_in_request: BlockHeight,
 }
 
-/// Transaction append error
-enum AppendTransactionError {
-    Synchronizing,
-    Orphan(HashSet<H256>),
-}
-
 /// Blocks headers verification result
 enum BlocksHeadersVerificationResult {
     /// Skip these blocks headers

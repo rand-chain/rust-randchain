@@ -63,7 +63,6 @@ impl ManagementWorker {
     ) {
         let peers_config = ManagePeersConfig::default();
         let unknown_config = ManageUnknownBlocksConfig::default();
-        let orphan_config = ManageOrphanTransactionsConfig::default();
 
         loop {
             let mut lock = is_stopping.lock();

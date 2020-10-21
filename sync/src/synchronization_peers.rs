@@ -1,4 +1,4 @@
-use chain::{IndexedBlock, IndexedTransaction};
+use chain::IndexedBlock;
 use message::{types, Services};
 use p2p::OutboundSyncConnectionRef;
 use parking_lot::RwLock;

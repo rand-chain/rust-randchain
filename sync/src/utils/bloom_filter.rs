@@ -2,7 +2,6 @@ use bit_vec::BitVec;
 use message::types;
 use murmur3::murmur3_32;
 use parking_lot::Mutex;
-use script::Script;
 
 /// Constant optimized to create large differences in the seed for different values of `hash_functions_num`.
 const SEED_OFFSET: u32 = 0xFBA4C795;
@@ -83,27 +82,27 @@ impl BloomFilterData {
         }
     }
 
-    /// True if filter contains given bytes
-    pub fn contains(&self, data: &[u8]) -> bool {
-        for hash_function_idx in 0..self.hash_functions_num {
-            let murmur_seed = hash_function_idx
-                .overflowing_mul(SEED_OFFSET)
-                .0
-                .overflowing_add(self.tweak)
-                .0;
-            let murmur_hash =
-                murmur3_32(&mut data.as_ref(), murmur_seed) as usize % self.filter.len();
-            let index = (murmur_hash & !7usize) | ((murmur_hash & 7) ^ 7);
-            if !self
-                .filter
-                .get(index)
-                .expect("murmur_hash is result of mod operation by filter len; qed")
-            {
-                return false;
-            }
-        }
-        true
-    }
+    // /// True if filter contains given bytes
+    // pub fn contains(&self, data: &[u8]) -> bool {
+    //     for hash_function_idx in 0..self.hash_functions_num {
+    //         let murmur_seed = hash_function_idx
+    //             .overflowing_mul(SEED_OFFSET)
+    //             .0
+    //             .overflowing_add(self.tweak)
+    //             .0;
+    //         let murmur_hash =
+    //             murmur3_32(&mut data.as_ref(), murmur_seed) as usize % self.filter.len();
+    //         let index = (murmur_hash & !7usize) | ((murmur_hash & 7) ^ 7);
+    //         if !self
+    //             .filter
+    //             .get(index)
+    //             .expect("murmur_hash is result of mod operation by filter len; qed")
+    //         {
+    //             return false;
+    //         }
+    //     }
+    //     true
+    // }
 
     /// Add bytes to the filter
     pub fn insert(&mut self, data: &[u8]) {
@@ -121,22 +120,22 @@ impl BloomFilterData {
     }
 }
 
-fn contains_any_instruction_data(bloom: &BloomFilterData, script: Script) -> bool {
-    for instruction in script.iter() {
-        match instruction {
-            Err(_) => break,
-            Ok(instruction) => {
-                if let Some(instruction_data) = instruction.data {
-                    if bloom.contains(&*instruction_data) {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
+// fn contains_any_instruction_data(bloom: &BloomFilterData, script: Script) -> bool {
+//     for instruction in script.iter() {
+//         match instruction {
+//             Err(_) => break,
+//             Ok(instruction) => {
+//                 if let Some(instruction_data) = instruction.data {
+//                     if bloom.contains(&*instruction_data) {
+//                         return true;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    false
-}
+//     false
+// }
 
 #[cfg(test)]
 mod tests {
