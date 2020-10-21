@@ -5,7 +5,7 @@ use primitives::hash::H256;
 use std::collections::{HashSet, VecDeque};
 use std::fmt;
 use storage;
-use types::{BlockHeight, MemoryPoolRef, StorageRef};
+use types::{BlockHeight, StorageRef};
 use utils::{BestHeadersChain, BestHeadersChainInformation, HashPosition, HashQueueChain};
 
 /// Index of 'verifying' queue
@@ -125,11 +125,7 @@ impl BlockState {
 
 impl Chain {
     /// Create new `Chain` with given storage
-    pub fn new(
-        storage: StorageRef,
-        consensus: ConsensusParams,
-        memory_pool: MemoryPoolRef,
-    ) -> Self {
+    pub fn new(storage: StorageRef, consensus: ConsensusParams) -> Self {
         // we only work with storages with genesis block
         let genesis_block_hash = storage
             .block_hash(0)
