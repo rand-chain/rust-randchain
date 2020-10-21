@@ -6,31 +6,10 @@ use {Deployment, Magic, Network};
 pub struct ConsensusParams {
     /// Network.
     pub network: Network,
-    //
-    // /// Time when BIP16 becomes active.
-    // /// See https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki
-    // pub bip16_time: u32,
-    // /// Block height at which BIP34 becomes active.
-    // /// See https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki
-    // pub bip34_height: u32,
-    // /// Block height at which BIP65 becomes active.
-    // /// See https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki
-    // pub bip65_height: u32,
-    // /// Block height at which BIP65 becomes active.
-    // /// See https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki
-    // pub bip66_height: u32,
-    // /// Selected consensus fork.
-    // pub fork: ConsensusFork,
-    //
     /// Version bits activation
     pub rule_change_activation_threshold: u32,
     /// Number of blocks with the same set of rules
     pub miner_confirmation_window: u32,
-    //
-    // /// BIP68, BIP112, BIP113 deployment
-    // pub csv_deployment: Option<Deployment>,
-    // /// BIP141, BIP143, BIP147 deployment
-    // pub segwit_deployment: Option<Deployment>,
 }
 
 // TODO: should extract this
@@ -57,84 +36,18 @@ impl ConsensusParams {
         match network {
             Network::Mainnet | Network::Other(_) => ConsensusParams {
                 network: network,
-                bip16_time: 1333238400, // Apr 1 2012
-                bip34_height: 227931, // 000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8
-                bip65_height: 388381, // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
-                bip66_height: 363725, // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
-                segwit_deployment: match fork {
-                    ConsensusFork::BitcoinCore => Some(Deployment {
-                        name: "segwit",
-                        bit: 1,
-                        start_time: 1479168000,
-                        timeout: 1510704000,
-                        activation: Some(481824),
-                    }),
-                    ConsensusFork::BitcoinCash(_) => None,
-                },
-                fork: fork,
                 rule_change_activation_threshold: 1916, // 95%
                 miner_confirmation_window: 2016,
-                csv_deployment: Some(Deployment {
-                    name: "csv",
-                    bit: 0,
-                    start_time: 1462060800,
-                    timeout: 1493596800,
-                    activation: Some(419328),
-                }),
             },
             Network::Testnet => ConsensusParams {
                 network: network,
-                bip16_time: 1333238400, // Apr 1 2012
-                bip34_height: 21111, // 0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8
-                bip65_height: 581885, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
-                bip66_height: 330776, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
-                segwit_deployment: match fork {
-                    ConsensusFork::BitcoinCore => Some(Deployment {
-                        name: "segwit",
-                        bit: 1,
-                        start_time: 1462060800,
-                        timeout: 1493596800,
-                        activation: Some(834624),
-                    }),
-                    ConsensusFork::BitcoinCash(_) => None,
-                },
-                fork: fork,
                 rule_change_activation_threshold: 1512, // 75%
                 miner_confirmation_window: 2016,
-                csv_deployment: Some(Deployment {
-                    name: "csv",
-                    bit: 0,
-                    start_time: 1456790400,
-                    timeout: 1493596800,
-                    activation: Some(770112),
-                }),
             },
             Network::Regtest | Network::Unitest => ConsensusParams {
                 network: network,
-                bip16_time: 1333238400,  // Apr 1 2012
-                bip34_height: 100000000, // not activated on regtest
-                bip65_height: 1351,
-                bip66_height: 1251, // used only in rpc tests
-                segwit_deployment: match fork {
-                    ConsensusFork::BitcoinCore => Some(Deployment {
-                        name: "segwit",
-                        bit: 1,
-                        start_time: 0,
-                        timeout: ::std::u32::MAX,
-                        activation: None,
-                    }),
-                    ConsensusFork::BitcoinCash(_) => None,
-                },
-                fork: fork,
                 rule_change_activation_threshold: 108, // 75%
                 miner_confirmation_window: 144,
-                csv_deployment: Some(Deployment {
-                    name: "csv",
-                    bit: 0,
-                    start_time: 0,
-                    timeout: 0,
-                    activation: Some(0),
-                }),
             },
         }
     }
