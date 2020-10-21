@@ -1,3 +1,6 @@
+// TODO:
+// skipped
+
 // use chain::Transaction;
 // use script::Script;
 // // use storage::TransactionOutputProvider;
