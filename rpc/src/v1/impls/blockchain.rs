@@ -86,11 +86,6 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                 merkleroot: block.header.raw.merkle_root_hash.clone().into(),
                 nonce: block.header.raw.nonce,
                 time: block.header.raw.time,
-                tx: block
-                    .transactions
-                    .into_iter()
-                    .map(|t| t.hash.into())
-                    .collect(),
                 version: block.header.raw.version,
                 version_hex: format!("{:x}", &block.header.raw.version),
             }
@@ -140,7 +135,6 @@ where
                 verbose_block.nextblockhash = verbose_block.nextblockhash.map(|h| h.reversed());
                 verbose_block.hash = verbose_block.hash.reversed();
                 verbose_block.merkleroot = verbose_block.merkleroot.reversed();
-                verbose_block.tx = verbose_block.tx.into_iter().map(|h| h.reversed()).collect();
                 Some(GetBlockResponse::Verbose(verbose_block))
             } else {
                 None

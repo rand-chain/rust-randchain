@@ -42,7 +42,6 @@ pub use types::PeersRef;
 
 use message::Services;
 use network::{ConsensusParams, Network};
-use parking_lot::RwLock;
 use primitives::hash::H256;
 use std::sync::Arc;
 use verification::BackwardsCompatibleChainVerifier as ChainVerifier;
@@ -100,7 +99,6 @@ pub fn create_local_sync_node(
     verification_params: VerificationParameters,
 ) -> LocalNodeRef {
     use local_node::LocalNode as SyncNode;
-    use miner::MemoryPool;
     use synchronization_chain::Chain as SyncChain;
     use synchronization_client::SynchronizationClient;
     use synchronization_client_core::{
@@ -117,15 +115,9 @@ pub fn create_local_sync_node(
         // during regtests, peer is providing us with bad blocks => we shouldn't close connection because of this
         close_connection_on_bad_block: network != Network::Regtest,
     };
-    let mut memory_pool = MemoryPool::new();
-    if network == Network::Regtest {
-        // during regtests, peer is providing us with zero fee transactions => we shouldn't ignore these
-        memory_pool.accept_zero_fee_transactions();
-    }
 
-    let memory_pool = Arc::new(RwLock::new(memory_pool));
     let sync_state = SynchronizationStateRef::new(SynchronizationState::with_storage(db.clone()));
-    let sync_chain = SyncChain::new(db.clone(), consensus.clone(), memory_pool.clone());
+    let sync_chain = SyncChain::new(db.clone(), consensus.clone());
     if sync_chain.is_segwit_possible() {
         peers.require_peer_services(Services::default().with_witness(true));
     }
@@ -156,7 +148,6 @@ pub fn create_local_sync_node(
     Arc::new(SyncNode::new(
         consensus,
         db,
-        memory_pool,
         peers,
         sync_state,
         sync_client,

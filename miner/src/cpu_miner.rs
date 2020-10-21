@@ -1,6 +1,7 @@
+// TODO: merkle_root_hash seems useless
+// TODO: implement randomness miner
 use block_assembler::BlockTemplate;
 use byteorder::{LittleEndian, WriteBytesExt};
-use chain::{merkle_root, Transaction};
 use crypto::dhash256;
 use primitives::bigint::{Uint, U256};
 use primitives::bytes::Bytes;
@@ -34,12 +35,6 @@ impl BlockHeaderBytes {
         BlockHeaderBytes { data: stream.out() }
     }
 
-    /// Set merkle root hash
-    fn set_merkle_root_hash(&mut self, hash: &H256) {
-        let merkle_bytes: &mut [u8] = &mut self.data[4 + 32..4 + 32 + 32];
-        merkle_bytes.copy_from_slice(&**hash);
-    }
-
     /// Set block header time
     fn set_time(&mut self, time: u32) {
         let mut time_bytes: &mut [u8] = &mut self.data[4 + 32 + 32..];
@@ -58,16 +53,6 @@ impl BlockHeaderBytes {
     }
 }
 
-/// This trait should be implemented by coinbase transaction.
-pub trait CoinbaseTransactionBuilder {
-    /// Should be used to increase number of hash possibities for miner
-    fn set_extranonce(&mut self, extranonce: &[u8]);
-    /// Returns transaction hash
-    fn hash(&self) -> H256;
-    /// Coverts transaction into raw bytes
-    fn finish(self) -> Transaction;
-}
-
 /// Cpu miner solution.
 pub struct Solution {
     /// Block header nonce.
@@ -76,8 +61,6 @@ pub struct Solution {
     pub extranonce: U256,
     /// Block header time.
     pub time: u32,
-    /// Coinbase transaction (extranonce is already set).
-    pub coinbase_transaction: Transaction,
 }
 
 /// Simple bitcoin cpu miner.
@@ -88,14 +71,7 @@ pub struct Solution {
 /// and solution still hasn't been found it returns None.
 /// It's possible to also experiment with time, but I find it pointless
 /// to implement on CPU.
-pub fn find_solution<T>(
-    block: &BlockTemplate,
-    mut coinbase_transaction_builder: T,
-    max_extranonce: U256,
-) -> Option<Solution>
-where
-    T: CoinbaseTransactionBuilder,
-{
+pub fn find_solution<T>(block: &BlockTemplate, max_extranonce: U256) -> Option<Solution> {
     let mut extranonce = U256::default();
     let mut extranonce_bytes = [0u8; 32];
 
@@ -109,17 +85,6 @@ where
 
     while extranonce < max_extranonce {
         extranonce.to_little_endian(&mut extranonce_bytes);
-        // update coinbase transaction with new extranonce
-        coinbase_transaction_builder.set_extranonce(&extranonce_bytes);
-
-        // recalculate merkle root hash
-        let coinbase_hash = coinbase_transaction_builder.hash();
-        let mut merkle_tree = vec![&coinbase_hash];
-        merkle_tree.extend(block.transactions.iter().map(|tx| &tx.hash));
-        let merkle_root_hash = merkle_root(&merkle_tree);
-
-        // update header with new merkle root hash
-        header_bytes.set_merkle_root_hash(&merkle_root_hash);
 
         for nonce in 0..(u32::max_value() as u64 + 1) {
             // update §
@@ -130,7 +95,6 @@ where
                     nonce: nonce as u32,
                     extranonce: extranonce,
                     time: block.time,
-                    coinbase_transaction: coinbase_transaction_builder.finish(),
                 };
 
                 return Some(solution);

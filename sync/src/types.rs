@@ -1,8 +1,7 @@
 use super::SyncListener;
 use futures::Future;
 use local_node::LocalNode;
-use miner::MemoryPool;
-use parking_lot::{Mutex, RwLock};
+use parking_lot::Mutex;
 use std::sync::Arc;
 use storage;
 use synchronization_client::SynchronizationClient;
@@ -25,9 +24,6 @@ pub type EmptyBoxFuture = Box<dyn Future<Item = (), Error = ()> + Send>;
 
 /// Reference to storage
 pub type StorageRef = storage::SharedStore;
-
-/// Reference to memory pool
-pub type MemoryPoolRef = Arc<RwLock<MemoryPool>>;
 
 /// Shared synchronization state reference
 pub type SynchronizationStateRef = Arc<SynchronizationState>;

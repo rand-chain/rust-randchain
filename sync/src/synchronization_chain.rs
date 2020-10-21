@@ -1,13 +1,11 @@
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction, OutPoint, TransactionOutput};
-use linked_hash_map::LinkedHashMap;
-use miner::{FeeCalculator, MemoryPoolInformation, MemoryPoolOrderingStrategy};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use network::ConsensusParams;
 use primitives::bytes::Bytes;
 use primitives::hash::H256;
 use std::collections::{HashSet, VecDeque};
 use std::fmt;
 use storage;
-use types::{BlockHeight, MemoryPoolRef, StorageRef};
+use types::{BlockHeight, StorageRef};
 use utils::{BestHeadersChain, BestHeadersChainInformation, HashPosition, HashQueueChain};
 
 /// Index of 'verifying' queue
@@ -24,8 +22,6 @@ const NUMBER_OF_QUEUES: usize = 3;
 pub struct BlockInsertionResult {
     /// Hashes of blocks, which were canonized during this insertion procedure. Order matters
     pub canonized_blocks_hashes: Vec<H256>,
-    /// Transaction to 'reverify'. Order matters
-    pub transactions_to_reverify: Vec<IndexedTransaction>,
 }
 
 impl fmt::Debug for BlockInsertionResult {
@@ -39,7 +35,6 @@ impl fmt::Debug for BlockInsertionResult {
                     .map(H256::reversed)
                     .collect::<Vec<_>>(),
             )
-            .field("transactions_to_reverify", &self.transactions_to_reverify)
             .finish()
     }
 }
@@ -49,7 +44,6 @@ impl BlockInsertionResult {
     pub fn with_canonized_blocks(canonized_blocks_hashes: Vec<H256>) -> Self {
         BlockInsertionResult {
             canonized_blocks_hashes: canonized_blocks_hashes,
-            transactions_to_reverify: Vec::new(),
         }
     }
 }
@@ -71,19 +65,6 @@ pub enum BlockState {
     DeadEnd,
 }
 
-/// Transactions synchronization state
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum TransactionState {
-    /// Transaction is unknown
-    Unknown,
-    /// Currently verifying
-    Verifying,
-    /// In memory pool
-    InMemory,
-    /// In storage
-    Stored,
-}
-
 /// Synchronization chain information
 pub struct Information {
     /// Number of blocks hashes currently scheduled for requesting
@@ -94,8 +75,6 @@ pub struct Information {
     pub verifying: BlockHeight,
     /// Number of blocks in the storage
     pub stored: BlockHeight,
-    /// Information on memory pool
-    pub transactions: MemoryPoolInformation,
     /// Information on headers chain
     pub headers: BestHeadersChainInformation,
 }
@@ -116,12 +95,9 @@ pub struct Chain {
     hash_chain: HashQueueChain,
     /// In-memory queue of blocks headers
     headers_chain: BestHeadersChain,
-    /// Currently verifying transactions
-    verifying_transactions: LinkedHashMap<H256, IndexedTransaction>,
-    /// Transactions memory pool
-    memory_pool: MemoryPoolRef,
     /// Blocks that have been marked as dead-ends
     dead_end_blocks: HashSet<H256>,
+    // TODO:
     /// Is SegWit is possible on this chain? SegWit inventory types are used when block/tx-es are
     /// requested and this flag is true.
     is_segwit_possible: bool,
@@ -149,11 +125,7 @@ impl BlockState {
 
 impl Chain {
     /// Create new `Chain` with given storage
-    pub fn new(
-        storage: StorageRef,
-        consensus: ConsensusParams,
-        memory_pool: MemoryPoolRef,
-    ) -> Self {
+    pub fn new(storage: StorageRef, consensus: ConsensusParams) -> Self {
         // we only work with storages with genesis block
         let genesis_block_hash = storage
             .block_hash(0)
@@ -168,8 +140,6 @@ impl Chain {
             storage: storage,
             hash_chain: HashQueueChain::with_number_of_queues(NUMBER_OF_QUEUES),
             headers_chain: BestHeadersChain::new(best_storage_block_hash),
-            verifying_transactions: LinkedHashMap::new(),
-            memory_pool: memory_pool,
             dead_end_blocks: HashSet::new(),
             is_segwit_possible,
         }
@@ -182,7 +152,6 @@ impl Chain {
             requested: self.hash_chain.len_of(REQUESTED_QUEUE),
             verifying: self.hash_chain.len_of(VERIFYING_QUEUE),
             stored: self.best_storage_block.number + 1,
-            transactions: self.memory_pool.read().information(),
             headers: self.headers_chain.information(),
         }
     }
@@ -190,11 +159,6 @@ impl Chain {
     /// Get storage
     pub fn storage(&self) -> StorageRef {
         self.storage.clone()
-    }
-
-    /// Get memory pool
-    pub fn memory_pool(&self) -> MemoryPoolRef {
-        self.memory_pool.clone()
     }
 
     /// Is segwit active
@@ -406,22 +370,8 @@ impl Chain {
                 // double check
                 assert_eq!(self.best_storage_block.hash, block.hash().clone());
 
-                // all transactions from this block were accepted
-                // => delete accepted transactions from verification queue and from the memory pool
-                // + also remove transactions which spent outputs which have been spent by transactions from the block
-                let mut memory_pool = self.memory_pool.write();
-                for tx in &block.transactions {
-                    memory_pool.remove_by_hash(&tx.hash);
-                    self.verifying_transactions.remove(&tx.hash);
-                    for tx_input in &tx.raw.inputs {
-                        memory_pool.remove_by_prevout(&tx_input.previous_output);
-                    }
-                }
-                // no transactions to reverify, because we have just appended new transactions to the blockchain
-
                 Ok(BlockInsertionResult {
                     canonized_blocks_hashes: vec![*block.hash()],
-                    transactions_to_reverify: Vec::new(),
                 })
             }
             // case 2: block has been added to the side branch with reorganization to this branch
@@ -439,69 +389,10 @@ impl Chain {
                 self.headers_chain
                     .block_inserted_to_storage(block.hash(), &self.best_storage_block.hash);
 
-                // all transactions from this block were accepted
-                // + all transactions from previous blocks of this fork were accepted
-                // => delete accepted transactions from verification queue and from the memory pool
-                let this_block_transactions_hashes = block
-                    .transactions
-                    .iter()
-                    .map(|tx| tx.hash.clone())
-                    .collect::<Vec<_>>();
                 let mut canonized_blocks_hashes = origin.canonized_route.clone();
-                let new_main_blocks_transactions_hashes = origin
-                    .canonized_route
-                    .into_iter()
-                    .flat_map(|block_hash| self.storage.block_transaction_hashes(block_hash.into()))
-                    .collect::<Vec<_>>();
-
-                let mut memory_pool = self.memory_pool.write();
-                for transaction_accepted in this_block_transactions_hashes
-                    .into_iter()
-                    .chain(new_main_blocks_transactions_hashes.into_iter())
-                {
-                    memory_pool.remove_by_hash(&transaction_accepted);
-                    self.verifying_transactions.remove(&transaction_accepted);
-                }
-
-                // reverify all transactions from old main branch' blocks
-                let old_main_blocks_transactions = origin
-                    .decanonized_route
-                    .into_iter()
-                    .flat_map(|block_hash| self.storage.block_transactions(block_hash.into()))
-                    .collect::<Vec<_>>();
-
-                trace!(target: "sync", "insert_best_block, old_main_blocks_transactions: {:?}",
-					   old_main_blocks_transactions.iter().map(|tx| tx.hash.reversed()).collect::<Vec<H256>>());
-
-                // reverify memory pool transactions, sorted by timestamp
-                let memory_pool_transactions_count = memory_pool.information().transactions_count;
-                let memory_pool_transactions: Vec<IndexedTransaction> = memory_pool
-                    .remove_n_with_strategy(
-                        memory_pool_transactions_count,
-                        MemoryPoolOrderingStrategy::ByTimestamp,
-                    )
-                    .into_iter()
-                    .map(|t| t.into())
-                    .collect();
-
-                // reverify verifying transactions
-                let verifying_transactions: Vec<IndexedTransaction> = self
-                    .verifying_transactions
-                    .iter()
-                    .map(|(_, t)| t.clone())
-                    .collect();
-                self.verifying_transactions.clear();
-
                 canonized_blocks_hashes.push(*block.hash());
-
                 let result = BlockInsertionResult {
                     canonized_blocks_hashes: canonized_blocks_hashes,
-                    // order matters: db transactions, then ordered mempool transactions, then ordered verifying transactions
-                    transactions_to_reverify: old_main_blocks_transactions
-                        .into_iter()
-                        .chain(memory_pool_transactions.into_iter())
-                        .chain(verifying_transactions.into_iter())
-                        .collect(),
                 };
 
                 trace!(target: "sync", "result: {:?}", result);
@@ -595,87 +486,6 @@ impl Chain {
         self.headers_chain.remove_n(hashes);
     }
 
-    /// Get transaction state
-    pub fn transaction_state(&self, hash: &H256) -> TransactionState {
-        if self.verifying_transactions.contains_key(hash) {
-            return TransactionState::Verifying;
-        }
-        if self.storage.contains_transaction(hash) {
-            return TransactionState::Stored;
-        }
-        if self.memory_pool.read().contains(hash) {
-            return TransactionState::InMemory;
-        }
-        TransactionState::Unknown
-    }
-
-    /// Get transactions hashes with given state
-    pub fn transactions_hashes_with_state(&self, state: TransactionState) -> Vec<H256> {
-        match state {
-            TransactionState::InMemory => self.memory_pool.read().get_transactions_ids(),
-            TransactionState::Verifying => self.verifying_transactions.keys().cloned().collect(),
-            _ => panic!("wrong argument"),
-        }
-    }
-
-    /// Add transaction to verifying queue
-    pub fn verify_transaction(&mut self, tx: IndexedTransaction) {
-        self.verifying_transactions.insert(tx.hash.clone(), tx);
-    }
-
-    /// Remove verifying trasaction
-    pub fn forget_verifying_transaction(&mut self, hash: &H256) -> bool {
-        self.verifying_transactions.remove(hash).is_some()
-    }
-
-    /// Remove verifying transaction + all dependent transactions currently verifying
-    pub fn forget_verifying_transaction_with_children(&mut self, hash: &H256) {
-        self.forget_verifying_transaction(hash);
-
-        let mut queue: VecDeque<H256> = VecDeque::new();
-        queue.push_back(*hash);
-        while let Some(hash) = queue.pop_front() {
-            let remove: Vec<H256> = self
-                .verifying_transactions
-                .iter()
-                .filter(|(_, e)| e.raw.inputs.iter().any(|i| i.previous_output.hash == hash))
-                .map(|(h, _)| h.clone())
-                .collect();
-
-            for h in &remove {
-                self.verifying_transactions.remove(h);
-            }
-            queue.extend(remove);
-        }
-    }
-
-    /// Get transaction by hash (if it's in memory pool or verifying)
-    pub fn transaction_by_hash(&self, hash: &H256) -> Option<IndexedTransaction> {
-        self.verifying_transactions.get(hash).cloned().or_else(|| {
-            self.memory_pool
-                .read()
-                .read_by_hash(hash)
-                .cloned()
-                .map(|tx| IndexedTransaction::new(*hash, tx))
-        })
-    }
-
-    /// Insert transaction to memory pool
-    pub fn insert_verified_transaction(&mut self, transaction: IndexedTransaction) {
-        // we have verified transaction, but possibly this transaction replaces
-        // existing transaction from memory pool
-        // => remove previous transactions before
-        let mut memory_pool = self.memory_pool.write();
-        for input in &transaction.raw.inputs {
-            memory_pool.remove_by_prevout(&input.previous_output);
-        }
-        // now insert transaction itself
-        memory_pool.insert_verified(
-            transaction,
-            &FeeCalculator(self.storage.as_transaction_output_provider()),
-        );
-    }
-
     /// Calculate block locator hashes for hash queue
     fn block_locator_hashes_for_queue(&self, hashes: &mut Vec<H256>) -> (BlockHeight, BlockHeight) {
         let queue_len = self.hash_chain.len();
@@ -726,39 +536,6 @@ impl Chain {
             }
             index -= step;
         }
-    }
-}
-
-impl storage::TransactionProvider for Chain {
-    fn transaction_bytes(&self, hash: &H256) -> Option<Bytes> {
-        self.memory_pool
-            .read()
-            .transaction_bytes(hash)
-            .or_else(|| self.storage.transaction_bytes(hash))
-    }
-
-    fn transaction(&self, hash: &H256) -> Option<IndexedTransaction> {
-        self.memory_pool
-            .read()
-            .transaction(hash)
-            .or_else(|| self.storage.transaction(hash))
-    }
-}
-
-impl storage::TransactionOutputProvider for Chain {
-    fn transaction_output(
-        &self,
-        outpoint: &OutPoint,
-        transaction_index: usize,
-    ) -> Option<TransactionOutput> {
-        self.memory_pool
-            .read()
-            .transaction_output(outpoint, transaction_index)
-            .or_else(|| self.storage.transaction_output(outpoint, transaction_index))
-    }
-
-    fn is_spent(&self, outpoint: &OutPoint) -> bool {
-        self.memory_pool.read().is_spent(outpoint) || self.storage.is_spent(outpoint)
     }
 }
 

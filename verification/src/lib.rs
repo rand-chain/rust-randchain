@@ -73,7 +73,7 @@ mod canon;
 pub mod constants;
 mod deployments;
 mod error;
-mod sigops;
+// mod sigops;
 mod timestamp;
 mod work;
 
@@ -95,7 +95,7 @@ pub use primitives::{bigint, compact, hash};
 pub use accept_block::BlockAcceptor;
 pub use accept_chain::ChainAcceptor;
 pub use accept_header::HeaderAcceptor;
-pub use canon::{CanonBlock, CanonHeader, CanonTransaction};
+pub use canon::{CanonBlock, CanonHeader};
 
 pub use verify_block::BlockVerifier;
 pub use verify_chain::ChainVerifier;
@@ -104,7 +104,7 @@ pub use verify_header::HeaderVerifier;
 pub use chain_verifier::BackwardsCompatibleChainVerifier;
 pub use deployments::Deployments;
 pub use error::{Error, TransactionError};
-pub use sigops::transaction_sigops;
+// pub use sigops::transaction_sigops;
 pub use timestamp::{median_timestamp, median_timestamp_inclusive};
 pub use work::{
     block_reward_satoshi, is_valid_proof_of_work, is_valid_proof_of_work_hash, work_required,

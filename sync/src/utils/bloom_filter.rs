@@ -1,10 +1,7 @@
 use bit_vec::BitVec;
-use chain::{IndexedTransaction, OutPoint};
 use message::types;
 use murmur3::murmur3_32;
 use parking_lot::Mutex;
-use script::Script;
-use ser::serialize;
 
 /// Constant optimized to create large differences in the seed for different values of `hash_functions_num`.
 const SEED_OFFSET: u32 = 0xFBA4C795;
@@ -73,67 +70,6 @@ impl BloomFilter {
     pub fn remove_bloom_filter(&mut self) {
         self.bloom = None;
     }
-
-    /// Filters transaction using bloom filter data
-    pub fn filter_transaction(&self, tx: &IndexedTransaction) -> bool {
-        // check with bloom filter, if set
-        match self.bloom {
-            // if no filter is set for the connection => match everything
-            None => true,
-            // filter using bloom filter, then update
-            Some(ref bloom) => {
-                let mut bloom = bloom.lock();
-                let mut is_match = false;
-
-                // match if filter contains any arbitrary script data element in any scriptPubKey in tx
-                for (output_index, output) in tx.raw.outputs.iter().enumerate() {
-                    let script = Script::new(output.script_pubkey.clone());
-                    let is_update_needed = self.filter_flags == types::FilterFlags::All
-                        || (self.filter_flags == types::FilterFlags::PubKeyOnly
-                            && (script.is_pay_to_public_key() || script.is_multisig_script()));
-                    if contains_any_instruction_data(&*bloom, script) {
-                        is_match = true;
-
-                        if is_update_needed {
-                            bloom.insert(&serialize(&OutPoint {
-                                hash: tx.hash.clone(),
-                                index: output_index as u32,
-                            }));
-                        }
-                    }
-                }
-
-                // filter is updated only above => we can early-return from now
-                if is_match {
-                    return is_match;
-                }
-
-                // match if filter contains transaction itself
-                if bloom.contains(&*tx.hash) {
-                    return true;
-                }
-
-                // match if filter contains an outpoint this transaction spends
-                for input in &tx.raw.inputs {
-                    // check if match previous output
-                    let previous_output = serialize(&input.previous_output);
-                    is_match = bloom.contains(&*previous_output);
-                    if is_match {
-                        return true;
-                    }
-
-                    // check if match any arbitrary script data element in any scriptSig in tx
-                    let script = Script::new(input.script_sig.clone());
-                    if contains_any_instruction_data(&*bloom, script) {
-                        return true;
-                    }
-                }
-
-                // no matches
-                false
-            }
-        }
-    }
 }
 
 impl BloomFilterData {
@@ -146,27 +82,27 @@ impl BloomFilterData {
         }
     }
 
-    /// True if filter contains given bytes
-    pub fn contains(&self, data: &[u8]) -> bool {
-        for hash_function_idx in 0..self.hash_functions_num {
-            let murmur_seed = hash_function_idx
-                .overflowing_mul(SEED_OFFSET)
-                .0
-                .overflowing_add(self.tweak)
-                .0;
-            let murmur_hash =
-                murmur3_32(&mut data.as_ref(), murmur_seed) as usize % self.filter.len();
-            let index = (murmur_hash & !7usize) | ((murmur_hash & 7) ^ 7);
-            if !self
-                .filter
-                .get(index)
-                .expect("murmur_hash is result of mod operation by filter len; qed")
-            {
-                return false;
-            }
-        }
-        true
-    }
+    // /// True if filter contains given bytes
+    // pub fn contains(&self, data: &[u8]) -> bool {
+    //     for hash_function_idx in 0..self.hash_functions_num {
+    //         let murmur_seed = hash_function_idx
+    //             .overflowing_mul(SEED_OFFSET)
+    //             .0
+    //             .overflowing_add(self.tweak)
+    //             .0;
+    //         let murmur_hash =
+    //             murmur3_32(&mut data.as_ref(), murmur_seed) as usize % self.filter.len();
+    //         let index = (murmur_hash & !7usize) | ((murmur_hash & 7) ^ 7);
+    //         if !self
+    //             .filter
+    //             .get(index)
+    //             .expect("murmur_hash is result of mod operation by filter len; qed")
+    //         {
+    //             return false;
+    //         }
+    //     }
+    //     true
+    // }
 
     /// Add bytes to the filter
     pub fn insert(&mut self, data: &[u8]) {
@@ -184,22 +120,22 @@ impl BloomFilterData {
     }
 }
 
-fn contains_any_instruction_data(bloom: &BloomFilterData, script: Script) -> bool {
-    for instruction in script.iter() {
-        match instruction {
-            Err(_) => break,
-            Ok(instruction) => {
-                if let Some(instruction_data) = instruction.data {
-                    if bloom.contains(&*instruction_data) {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
+// fn contains_any_instruction_data(bloom: &BloomFilterData, script: Script) -> bool {
+//     for instruction in script.iter() {
+//         match instruction {
+//             Err(_) => break,
+//             Ok(instruction) => {
+//                 if let Some(instruction_data) = instruction.data {
+//                     if bloom.contains(&*instruction_data) {
+//                         return true;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    false
-}
+//     false
+// }
 
 #[cfg(test)]
 mod tests {

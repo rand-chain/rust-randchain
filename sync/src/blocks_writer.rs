@@ -113,7 +113,7 @@ impl BlocksWriterSinkData {
     /// Create new blocks writer data
     pub fn new(storage: StorageRef, consensus: ConsensusParams) -> Self {
         BlocksWriterSinkData {
-            chain: Chain::new(storage, consensus, Default::default()),
+            chain: Chain::new(storage, consensus),
             err: None,
         }
     }

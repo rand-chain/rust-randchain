@@ -1,13 +1,9 @@
-use bit_vec::BitVec;
-use chain::{IndexedBlock, IndexedTransaction};
+use chain::IndexedBlock;
 use message::types;
 use primitives::bytes::Bytes;
 use primitives::hash::H256;
 use synchronization_peers::MerkleBlockArtefacts;
-use utils::{
-    build_compact_block, build_partial_merkle_tree, BloomFilter, FeeRateFilter, KnownHashFilter,
-    KnownHashType,
-};
+use utils::{build_compact_block, BloomFilter, FeeRateFilter, KnownHashFilter, KnownHashType};
 
 /// Filter, which controls data relayed over connection.
 #[derive(Debug, Default)]
@@ -36,19 +32,6 @@ impl ConnectionFilter {
         self.known_hash_filter.filter_block(block_hash)
     }
 
-    /// Check if transaction should be sent to this connection && optionally update filter
-    pub fn filter_transaction(
-        &self,
-        transaction: &IndexedTransaction,
-        transaction_fee_rate: Option<u64>,
-    ) -> bool {
-        self.known_hash_filter.filter_transaction(&transaction.hash)
-            && self
-                .fee_rate_filter
-                .filter_transaction(transaction_fee_rate)
-            && self.bloom_filter.filter_transaction(transaction)
-    }
-
     /// Load filter
     pub fn load(&mut self, message: types::FilterLoad) {
         self.bloom_filter.set_bloom_filter(message);
@@ -71,18 +54,8 @@ impl ConnectionFilter {
 
     /// Convert block to compact block using this filter
     pub fn build_compact_block(&self, block: &IndexedBlock) -> types::CompactBlock {
-        let unknown_transaction_indexes = block
-            .transactions
-            .iter()
-            .enumerate()
-            .filter(|&(_, tx)| {
-                self.known_hash_filter
-                    .contains(&tx.hash, KnownHashType::Transaction)
-            })
-            .map(|(idx, _)| idx)
-            .collect();
         types::CompactBlock {
-            header: build_compact_block(block, unknown_transaction_indexes),
+            header: build_compact_block(block),
         }
     }
 
@@ -94,55 +67,39 @@ impl ConnectionFilter {
         }
 
         // prepare result
-        let all_len = block.transactions.len();
-        let mut result = MerkleBlockArtefacts {
+        let result = MerkleBlockArtefacts {
+            // let mut result = MerkleBlockArtefacts {
             merkleblock: types::MerkleBlock {
                 block_header: block.header.raw.clone(),
-                total_transactions: all_len as u32,
                 hashes: Vec::default(),
                 flags: Bytes::default(),
             },
-            matching_transactions: Vec::new(),
         };
 
-        // calculate hashes && match flags for all transactions
-        let (all_hashes, all_flags) = block.transactions.iter().fold(
-            (
-                Vec::<H256>::with_capacity(all_len),
-                BitVec::with_capacity(all_len),
-            ),
-            |(mut all_hashes, mut all_flags), t| {
-                let flag = self.bloom_filter.filter_transaction(t);
-                all_flags.push(flag);
-                all_hashes.push(t.hash.clone());
-                if flag {
-                    result.matching_transactions.push(t.clone());
-                }
-                (all_hashes, all_flags)
-            },
-        );
+        // TODO:
+        // // build partial merkle tree
+        // let partial_merkle_tree = build_partial_merkle_tree(all_hashes, all_flags);
+        // result.merkleblock.hashes.extend(partial_merkle_tree.hashes);
 
-        // build partial merkle tree
-        let partial_merkle_tree = build_partial_merkle_tree(all_hashes, all_flags);
-        result.merkleblock.hashes.extend(partial_merkle_tree.hashes);
-        // to_bytes() converts [true, false, true] to 0b10100000
-        // while protocol requires [true, false, true] to be serialized as 0x00000101
-        result.merkleblock.flags = partial_merkle_tree
-            .flags
-            .to_bytes()
-            .into_iter()
-            .map(|b| {
-                ((b & 0b10000000) >> 7)
-                    | ((b & 0b01000000) >> 5)
-                    | ((b & 0b00100000) >> 3)
-                    | ((b & 0b00010000) >> 1)
-                    | ((b & 0b00001000) << 1)
-                    | ((b & 0b00000100) << 3)
-                    | ((b & 0b00000010) << 5)
-                    | ((b & 0b00000001) << 7)
-            })
-            .collect::<Vec<u8>>()
-            .into();
+        // // to_bytes() converts [true, false, true] to 0b10100000
+        // // while protocol requires [true, false, true] to be serialized as 0x00000101
+        // result.merkleblock.flags = partial_merkle_tree
+        //     .flags
+        //     .to_bytes()
+        //     .into_iter()
+        //     .map(|b| {
+        //         ((b & 0b10000000) >> 7)
+        //             | ((b & 0b01000000) >> 5)
+        //             | ((b & 0b00100000) >> 3)
+        //             | ((b & 0b00010000) >> 1)
+        //             | ((b & 0b00001000) << 1)
+        //             | ((b & 0b00000100) << 3)
+        //             | ((b & 0b00000010) << 5)
+        //             | ((b & 0b00000001) << 7)
+        //     })
+        //     .collect::<Vec<u8>>()
+        //     .into();
+
         Some(result)
     }
 }

@@ -2,19 +2,13 @@ use block::Block;
 use hash::H256;
 use hex::FromHex;
 use indexed_header::IndexedBlockHeader;
-use indexed_transaction::IndexedTransaction;
-use merkle_root::merkle_root;
-use ser::{
-    deserialize, serialized_list_size, serialized_list_size_with_flags, Serializable,
-    SERIALIZE_TRANSACTION_WITNESS,
-};
+// use merkle_root::merkle_root;
+use ser::{deserialize, Serializable};
 use std::cmp;
-use transaction::Transaction;
 
 #[derive(Debug, Clone, Deserializable)]
 pub struct IndexedBlock {
     pub header: IndexedBlockHeader,
-    pub transactions: Vec<IndexedTransaction>,
 }
 
 #[cfg(feature = "test-helpers")]
@@ -30,28 +24,16 @@ impl cmp::PartialEq for IndexedBlock {
 }
 
 impl IndexedBlock {
-    pub fn new(header: IndexedBlockHeader, transactions: Vec<IndexedTransaction>) -> Self {
-        IndexedBlock {
-            header: header,
-            transactions: transactions,
-        }
+    pub fn new(header: IndexedBlockHeader) -> Self {
+        IndexedBlock { header: header }
     }
 
     /// Explicit conversion of the raw Block into IndexedBlock.
     ///
     /// Hashes block header + transactions.
     pub fn from_raw(block: Block) -> Self {
-        let Block {
-            block_header,
-            transactions,
-        } = block;
-        Self::new(
-            IndexedBlockHeader::from_raw(block_header),
-            transactions
-                .into_iter()
-                .map(IndexedTransaction::from_raw)
-                .collect(),
-        )
+        let Block { block_header } = block;
+        Self::new(IndexedBlockHeader::from_raw(block_header))
     }
 
     pub fn hash(&self) -> &H256 {
@@ -59,63 +41,48 @@ impl IndexedBlock {
     }
 
     pub fn to_raw_block(self) -> Block {
-        Block::new(
-            self.header.raw,
-            self.transactions.into_iter().map(|tx| tx.raw).collect(),
-        )
+        Block::new(self.header.raw)
     }
 
     pub fn size(&self) -> usize {
         let header_size = self.header.raw.serialized_size();
-        let transactions = self
-            .transactions
-            .iter()
-            .map(|tx| &tx.raw)
-            .collect::<Vec<_>>();
-        let txs_size = serialized_list_size::<Transaction, &Transaction>(&transactions);
-        header_size + txs_size
+        header_size
     }
 
     pub fn size_with_witness(&self) -> usize {
         let header_size = self.header.raw.serialized_size();
-        let transactions = self
-            .transactions
-            .iter()
-            .map(|tx| &tx.raw)
-            .collect::<Vec<_>>();
-        let txs_size = serialized_list_size_with_flags::<Transaction, &Transaction>(
-            &transactions,
-            SERIALIZE_TRANSACTION_WITNESS,
-        );
-        header_size + txs_size
+        header_size
     }
 
+    // TODO:
     pub fn merkle_root(&self) -> H256 {
-        merkle_root(
-            &self
-                .transactions
-                .iter()
-                .map(|tx| &tx.hash)
-                .collect::<Vec<&H256>>(),
-        )
+        unimplemented!()
+        // merkle_root(
+        //     &self
+        //         .transactions
+        //         .iter()
+        //         .map(|tx| &tx.hash)
+        //         .collect::<Vec<&H256>>(),
+        // )
     }
 
+    // TODO:
     pub fn witness_merkle_root(&self) -> H256 {
-        let hashes = match self.transactions.split_first() {
-            None => vec![],
-            Some((_, rest)) => {
-                let mut hashes = vec![H256::from(0)];
-                hashes.extend(rest.iter().map(|tx| tx.raw.witness_hash()));
-                hashes
-            }
-        };
-        merkle_root(&hashes)
+        unimplemented!()
+        // let hashes = match self.transactions.split_first() {
+        //     None => vec![],
+        //     Some((_, rest)) => {
+        //         let mut hashes = vec![H256::from(0)];
+        //         hashes.extend(rest.iter().map(|tx| tx.raw.witness_hash()));
+        //         hashes
+        //     }
+        // };
+        // merkle_root(&hashes)
     }
 
-    pub fn is_final(&self, height: u32) -> bool {
-        self.transactions
-            .iter()
-            .all(|tx| tx.raw.is_final_in_block(height, self.header.raw.time))
+    // TODO:
+    pub fn is_final(&self, _height: u32) -> bool {
+        true
     }
 }
 

@@ -1,24 +1,19 @@
 use bytes::Bytes;
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction, OutPoint, TransactionOutput};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use hash::H256;
 use kv::{
     AutoFlushingOverlayDatabase, CacheDatabase, DatabaseConfig, DiskDatabase, Key, KeyState,
     KeyValue, KeyValueDatabase, MemoryDatabase, OverlayDatabase, Transaction as DBTransaction,
     Value,
 };
-use kv::{
-    COL_BLOCK_HASHES, COL_BLOCK_HEADERS, COL_BLOCK_NUMBERS, COL_BLOCK_TRANSACTIONS, COL_COUNT,
-    COL_TRANSACTIONS, COL_TRANSACTIONS_META,
-};
+use kv::{COL_BLOCK_HASHES, COL_BLOCK_HEADERS, COL_BLOCK_NUMBERS, COL_COUNT};
 use parking_lot::RwLock;
-use ser::{deserialize, serialize, List};
-use std::collections::HashMap;
+use ser::{deserialize, serialize};
 use std::fs;
 use std::path::Path;
 use storage::{
     BestBlock, BlockChain, BlockHeaderProvider, BlockOrigin, BlockProvider, BlockRef, CanonStore,
-    ConfigStore, Error, ForkChain, Forkable, SideChainOrigin, Store, TransactionMeta,
-    TransactionMetaProvider, TransactionOutputProvider, TransactionProvider,
+    ConfigStore, Error, ForkChain, Forkable, SideChainOrigin, Store,
 };
 
 const KEY_BEST_BLOCK_NUMBER: &'static str = "best_block_number";
@@ -62,15 +57,18 @@ impl BlockChainDatabase<CacheDatabase<AutoFlushingOverlayDatabase<DiskDatabase>>
         fs::create_dir_all(path.as_ref()).map_err(|err| Error::DatabaseError(err.to_string()))?;
         let mut cfg = DatabaseConfig::with_columns(Some(COL_COUNT));
 
-        cfg.set_cache(Some(COL_TRANSACTIONS), total_cache / 4);
-        cfg.set_cache(Some(COL_TRANSACTIONS_META), total_cache / 4);
+        // TODO:
+        // cfg.set_cache(Some(COL_TRANSACTIONS), total_cache / 4);
+        // cfg.set_cache(Some(COL_TRANSACTIONS_META), total_cache / 4);
         cfg.set_cache(Some(COL_BLOCK_HEADERS), total_cache / 4);
 
         cfg.set_cache(Some(COL_BLOCK_HASHES), total_cache / 12);
-        cfg.set_cache(Some(COL_BLOCK_TRANSACTIONS), total_cache / 12);
+        // TODO:
+        // cfg.set_cache(Some(COL_BLOCK_TRANSACTIONS), total_cache / 12);
         cfg.set_cache(Some(COL_BLOCK_NUMBERS), total_cache / 12);
 
-        cfg.bloom_filters.insert(Some(COL_TRANSACTIONS_META), 32);
+        // TODO:
+        // cfg.bloom_filters.insert(Some(COL_TRANSACTIONS_META), 32);
 
         match DiskDatabase::open(cfg, path) {
             Ok(db) => Ok(Self::open_with_cache(db)),
@@ -240,43 +238,35 @@ where
             block.hash().clone(),
             block.header.raw,
         ));
-        let tx_hashes = block
-            .transactions
-            .iter()
-            .map(|tx| tx.hash.clone())
-            .collect::<Vec<_>>();
-        update.insert(KeyValue::BlockTransactions(
-            block.header.hash.clone(),
-            List::from(tx_hashes),
-        ));
-
-        for tx in block.transactions.into_iter() {
-            update.insert(KeyValue::Transaction(tx.hash, tx.raw));
-        }
 
         self.db.write(update).map_err(Error::DatabaseError)
     }
 
     /// Rollbacks single best block
+    // TODO:
+    // 1. implement this
+    // 2. consider update randomness data or metadata
     fn rollback_best(&self) -> Result<H256, Error> {
-        let best_block_hash = self.best_block.read().hash.clone();
-        let tx_to_decanonize = self.block_transaction_hashes(best_block_hash.into());
-        let decanonized_hash = self.decanonize()?;
-        debug_assert_eq!(best_block_hash, decanonized_hash);
+        unimplemented!()
 
-        // and now remove decanonized block from database
-        // all code currently works in assumption that origin of all blocks is one of:
-        // {CanonChain, SideChain, SideChainBecomingCanonChain}
-        let mut update = DBTransaction::new();
-        update.delete(Key::BlockHeader(decanonized_hash.clone()));
-        update.delete(Key::BlockTransactions(decanonized_hash.clone()));
-        for tx_hash in tx_to_decanonize {
-            update.delete(Key::Transaction(tx_hash));
-        }
+        // let best_block_hash = self.best_block.read().hash.clone();
+        // let tx_to_decanonize = self.block_transaction_hashes(best_block_hash.into());
+        // let decanonized_hash = self.decanonize()?;
+        // debug_assert_eq!(best_block_hash, decanonized_hash);
 
-        self.db.write(update).map_err(Error::DatabaseError)?;
+        // // and now remove decanonized block from database
+        // // all code currently works in assumption that origin of all blocks is one of:
+        // // {CanonChain, SideChain, SideChainBecomingCanonChain}
+        // let mut update = DBTransaction::new();
+        // update.delete(Key::BlockHeader(decanonized_hash.clone()));
+        // update.delete(Key::BlockTransactions(decanonized_hash.clone()));
+        // for tx_hash in tx_to_decanonize {
+        //     update.delete(Key::Transaction(tx_hash));
+        // }
 
-        Ok(self.best_block().hash)
+        // self.db.write(update).map_err(Error::DatabaseError)?;
+
+        // Ok(self.best_block().hash)
     }
 
     /// Marks block as a new best block.
@@ -332,50 +322,6 @@ where
             serialize(&new_best_block.number),
         ));
 
-        let mut modified_meta: HashMap<H256, TransactionMeta> = HashMap::new();
-        if let Some(tx) = block.transactions.first() {
-            let meta = TransactionMeta::new_coinbase(new_best_block.number, tx.raw.outputs.len());
-            modified_meta.insert(tx.hash.clone(), meta);
-        }
-
-        for tx in block.transactions.iter().skip(1) {
-            modified_meta.insert(
-                tx.hash.clone(),
-                TransactionMeta::new(new_best_block.number, tx.raw.outputs.len()),
-            );
-
-            for input in &tx.raw.inputs {
-                use std::collections::hash_map::Entry;
-
-                match modified_meta.entry(input.previous_output.hash.clone()) {
-                    Entry::Occupied(mut entry) => {
-                        let meta = entry.get_mut();
-                        meta.denote_used(input.previous_output.index as usize);
-                    }
-                    Entry::Vacant(entry) => {
-                        let mut meta = self
-                            .transaction_meta(&input.previous_output.hash)
-                            .ok_or_else(|| {
-                                error!(
-                                    target: "db",
-                                    "Cannot find tx meta during canonization of tx {}: {}/{}",
-                                    tx.hash.reversed(),
-                                    input.previous_output.hash.reversed(),
-                                    input.previous_output.index,
-                                );
-                                Error::CannotCanonize
-                            })?;
-                        meta.denote_used(input.previous_output.index as usize);
-                        entry.insert(meta);
-                    }
-                }
-            }
-        }
-
-        for (hash, meta) in modified_meta.into_iter() {
-            update.insert(KeyValue::TransactionMeta(hash, meta));
-        }
-
         self.db.write(update).map_err(Error::DatabaseError)?;
         *best_block = new_best_block;
         Ok(())
@@ -416,44 +362,6 @@ where
             KEY_BEST_BLOCK_NUMBER,
             serialize(&new_best_block.number),
         ));
-
-        let mut modified_meta: HashMap<H256, TransactionMeta> = HashMap::new();
-        for tx in block.transactions.iter().skip(1) {
-            for input in &tx.raw.inputs {
-                use std::collections::hash_map::Entry;
-
-                match modified_meta.entry(input.previous_output.hash.clone()) {
-                    Entry::Occupied(mut entry) => {
-                        let meta = entry.get_mut();
-                        meta.denote_unused(input.previous_output.index as usize);
-                    }
-                    Entry::Vacant(entry) => {
-                        let mut meta = self
-                            .transaction_meta(&input.previous_output.hash)
-                            .ok_or_else(|| {
-                                error!(
-                                    target: "db",
-                                    "Cannot find tx meta during decanonization of tx {}: {}/{}",
-                                    tx.hash.reversed(),
-                                    input.previous_output.hash.reversed(),
-                                    input.previous_output.index,
-                                );
-                                Error::CannotDecanonize
-                            })?;
-                        meta.denote_unused(input.previous_output.index as usize);
-                        entry.insert(meta);
-                    }
-                }
-            }
-        }
-
-        for (hash, meta) in modified_meta {
-            update.insert(KeyValue::TransactionMeta(hash, meta));
-        }
-
-        for tx in block.transactions {
-            update.delete(Key::TransactionMeta(tx.hash));
-        }
 
         self.db.write(update).map_err(Error::DatabaseError)?;
         *best_block = new_best_block;
@@ -509,10 +417,8 @@ where
 
     fn block(&self, block_ref: BlockRef) -> Option<IndexedBlock> {
         self.resolve_hash(block_ref).and_then(|block_hash| {
-            self.block_header(block_hash.clone().into()).map(|header| {
-                let transactions = self.block_transactions(block_hash.into());
-                IndexedBlock::new(header, transactions)
-            })
+            self.block_header(block_hash.clone().into())
+                .map(|header| IndexedBlock::new(header))
         })
     }
 
@@ -520,72 +426,6 @@ where
         self.resolve_hash(block_ref)
             .and_then(|hash| self.get(Key::BlockHeader(hash)))
             .is_some()
-    }
-
-    fn block_transaction_hashes(&self, block_ref: BlockRef) -> Vec<H256> {
-        self.resolve_hash(block_ref)
-            .and_then(|hash| self.get(Key::BlockTransactions(hash)))
-            .and_then(Value::as_block_transactions)
-            .map(List::into)
-            .unwrap_or_default()
-    }
-
-    fn block_transactions(&self, block_ref: BlockRef) -> Vec<IndexedTransaction> {
-        self.block_transaction_hashes(block_ref)
-            .into_iter()
-            .filter_map(|hash| {
-                self.get(Key::Transaction(hash))
-                    .and_then(Value::as_transaction)
-                    .map(|tx| IndexedTransaction::new(hash, tx))
-            })
-            .collect()
-    }
-}
-
-impl<T> TransactionMetaProvider for BlockChainDatabase<T>
-where
-    T: KeyValueDatabase,
-{
-    fn transaction_meta(&self, hash: &H256) -> Option<TransactionMeta> {
-        self.get(Key::TransactionMeta(hash.clone()))
-            .and_then(Value::as_transaction_meta)
-    }
-}
-
-impl<T> TransactionProvider for BlockChainDatabase<T>
-where
-    T: KeyValueDatabase,
-{
-    fn transaction_bytes(&self, hash: &H256) -> Option<Bytes> {
-        self.transaction(hash).map(|tx| serialize(&tx.raw))
-    }
-
-    fn transaction(&self, hash: &H256) -> Option<IndexedTransaction> {
-        self.get(Key::Transaction(hash.clone()))
-            .and_then(Value::as_transaction)
-            .map(|tx| IndexedTransaction::new(*hash, tx))
-    }
-}
-
-impl<T> TransactionOutputProvider for BlockChainDatabase<T>
-where
-    T: KeyValueDatabase,
-{
-    fn transaction_output(
-        &self,
-        prevout: &OutPoint,
-        _transaction_index: usize,
-    ) -> Option<TransactionOutput> {
-        // return previous transaction outputs only for canon chain transactions
-        self.transaction_meta(&prevout.hash)
-            .and_then(|_| self.transaction(&prevout.hash))
-            .and_then(|tx| tx.raw.outputs.into_iter().nth(prevout.index as usize))
-    }
-
-    fn is_spent(&self, prevout: &OutPoint) -> bool {
-        self.transaction_meta(&prevout.hash)
-            .and_then(|meta| meta.is_spent(prevout.index as usize))
-            .unwrap_or(false)
     }
 }
 

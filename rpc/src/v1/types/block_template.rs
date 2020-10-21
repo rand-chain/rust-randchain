@@ -35,8 +35,6 @@ pub struct BlockTemplate {
     pub mutable: Option<Vec<String>>,
     /// A range of valid nonces (constant 00000000ffffffff)
     pub noncerange: Option<String>,
-    /// Limit of sigops in blocks
-    pub sigoplimit: Option<u32>,
     /// Limit of block size
     pub sizelimit: Option<u32>,
     /// Limit of block weight
@@ -59,7 +57,6 @@ impl From<miner::BlockTemplate> for BlockTemplate {
             height: block.height,
             coinbasevalue: Some(block.coinbase_value),
             sizelimit: Some(block.size_limit),
-            sigoplimit: Some(block.sigop_limit),
             ..Default::default()
         }
     }

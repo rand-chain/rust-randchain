@@ -1,4 +1,4 @@
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use futures::Future;
 use message::common::{InventoryType, InventoryVector};
 use message::types;
@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 #[cfg(test)]
 use synchronization_chain::Information as ChainInformation;
-use synchronization_chain::{BlockInsertionResult, BlockState, Chain, TransactionState};
+use synchronization_chain::{BlockInsertionResult, BlockState, Chain};
 use synchronization_executor::{Task, TaskExecutor};
 use synchronization_manager::ManagementWorker;
 #[cfg(test)]
@@ -22,10 +22,7 @@ use types::{
     BlockHeight, ClientCoreRef, EmptyBoxFuture, PeerIndex, PeersRef, SyncListenerRef,
     SynchronizationStateRef,
 };
-use utils::{
-    AverageSpeedMeter, HashPosition, MessageBlockHeadersProvider, OrphanBlocksPool,
-    OrphanTransactionsPool,
-};
+use utils::{AverageSpeedMeter, HashPosition, MessageBlockHeadersProvider, OrphanBlocksPool};
 use verification::BackwardsCompatibleChainVerifier as ChainVerifier;
 
 /// Approximate maximal number of blocks hashes in scheduled queue.
@@ -80,11 +77,6 @@ pub trait ClientCore {
         peer_index: PeerIndex,
         block: IndexedBlock,
     ) -> Option<VecDeque<IndexedBlock>>;
-    fn on_transaction(
-        &mut self,
-        peer_index: PeerIndex,
-        transaction: IndexedTransaction,
-    ) -> Option<VecDeque<IndexedTransaction>>;
     fn on_notfound(&mut self, peer_index: PeerIndex, message: types::NotFound);
     fn after_peer_nearly_blocks_verified(&mut self, peer_index: PeerIndex, future: EmptyBoxFuture);
     fn install_sync_listener(&mut self, listener: SyncListenerRef);
@@ -121,8 +113,6 @@ pub struct SynchronizationClientCore<T: TaskExecutor> {
     chain: Chain,
     /// Orphaned blocks pool.
     orphaned_blocks_pool: OrphanBlocksPool,
-    /// Orphaned transactions pool.
-    orphaned_transactions_pool: OrphanTransactionsPool,
     /// Chain verifier
     chain_verifier: Arc<ChainVerifier>,
     /// Verify block headers?
@@ -174,12 +164,6 @@ pub struct BlocksRequestLimits {
     pub min_blocks_in_request: BlockHeight,
     /// Maximum number of blocks to request from peer
     pub max_blocks_in_request: BlockHeight,
-}
-
-/// Transaction append error
-enum AppendTransactionError {
-    Synchronizing,
-    Orphan(HashSet<H256>),
 }
 
 /// Blocks headers verification result
@@ -572,21 +556,6 @@ where
         result
     }
 
-    fn on_transaction(
-        &mut self,
-        peer_index: PeerIndex,
-        transaction: IndexedTransaction,
-    ) -> Option<VecDeque<IndexedTransaction>> {
-        // check if this transaction is already known
-        if self.orphaned_transactions_pool.contains(&transaction.hash)
-            || self.chain.transaction_state(&transaction.hash) != TransactionState::Unknown
-        {
-            return None;
-        }
-
-        self.process_peer_transaction(Some(peer_index), transaction, true)
-    }
-
     /// When peer has no blocks
     fn on_notfound(&mut self, peer_index: PeerIndex, message: types::NotFound) {
         let notfound_blocks: HashSet<_> = message
@@ -929,7 +898,6 @@ where
             executor: executor,
             chain: chain,
             orphaned_blocks_pool: OrphanBlocksPool::new(),
-            orphaned_transactions_pool: OrphanTransactionsPool::new(),
             chain_verifier: chain_verifier,
             verify_headers: true,
             verifying_blocks_by_peer: HashMap::new(),
@@ -986,11 +954,6 @@ where
     /// Get orphaned blocks pool reference
     pub fn orphaned_blocks_pool(&mut self) -> &mut OrphanBlocksPool {
         &mut self.orphaned_blocks_pool
-    }
-
-    /// Get orphaned transactions pool reference
-    pub fn orphaned_transactions_pool(&mut self) -> &mut OrphanTransactionsPool {
-        &mut self.orphaned_transactions_pool
     }
 
     /// Verify block headers or not?
@@ -1105,67 +1068,6 @@ where
         }
 
         BlocksHeadersVerificationResult::Success
-    }
-
-    /// Process new peer transaction
-    fn process_peer_transaction(
-        &mut self,
-        _peer_index: Option<PeerIndex>,
-        transaction: IndexedTransaction,
-        relay: bool,
-    ) -> Option<VecDeque<IndexedTransaction>> {
-        match self.try_append_transaction(transaction.clone(), relay) {
-            Err(AppendTransactionError::Orphan(unknown_parents)) => {
-                self.orphaned_transactions_pool
-                    .insert(transaction, unknown_parents);
-                None
-            }
-            Err(AppendTransactionError::Synchronizing) => None,
-            Ok(transactions) => Some(transactions),
-        }
-    }
-
-    fn try_append_transaction(
-        &mut self,
-        transaction: IndexedTransaction,
-        relay: bool,
-    ) -> Result<VecDeque<IndexedTransaction>, AppendTransactionError> {
-        // if we are in synchronization state, we will ignore this message
-        if self.state.is_synchronizing() {
-            return Err(AppendTransactionError::Synchronizing);
-        }
-
-        // else => verify transaction + it's orphans and then add to the memory pool
-        // if any parent transaction is unknown => we have orphan transaction => remember in orphan pool
-        let unknown_parents: HashSet<H256> = transaction
-            .raw
-            .inputs
-            .iter()
-            .filter(|input| {
-                self.chain.transaction_state(&input.previous_output.hash)
-                    == TransactionState::Unknown
-            })
-            .map(|input| input.previous_output.hash.clone())
-            .collect();
-        if !unknown_parents.is_empty() {
-            return Err(AppendTransactionError::Orphan(unknown_parents));
-        }
-
-        // else verify && insert this transaction && all dependent orphans
-        let mut transactions: VecDeque<IndexedTransaction> = VecDeque::new();
-        transactions.extend(
-            self.orphaned_transactions_pool
-                .remove_transactions_for_parent(&transaction.hash),
-        );
-        transactions.push_front(transaction);
-        // remember that we are verifying these transactions
-        for tx in &transactions {
-            if !relay {
-                self.do_not_relay.insert(tx.hash.clone());
-            }
-            self.chain.verify_transaction((*tx).clone());
-        }
-        Ok(transactions)
     }
 
     fn prepare_blocks_requests_tasks(

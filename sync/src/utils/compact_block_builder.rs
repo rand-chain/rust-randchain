@@ -1,13 +1,8 @@
 use chain::IndexedBlock;
 use message::common::BlockHeaderAndIDs;
 use rand::{thread_rng, Rng};
-use std::collections::HashSet;
 
-pub fn build_compact_block(
-    block: &IndexedBlock,
-    // TODO:
-    _prefilled_transactions_indexes: HashSet<usize>,
-) -> BlockHeaderAndIDs {
+pub fn build_compact_block(block: &IndexedBlock) -> BlockHeaderAndIDs {
     let nonce: u64 = thread_rng().gen();
 
     BlockHeaderAndIDs {

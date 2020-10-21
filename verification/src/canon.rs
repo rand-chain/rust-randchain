@@ -1,4 +1,4 @@
-use chain::{IndexedBlock, IndexedBlockHeader, IndexedTransaction};
+use chain::{IndexedBlock, IndexedBlockHeader};
 use primitives::hash::H256;
 use std::ops;
 
@@ -33,17 +33,6 @@ impl<'a> CanonBlock<'a> {
     {
         CanonHeader::new(&self.block.header)
     }
-
-    pub fn transactions<'b>(&'b self) -> Vec<CanonTransaction<'a>>
-    where
-        'a: 'b,
-    {
-        self.block
-            .transactions
-            .iter()
-            .map(CanonTransaction::new)
-            .collect()
-    }
 }
 
 impl<'a> ops::Deref for CanonBlock<'a> {
@@ -70,26 +59,5 @@ impl<'a> ops::Deref for CanonHeader<'a> {
 
     fn deref(&self) -> &Self::Target {
         self.header
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct CanonTransaction<'a> {
-    transaction: &'a IndexedTransaction,
-}
-
-impl<'a> CanonTransaction<'a> {
-    pub fn new(transaction: &'a IndexedTransaction) -> Self {
-        CanonTransaction {
-            transaction: transaction,
-        }
-    }
-}
-
-impl<'a> ops::Deref for CanonTransaction<'a> {
-    type Target = IndexedTransaction;
-
-    fn deref(&self) -> &Self::Target {
-        self.transaction
     }
 }
