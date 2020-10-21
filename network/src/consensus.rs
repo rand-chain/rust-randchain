@@ -33,6 +33,7 @@ pub struct ConsensusParams {
     // pub segwit_deployment: Option<Deployment>,
 }
 
+// TODO: should extract this
 #[derive(Debug, Clone)]
 /// Concurrent consensus rule forks.
 pub enum ConsensusFork {
