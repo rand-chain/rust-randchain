@@ -1,4 +1,3 @@
-use memory_pool::MemoryPool;
 use network::ConsensusParams;
 use primitives::compact::Compact;
 use primitives::hash::H256;
@@ -6,7 +5,8 @@ use storage::SharedStore;
 use verification::{block_reward_satoshi, work_required};
 
 const BLOCK_VERSION: u32 = 0x20000000;
-const BLOCK_HEADER_SIZE: u32 = 4 + 32 + 32 + 4 + 4 + 4;
+// TODO:
+// const BLOCK_HEADER_SIZE: u32 = 4 + 32 + 32 + 4 + 4 + 4;
 
 /// Block template as described in [BIP0022](https://github.com/bitcoin/bips/blob/master/bip-0022.mediawiki#block-template-request)
 pub struct BlockTemplate {
@@ -26,88 +26,6 @@ pub struct BlockTemplate {
     pub size_limit: u32,
 }
 
-/// Block size and number of signatures opcodes is limited
-/// This structure should be used for storing this values.
-struct SizePolicy {
-    /// Current size
-    current_size: u32,
-    /// Max size
-    max_size: u32,
-    /// When current_size + size_buffer > max_size
-    /// we need to start finishing the block
-    size_buffer: u32,
-    /// Number of transactions checked since finishing started
-    finish_counter: u32,
-    /// Number of transactions to check when finishing the block
-    finish_limit: u32,
-}
-
-/// When appending transaction, opcode count and block size policies
-/// must agree on appending the transaction to the block
-#[derive(Debug, PartialEq, Copy, Clone)]
-enum NextStep {
-    /// Append the transaction, check the next one
-    Append,
-    /// Append the transaction, do not check the next one
-    FinishAndAppend,
-    /// Ignore transaction, check the next one
-    Ignore,
-    /// Ignore transaction, do not check the next one
-    FinishAndIgnore,
-}
-
-impl NextStep {
-    fn and(self, other: NextStep) -> Self {
-        match (self, other) {
-            (_, NextStep::FinishAndIgnore)
-            | (NextStep::FinishAndIgnore, _)
-            | (NextStep::FinishAndAppend, NextStep::Ignore)
-            | (NextStep::Ignore, NextStep::FinishAndAppend) => NextStep::FinishAndIgnore,
-
-            (NextStep::Ignore, _) | (_, NextStep::Ignore) => NextStep::Ignore,
-
-            (_, NextStep::FinishAndAppend) | (NextStep::FinishAndAppend, _) => {
-                NextStep::FinishAndAppend
-            }
-
-            (NextStep::Append, NextStep::Append) => NextStep::Append,
-        }
-    }
-}
-
-impl SizePolicy {
-    fn new(current_size: u32, max_size: u32, size_buffer: u32, finish_limit: u32) -> Self {
-        SizePolicy {
-            current_size: current_size,
-            max_size: max_size,
-            size_buffer: size_buffer,
-            finish_counter: 0,
-            finish_limit: finish_limit,
-        }
-    }
-
-    fn decide(&mut self, size: u32) -> NextStep {
-        let finishing = self.current_size + self.size_buffer > self.max_size;
-        let fits = self.current_size + size <= self.max_size;
-        let finish = self.finish_counter + 1 >= self.finish_limit;
-
-        if finishing {
-            self.finish_counter += 1;
-        }
-
-        match (fits, finish) {
-            (true, true) => NextStep::FinishAndAppend,
-            (true, false) => NextStep::Append,
-            (false, true) => NextStep::FinishAndIgnore,
-            (false, false) => NextStep::Ignore,
-        }
-    }
-
-    fn apply(&mut self, size: u32) {
-        self.current_size += size;
-    }
-}
-
 /// Block assembler
 pub struct BlockAssembler {
     /// Maximal block size.
@@ -120,9 +38,12 @@ impl BlockAssembler {
     pub fn create_new_block(
         &self,
         store: &SharedStore,
-        mempool: &MemoryPool,
+        // TODO:
+        // mempool: &MemoryPool,
+        _mempool: u32,
         time: u32,
-        median_timestamp: u32,
+        // TODO:
+        _median_timestamp: u32,
         consensus: &ConsensusParams,
     ) -> BlockTemplate {
         // get best block
@@ -139,7 +60,7 @@ impl BlockAssembler {
         );
         let version = BLOCK_VERSION;
 
-        let mut coinbase_value = block_reward_satoshi(height);
+        let coinbase_value = block_reward_satoshi(height);
 
         BlockTemplate {
             version: version,
