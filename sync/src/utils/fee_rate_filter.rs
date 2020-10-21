@@ -1,5 +1,6 @@
 use message::types;
 
+// TODO: seems we can remove all these
 /// Connection fee rate filter
 #[derive(Debug, Default)]
 pub struct FeeRateFilter {
@@ -11,13 +12,6 @@ impl FeeRateFilter {
     /// Set minimal fee rate, this filter accepts
     pub fn set_min_fee_rate(&mut self, message: types::FeeFilter) {
         self.fee_rate = message.fee_rate;
-    }
-
-    /// Filter transaction using its fee rate
-    pub fn filter_transaction(&self, tx_fee_rate: Option<u64>) -> bool {
-        tx_fee_rate
-            .map(|tx_fee_rate| tx_fee_rate >= self.fee_rate)
-            .unwrap_or(true)
     }
 }
 
