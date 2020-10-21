@@ -1,16 +1,14 @@
 use bytes::Bytes;
-use chain::{BlockHeader, Transaction as ChainTransaction};
+use chain::BlockHeader;
 use hash::H256;
-use ser::{deserialize, serialize, List};
-use storage::TransactionMeta;
+use ser::{deserialize, serialize};
 
 pub const COL_COUNT: u32 = 10;
 pub const COL_META: u32 = 0;
 pub const COL_BLOCK_HASHES: u32 = 1;
 pub const COL_BLOCK_HEADERS: u32 = 2;
-pub const COL_BLOCK_TRANSACTIONS: u32 = 3;
-pub const COL_TRANSACTIONS: u32 = 4;
-pub const COL_TRANSACTIONS_META: u32 = 5;
+// TODO:
+// COL num skipped, because original ones were blockchain txs-related
 pub const COL_BLOCK_NUMBERS: u32 = 6;
 pub const COL_CONFIGURATION: u32 = 7;
 
@@ -20,14 +18,14 @@ pub enum Operation {
     Delete(Key),
 }
 
+// TODO:
+// consider update randomness data or metadata
+// and also in the following "Key", "Value"...
 #[derive(Debug)]
 pub enum KeyValue {
     Meta(&'static str, Bytes),
     BlockHash(u32, H256),
     BlockHeader(H256, BlockHeader),
-    BlockTransactions(H256, List<H256>),
-    Transaction(H256, ChainTransaction),
-    TransactionMeta(H256, TransactionMeta),
     BlockNumber(H256, u32),
     Configuration(&'static str, Bytes),
 }
@@ -37,9 +35,6 @@ pub enum Key {
     Meta(&'static str),
     BlockHash(u32),
     BlockHeader(H256),
-    BlockTransactions(H256),
-    Transaction(H256),
-    TransactionMeta(H256),
     BlockNumber(H256),
     Configuration(&'static str),
 }
@@ -49,9 +44,6 @@ pub enum Value {
     Meta(Bytes),
     BlockHash(H256),
     BlockHeader(BlockHeader),
-    BlockTransactions(List<H256>),
-    Transaction(ChainTransaction),
-    TransactionMeta(TransactionMeta),
     BlockNumber(u32),
     Configuration(Bytes),
 }
@@ -62,9 +54,6 @@ impl Value {
             Key::Meta(_) => deserialize(bytes).map(Value::Meta),
             Key::BlockHash(_) => deserialize(bytes).map(Value::BlockHash),
             Key::BlockHeader(_) => deserialize(bytes).map(Value::BlockHeader),
-            Key::BlockTransactions(_) => deserialize(bytes).map(Value::BlockTransactions),
-            Key::Transaction(_) => deserialize(bytes).map(Value::Transaction),
-            Key::TransactionMeta(_) => deserialize(bytes).map(Value::TransactionMeta),
             Key::BlockNumber(_) => deserialize(bytes).map(Value::BlockNumber),
             Key::Configuration(_) => deserialize(bytes).map(Value::Configuration),
         }
@@ -88,27 +77,6 @@ impl Value {
     pub fn as_block_header(self) -> Option<BlockHeader> {
         match self {
             Value::BlockHeader(block_header) => Some(block_header),
-            _ => None,
-        }
-    }
-
-    pub fn as_block_transactions(self) -> Option<List<H256>> {
-        match self {
-            Value::BlockTransactions(list) => Some(list),
-            _ => None,
-        }
-    }
-
-    pub fn as_transaction(self) -> Option<ChainTransaction> {
-        match self {
-            Value::Transaction(transaction) => Some(transaction),
-            _ => None,
-        }
-    }
-
-    pub fn as_transaction_meta(self) -> Option<TransactionMeta> {
-        match self {
-            Value::TransactionMeta(meta) => Some(meta),
             _ => None,
         }
     }
@@ -234,15 +202,6 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
             KeyValue::BlockHeader(ref key, ref value) => {
                 (COL_BLOCK_HEADERS, serialize(key), serialize(value))
             }
-            KeyValue::BlockTransactions(ref key, ref value) => {
-                (COL_BLOCK_TRANSACTIONS, serialize(key), serialize(value))
-            }
-            KeyValue::Transaction(ref key, ref value) => {
-                (COL_TRANSACTIONS, serialize(key), serialize(value))
-            }
-            KeyValue::TransactionMeta(ref key, ref value) => {
-                (COL_TRANSACTIONS_META, serialize(key), serialize(value))
-            }
             KeyValue::BlockNumber(ref key, ref value) => {
                 (COL_BLOCK_NUMBERS, serialize(key), serialize(value))
             }
@@ -282,9 +241,6 @@ impl<'a> From<&'a Key> for RawKey {
             Key::Meta(ref key) => (COL_META, serialize(key)),
             Key::BlockHash(ref key) => (COL_BLOCK_HASHES, serialize(key)),
             Key::BlockHeader(ref key) => (COL_BLOCK_HEADERS, serialize(key)),
-            Key::BlockTransactions(ref key) => (COL_BLOCK_TRANSACTIONS, serialize(key)),
-            Key::Transaction(ref key) => (COL_TRANSACTIONS, serialize(key)),
-            Key::TransactionMeta(ref key) => (COL_TRANSACTIONS_META, serialize(key)),
             Key::BlockNumber(ref key) => (COL_BLOCK_NUMBERS, serialize(key)),
             Key::Configuration(ref key) => (COL_CONFIGURATION, serialize(key)),
         };

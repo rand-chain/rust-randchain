@@ -242,8 +242,10 @@ where
         self.db.write(update).map_err(Error::DatabaseError)
     }
 
-    // TODO:
     /// Rollbacks single best block
+    // TODO:
+    // 1. implement this
+    // 2. consider update randomness data or metadata
     fn rollback_best(&self) -> Result<H256, Error> {
         unimplemented!()
 
