@@ -58,14 +58,6 @@ impl KnownHashFilter {
             })
             .unwrap_or(true)
     }
-
-    /// Filter transaction using its hash
-    pub fn filter_transaction(&self, hash: &H256) -> bool {
-        self.known_hashes
-            .get(hash)
-            .map(|stored_hash_type| *stored_hash_type != KnownHashType::Transaction)
-            .unwrap_or(true)
-    }
 }
 
 #[cfg(test)]
