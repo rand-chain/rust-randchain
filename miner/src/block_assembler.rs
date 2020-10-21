@@ -37,8 +37,6 @@ impl BlockAssembler {
         &self,
         store: &SharedStore,
         time: u32,
-        // TODO:
-        _median_timestamp: u32,
         consensus: &ConsensusParams,
     ) -> BlockTemplate {
         // get best block

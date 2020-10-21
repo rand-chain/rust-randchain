@@ -242,7 +242,6 @@ where
         block_assembler.create_new_block(
             &self.storage,
             time::get_time().sec as u32,
-            median_timestamp,
             &self.consensus,
         )
     }
