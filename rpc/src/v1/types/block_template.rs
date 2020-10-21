@@ -25,8 +25,6 @@ pub struct BlockTemplate {
     /// Keys: ignored
     /// Values: value to be included in scriptSig
     pub coinbaseaux: Option<HashMap<String, String>>,
-    /// Maximum allowable input to coinbase transaction, including the generation award and transaction fees (in Satoshis)
-    pub coinbasevalue: Option<u64>,
     /// The hash target
     pub target: H256,
     /// The minimum timestamp appropriate for next block time in seconds since epoch (Jan 1 1970 GMT)
@@ -55,7 +53,6 @@ impl From<miner::BlockTemplate> for BlockTemplate {
             curtime: block.time,
             bits: block.bits.into(),
             height: block.height,
-            coinbasevalue: Some(block.coinbase_value),
             sizelimit: Some(block.size_limit),
             ..Default::default()
         }

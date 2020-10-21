@@ -2,7 +2,7 @@ use network::ConsensusParams;
 use primitives::compact::Compact;
 use primitives::hash::H256;
 use storage::SharedStore;
-use verification::{block_reward_satoshi, work_required};
+use verification::work_required;
 
 const BLOCK_VERSION: u32 = 0x20000000;
 // TODO:
@@ -20,8 +20,6 @@ pub struct BlockTemplate {
     pub bits: Compact,
     /// Block height
     pub height: u32,
-    /// Total funds available for the coinbase (in Satoshis)
-    pub coinbase_value: u64,
     /// Number of bytes allowed in the block
     pub size_limit: u32,
 }
@@ -57,15 +55,12 @@ impl BlockAssembler {
         );
         let version = BLOCK_VERSION;
 
-        let coinbase_value = block_reward_satoshi(height);
-
         BlockTemplate {
             version: version,
             previous_header_hash: previous_header_hash,
             time: time,
             bits: bits,
             height: height,
-            coinbase_value: coinbase_value,
             size_limit: self.max_block_size,
         }
     }
