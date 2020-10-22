@@ -16,17 +16,6 @@ pub enum ConsensusFork {
     BitcoinCore,
 }
 
-#[derive(Debug, Clone, Copy)]
-/// Describes the ordering of transactions within single block.
-pub enum TransactionOrdering {
-    /// Topological tranasaction ordering: if tx TX2 depends on tx TX1,
-    /// it should come AFTER TX1 (not necessary **right** after it).
-    Topological,
-    /// Canonical transaction ordering: transactions are ordered by their
-    /// hash (in ascending order).
-    Canonical,
-}
-
 impl ConsensusParams {
     // TODO: remove "_fork: ConsensusFork"
     pub fn new(network: Network, _fork: ConsensusFork) -> Self {
@@ -116,11 +105,6 @@ impl ConsensusFork {
     // TODO: remove this
     pub fn max_block_weight(&self, _height: u32) -> usize {
         4_000_000
-    }
-
-    // TODO: remove this
-    pub fn transaction_ordering(&self, _median_time_past: u32) -> TransactionOrdering {
-        TransactionOrdering::Topological
     }
 }
 

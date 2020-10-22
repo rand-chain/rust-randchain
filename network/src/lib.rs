@@ -9,5 +9,5 @@ mod network;
 
 pub use primitives::{compact, hash};
 
-pub use consensus::{ConsensusFork, ConsensusParams, TransactionOrdering};
+pub use consensus::{ConsensusFork, ConsensusParams};
 pub use network::{Magic, Network};
