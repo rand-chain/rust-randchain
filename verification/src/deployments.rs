@@ -68,6 +68,7 @@ impl Deployments {
         Deployments::default()
     }
 
+    // TODO: remove this
     /// Returns true if csv deployment is active
     pub fn csv(
         &self,
@@ -75,23 +76,10 @@ impl Deployments {
         headers: &dyn BlockHeaderProvider,
         consensus: &ConsensusParams,
     ) -> bool {
-        match consensus.csv_deployment {
-            Some(csv) => {
-                let mut cache = self.cache.lock();
-                threshold_state(
-                    &mut cache,
-                    csv,
-                    number,
-                    headers,
-                    consensus.miner_confirmation_window,
-                    consensus.rule_change_activation_threshold,
-                )
-                .is_active()
-            }
-            None => false,
-        }
+        false
     }
 
+    // TODO: remove this
     /// Returns true if SegWit deployment is active
     pub fn segwit(
         &self,
@@ -99,21 +87,7 @@ impl Deployments {
         headers: &dyn BlockHeaderProvider,
         consensus: &ConsensusParams,
     ) -> bool {
-        match consensus.segwit_deployment {
-            Some(segwit) => {
-                let mut cache = self.cache.lock();
-                threshold_state(
-                    &mut cache,
-                    segwit,
-                    number,
-                    headers,
-                    consensus.miner_confirmation_window,
-                    consensus.rule_change_activation_threshold,
-                )
-                .is_active()
-            }
-            None => false,
-        }
+        false
     }
 }
 
