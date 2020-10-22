@@ -33,8 +33,6 @@ pub struct BlockTemplate {
     pub mutable: Option<Vec<String>>,
     /// A range of valid nonces (constant 00000000ffffffff)
     pub noncerange: Option<String>,
-    /// Limit of block size
-    pub sizelimit: Option<u32>,
     /// Limit of block weight
     pub weightlimit: Option<u32>,
     /// Current timestamp in seconds since epoch (Jan 1 1970 GMT)
@@ -53,7 +51,6 @@ impl From<miner::BlockTemplate> for BlockTemplate {
             curtime: block.time,
             bits: block.bits.into(),
             height: block.height,
-            sizelimit: Some(block.size_limit),
             ..Default::default()
         }
     }

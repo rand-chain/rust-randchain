@@ -20,8 +20,6 @@ pub struct BlockTemplate {
     pub bits: Compact,
     /// Block height
     pub height: u32,
-    /// Number of bytes allowed in the block
-    pub size_limit: u32,
 }
 
 /// Block assembler
@@ -54,7 +52,6 @@ impl BlockAssembler {
             time: time,
             bits: bits,
             height: height,
-            size_limit: self.max_block_size,
         }
     }
 }
