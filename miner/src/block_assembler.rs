@@ -25,12 +25,7 @@ pub struct BlockTemplate {
 }
 
 /// Block assembler
-pub struct BlockAssembler {
-    /// Maximal block size.
-    pub max_block_size: u32,
-    /// Maximal # of sigops in the block.
-    pub max_block_sigops: u32,
-}
+pub struct BlockAssembler {}
 
 impl BlockAssembler {
     pub fn create_new_block(

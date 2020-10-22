@@ -227,18 +227,7 @@ where
             self.storage.as_block_header_provider(),
         );
         let new_block_height = previous_block_height + 1;
-        let max_block_size = self
-            .consensus
-            .fork
-            .max_block_size(new_block_height, median_timestamp);
-        let block_assembler = BlockAssembler {
-            max_block_size: max_block_size as u32,
-            max_block_sigops: self
-                .consensus
-                .fork
-                .max_block_sigops(new_block_height, max_block_size)
-                as u32,
-        };
+        let block_assembler = BlockAssembler {};
         block_assembler.create_new_block(
             &self.storage,
             time::get_time().sec as u32,
