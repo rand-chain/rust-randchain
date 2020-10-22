@@ -1,11 +1,6 @@
 use clap;
 use message::Services;
-use network::{
-    // TODO:
-    ConsensusFork,
-    ConsensusParams,
-    Network,
-};
+use network::{ConsensusParams, Network};
 use p2p::InternetProtocol;
 use primitives::hash::H256;
 use rpc::HttpConfiguration as RpcHttpConfig;
@@ -65,9 +60,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         (true, true) => return Err("Only one testnet option can be used".into()),
     };
 
-    // TODO:
-    let consensus_fork = ConsensusFork::BitcoinCore;
-    let consensus = ConsensusParams::new(network, consensus_fork);
+    let consensus = ConsensusParams::new(network);
 
     let (in_connections, out_connections) = match network {
         Network::Testnet | Network::Mainnet | Network::Other(_) => (10, 10),

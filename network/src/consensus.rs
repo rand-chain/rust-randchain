@@ -17,8 +17,7 @@ pub enum ConsensusFork {
 }
 
 impl ConsensusParams {
-    // TODO: remove "_fork: ConsensusFork"
-    pub fn new(network: Network, _fork: ConsensusFork) -> Self {
+    pub fn new(network: Network) -> Self {
         match network {
             Network::Mainnet | Network::Other(_) => ConsensusParams { network: network },
             Network::Testnet => ConsensusParams { network: network },
