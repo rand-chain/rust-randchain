@@ -111,14 +111,6 @@ impl<'a> BlockSerializedSize<'a> {
             return Err(Error::Size(size));
         }
 
-        // there's no need to define weight for pre-SegWit blocks
-        if self.segwit_active {
-            let size_with_witness = self.block.size_with_witness();
-            let weight = size * (ConsensusFork::witness_scale_factor() - 1) + size_with_witness;
-            if weight > self.consensus.fork.max_block_weight(self.height) {
-                return Err(Error::Weight);
-            }
-        }
         Ok(())
     }
 }
