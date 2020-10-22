@@ -32,7 +32,8 @@ pub enum TransactionOrdering {
 }
 
 impl ConsensusParams {
-    pub fn new(network: Network, fork: ConsensusFork) -> Self {
+    // TODO: remove "_fork: ConsensusFork"
+    pub fn new(network: Network, _fork: ConsensusFork) -> Self {
         match network {
             Network::Mainnet | Network::Other(_) => ConsensusParams {
                 network: network,
@@ -93,84 +94,49 @@ impl ConsensusFork {
     }
 
     pub fn activation_height(&self) -> u32 {
-        match *self {
-            ConsensusFork::BitcoinCore => 0,
-            ConsensusFork::BitcoinCash(ref fork) => fork.height,
-        }
+        0
     }
 
-    pub fn min_transaction_size(&self, median_time_past: u32) -> usize {
-        match *self {
-            ConsensusFork::BitcoinCash(ref fork)
-                if median_time_past >= fork.magnetic_anomaly_time =>
-            {
-                100
-            }
-            _ => 0,
-        }
+    // TODO: remove this
+    pub fn min_transaction_size(&self, _median_time_past: u32) -> usize {
+        0
     }
 
+    // TODO: remove this
     pub fn max_transaction_size(&self) -> usize {
         // BitcoinCash: according to REQ-5: max size of tx is still 1_000_000
         // SegWit: size * 4 <= 4_000_000 ===> max size of tx is still 1_000_000
         1_000_000
     }
 
-    pub fn min_block_size(&self, height: u32) -> usize {
-        match *self {
-            // size of first fork block must be larger than 1MB
-            ConsensusFork::BitcoinCash(ref fork) if height == fork.height => 1_000_001,
-            ConsensusFork::BitcoinCore | ConsensusFork::BitcoinCash(_) => 0,
-        }
+    // TODO: remove this
+    pub fn min_block_size(&self, _height: u32) -> usize {
+        0
     }
 
-    pub fn max_block_size(&self, height: u32, median_time_past: u32) -> usize {
-        match *self {
-            ConsensusFork::BitcoinCash(ref fork) if median_time_past >= fork.monolith_time => {
-                32_000_000
-            }
-            ConsensusFork::BitcoinCash(ref fork) if height >= fork.height => 8_000_000,
-            ConsensusFork::BitcoinCore | ConsensusFork::BitcoinCash(_) => 1_000_000,
-        }
+    // TODO: remove this
+    pub fn max_block_size(&self, _height: u32, _median_time_past: u32) -> usize {
+        1_000_000
     }
 
-    pub fn max_block_sigops(&self, height: u32, block_size: usize) -> usize {
-        match *self {
-            // according to REQ-5: max_block_sigops = 20000 * ceil((max(blocksize_bytes, 1000000) / 1000000))
-            ConsensusFork::BitcoinCash(ref fork) if height >= fork.height => {
-                20_000 * (1 + (block_size - 1) / 1_000_000)
-            }
-            ConsensusFork::BitcoinCore | ConsensusFork::BitcoinCash(_) => 20_000,
-        }
+    // TODO: remove this
+    pub fn max_block_sigops(&self, _height: u32, _block_size: usize) -> usize {
+        20_000
     }
 
-    pub fn max_block_sigops_cost(&self, height: u32, block_size: usize) -> usize {
-        match *self {
-            ConsensusFork::BitcoinCash(_) => {
-                self.max_block_sigops(height, block_size) * Self::witness_scale_factor()
-            }
-            ConsensusFork::BitcoinCore => 80_000,
-        }
+    // TODO: remove this
+    pub fn max_block_sigops_cost(&self, _height: u32, _block_size: usize) -> usize {
+        80_000
     }
 
+    // TODO: remove this
     pub fn max_block_weight(&self, _height: u32) -> usize {
-        match *self {
-            ConsensusFork::BitcoinCore => 4_000_000,
-            ConsensusFork::BitcoinCash(_) => unreachable!(
-                "BitcoinCash has no SegWit; weight is only checked with SegWit activated; qed"
-            ),
-        }
+        4_000_000
     }
 
-    pub fn transaction_ordering(&self, median_time_past: u32) -> TransactionOrdering {
-        match *self {
-            ConsensusFork::BitcoinCash(ref fork)
-                if median_time_past >= fork.magnetic_anomaly_time =>
-            {
-                TransactionOrdering::Canonical
-            }
-            _ => TransactionOrdering::Topological,
-        }
+    // TODO: remove this
+    pub fn transaction_ordering(&self, _median_time_past: u32) -> TransactionOrdering {
+        TransactionOrdering::Topological
     }
 }
 

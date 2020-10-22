@@ -11,10 +11,6 @@ const MAGIC_TESTNET: u32 = 0x0709110B;
 const MAGIC_REGTEST: u32 = 0xDAB5BFFA;
 const MAGIC_UNITEST: u32 = 0x00000000;
 
-const BITCOIN_CASH_MAGIC_MAINNET: u32 = 0xE8F3E1E3;
-const BITCOIN_CASH_MAGIC_TESTNET: u32 = 0xF4F3E5F4;
-const BITCOIN_CASH_MAGIC_REGTEST: u32 = 0xFABFB5DA;
-
 lazy_static! {
     static ref MAX_BITS_MAINNET: U256 =
         "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
