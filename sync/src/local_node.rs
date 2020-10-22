@@ -13,7 +13,6 @@ use types::{
     ClientRef, PeerIndex, PeersRef, RequestId, ServerRef, StorageRef, SyncListenerRef,
     SynchronizationStateRef,
 };
-use verification::median_timestamp_inclusive;
 
 /// Local synchronization node
 pub struct LocalNode<U: Server, V: Client> {
@@ -217,28 +216,7 @@ where
 
     /// Get block template for mining
     pub fn get_block_template(&self) -> BlockTemplate {
-        let previous_block_height = self.storage.best_block().number;
-        let previous_block_header = self
-            .storage
-            .block_header(previous_block_height.into())
-            .expect("best block is in db; qed");
-        let median_timestamp = median_timestamp_inclusive(
-            previous_block_header.hash,
-            self.storage.as_block_header_provider(),
-        );
-        let new_block_height = previous_block_height + 1;
-        let max_block_size = self
-            .consensus
-            .fork
-            .max_block_size(new_block_height, median_timestamp);
-        let block_assembler = BlockAssembler {
-            max_block_size: max_block_size as u32,
-            max_block_sigops: self
-                .consensus
-                .fork
-                .max_block_sigops(new_block_height, max_block_size)
-                as u32,
-        };
+        let block_assembler = BlockAssembler {};
         block_assembler.create_new_block(
             &self.storage,
             time::get_time().sec as u32,

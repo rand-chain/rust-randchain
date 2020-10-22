@@ -20,17 +20,10 @@ pub struct BlockTemplate {
     pub bits: Compact,
     /// Block height
     pub height: u32,
-    /// Number of bytes allowed in the block
-    pub size_limit: u32,
 }
 
 /// Block assembler
-pub struct BlockAssembler {
-    /// Maximal block size.
-    pub max_block_size: u32,
-    /// Maximal # of sigops in the block.
-    pub max_block_sigops: u32,
-}
+pub struct BlockAssembler {}
 
 impl BlockAssembler {
     pub fn create_new_block(
@@ -59,7 +52,6 @@ impl BlockAssembler {
             time: time,
             bits: bits,
             height: height,
-            size_limit: self.max_block_size,
         }
     }
 }

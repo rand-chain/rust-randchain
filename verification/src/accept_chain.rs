@@ -1,7 +1,6 @@
 use accept_block::BlockAcceptor;
 use accept_header::HeaderAcceptor;
 use canon::CanonBlock;
-use deployments::BlockDeployments;
 use error::Error;
 use network::ConsensusParams;
 use storage::BlockHeaderProvider;
@@ -18,26 +17,12 @@ impl<'a> ChainAcceptor<'a> {
         block: CanonBlock<'a>,
         height: u32,
         median_time_past: u32,
-        deployments: &'a BlockDeployments,
     ) -> Self {
         trace!(target: "verification", "Block verification {}", block.hash().to_reversed_str());
 
         ChainAcceptor {
-            block: BlockAcceptor::new(
-                consensus,
-                block,
-                height,
-                median_time_past,
-                deployments,
-                header_provider,
-            ),
-            header: HeaderAcceptor::new(
-                header_provider,
-                consensus,
-                block.header(),
-                height,
-                deployments,
-            ),
+            block: BlockAcceptor::new(consensus, block, height, median_time_past, header_provider),
+            header: HeaderAcceptor::new(header_provider, consensus, block.header(), height),
         }
     }
 

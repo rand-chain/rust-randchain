@@ -3,7 +3,6 @@
 use accept_chain::ChainAcceptor;
 use canon::CanonBlock;
 use chain::{BlockHeader, IndexedBlock, IndexedBlockHeader};
-use deployments::{BlockDeployments, Deployments};
 use error::Error;
 use hash::H256;
 use network::ConsensusParams;
@@ -16,7 +15,6 @@ use {VerificationLevel, Verify};
 pub struct BackwardsCompatibleChainVerifier {
     store: SharedStore,
     consensus: ConsensusParams,
-    deployments: Deployments,
 }
 
 impl BackwardsCompatibleChainVerifier {
@@ -24,7 +22,6 @@ impl BackwardsCompatibleChainVerifier {
         BackwardsCompatibleChainVerifier {
             store: store,
             consensus: consensus,
-            deployments: Deployments::new(),
         }
     }
 
@@ -68,19 +65,12 @@ impl BackwardsCompatibleChainVerifier {
             // TODO:
             BlockOrigin::CanonChain { block_number } => {
                 let header_provider = self.store.as_store().as_block_header_provider();
-                let deployments = BlockDeployments::new(
-                    &self.deployments,
-                    block_number,
-                    header_provider,
-                    &self.consensus,
-                );
                 let chain_acceptor = ChainAcceptor::new(
                     header_provider,
                     &self.consensus,
                     canon_block,
                     block_number,
                     median_time_past,
-                    &deployments,
                 );
                 chain_acceptor.check()?;
             }
@@ -88,19 +78,12 @@ impl BackwardsCompatibleChainVerifier {
                 let block_number = origin.block_number;
                 let fork = self.store.fork(origin)?;
                 let header_provider = fork.store().as_block_header_provider();
-                let deployments = BlockDeployments::new(
-                    &self.deployments,
-                    block_number,
-                    header_provider,
-                    &self.consensus,
-                );
                 let chain_acceptor = ChainAcceptor::new(
                     header_provider,
                     &self.consensus,
                     canon_block,
                     block_number,
                     median_time_past,
-                    &deployments,
                 );
                 chain_acceptor.check()?;
             }
@@ -108,19 +91,12 @@ impl BackwardsCompatibleChainVerifier {
                 let block_number = origin.block_number;
                 let fork = self.store.fork(origin)?;
                 let header_provider = fork.store().as_block_header_provider();
-                let deployments = BlockDeployments::new(
-                    &self.deployments,
-                    block_number,
-                    header_provider,
-                    &self.consensus,
-                );
                 let chain_acceptor = ChainAcceptor::new(
                     header_provider,
                     &self.consensus,
                     canon_block,
                     block_number,
                     median_time_past,
-                    &deployments,
                 );
                 chain_acceptor.check()?;
             }

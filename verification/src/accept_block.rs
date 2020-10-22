@@ -1,7 +1,6 @@
 use canon::CanonBlock;
-use deployments::BlockDeployments;
 use error::Error;
-use network::{ConsensusFork, ConsensusParams};
+use network::ConsensusParams;
 use storage::BlockHeaderProvider;
 
 /// Flexible verification of ordered block
@@ -17,19 +16,12 @@ impl<'a> BlockAcceptor<'a> {
         block: CanonBlock<'a>,
         height: u32,
         median_time_past: u32,
-        deployments: &'a BlockDeployments<'a>,
         headers: &'a dyn BlockHeaderProvider,
     ) -> Self {
         BlockAcceptor {
-            finality: BlockFinality::new(block, height, deployments, headers),
-            serialized_size: BlockSerializedSize::new(
-                block,
-                consensus,
-                deployments,
-                height,
-                median_time_past,
-            ),
-            witness: BlockWitness::new(block, deployments),
+            finality: BlockFinality::new(block, height, headers),
+            serialized_size: BlockSerializedSize::new(block, consensus, height, median_time_past),
+            witness: BlockWitness::new(block),
         }
     }
 
@@ -48,12 +40,7 @@ pub struct BlockFinality<'a> {
 }
 
 impl<'a> BlockFinality<'a> {
-    fn new(
-        block: CanonBlock<'a>,
-        height: u32,
-        _deployments: &'a BlockDeployments<'a>,
-        headers: &'a dyn BlockHeaderProvider,
-    ) -> Self {
+    fn new(block: CanonBlock<'a>, height: u32, headers: &'a dyn BlockHeaderProvider) -> Self {
         BlockFinality {
             block: block,
             height: height,
@@ -72,53 +59,25 @@ pub struct BlockSerializedSize<'a> {
     consensus: &'a ConsensusParams,
     height: u32,
     median_time_past: u32,
-    segwit_active: bool,
 }
 
 impl<'a> BlockSerializedSize<'a> {
     fn new(
         block: CanonBlock<'a>,
         consensus: &'a ConsensusParams,
-        deployments: &'a BlockDeployments<'a>,
         height: u32,
         median_time_past: u32,
     ) -> Self {
-        let segwit_active = deployments.segwit();
-
         BlockSerializedSize {
             block: block,
             consensus: consensus,
             height: height,
             median_time_past: median_time_past,
-            segwit_active: segwit_active,
         }
     }
 
+    // TODO:
     fn check(&self) -> Result<(), Error> {
-        let size = self.block.size();
-
-        // block size (without witness) is valid for all forks:
-        // before SegWit: it is main check for size
-        // after SegWit: without witness data, block size should be <= 1_000_000
-        // after BitcoinCash fork: block size is increased to 8_000_000
-        if size < self.consensus.fork.min_block_size(self.height)
-            || size
-                > self
-                    .consensus
-                    .fork
-                    .max_block_size(self.height, self.median_time_past)
-        {
-            return Err(Error::Size(size));
-        }
-
-        // there's no need to define weight for pre-SegWit blocks
-        if self.segwit_active {
-            let size_with_witness = self.block.size_with_witness();
-            let weight = size * (ConsensusFork::witness_scale_factor() - 1) + size_with_witness;
-            if weight > self.consensus.fork.max_block_weight(self.height) {
-                return Err(Error::Weight);
-            }
-        }
         Ok(())
     }
 }
@@ -128,7 +87,7 @@ pub struct BlockWitness<'a> {
 }
 
 impl<'a> BlockWitness<'a> {
-    fn new(block: CanonBlock<'a>, _deployments: &'a BlockDeployments<'a>) -> Self {
+    fn new(block: CanonBlock<'a>) -> Self {
         BlockWitness { block: block }
     }
 
