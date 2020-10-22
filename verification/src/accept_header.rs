@@ -1,5 +1,4 @@
 use canon::CanonHeader;
-use deployments::Deployments;
 use error::Error;
 use network::ConsensusParams;
 use storage::BlockHeaderProvider;
@@ -12,18 +11,17 @@ pub struct HeaderAcceptor<'a> {
     pub median_timestamp: HeaderMedianTimestamp<'a>,
 }
 
+// TODO:
 impl<'a> HeaderAcceptor<'a> {
-    pub fn new<D: AsRef<Deployments>>(
+    pub fn new(
         store: &'a dyn BlockHeaderProvider,
         consensus: &'a ConsensusParams,
         header: CanonHeader<'a>,
         height: u32,
-        deployments: D,
     ) -> Self {
-        let csv_active = deployments.as_ref().csv(height, store, consensus);
         HeaderAcceptor {
             work: HeaderWork::new(header, store, height, consensus),
-            median_timestamp: HeaderMedianTimestamp::new(header, store, csv_active),
+            median_timestamp: HeaderMedianTimestamp::new(header, store),
             version: HeaderVersion::new(header, height, consensus),
         }
     }
@@ -105,20 +103,20 @@ impl<'a> HeaderWork<'a> {
 pub struct HeaderMedianTimestamp<'a> {
     header: CanonHeader<'a>,
     store: &'a dyn BlockHeaderProvider,
-    active: bool,
 }
 
 impl<'a> HeaderMedianTimestamp<'a> {
-    fn new(header: CanonHeader<'a>, store: &'a dyn BlockHeaderProvider, csv_active: bool) -> Self {
+    fn new(header: CanonHeader<'a>, store: &'a dyn BlockHeaderProvider) -> Self {
         HeaderMedianTimestamp {
             header: header,
             store: store,
-            active: csv_active,
         }
     }
 
+    // TODO:
     fn check(&self) -> Result<(), Error> {
-        if self.active && self.header.raw.time <= median_timestamp(&self.header.raw, self.store) {
+        // if csv_active && self.header.raw.time <= median_timestamp(&self.header.raw, self.store) {
+        if self.header.raw.time <= median_timestamp(&self.header.raw, self.store) {
             Err(Error::Timestamp)
         } else {
             Ok(())

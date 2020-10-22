@@ -71,7 +71,6 @@ extern crate storage;
 
 mod canon;
 pub mod constants;
-mod deployments;
 mod error;
 // mod sigops;
 mod timestamp;
@@ -102,7 +101,6 @@ pub use verify_chain::ChainVerifier;
 pub use verify_header::HeaderVerifier;
 
 pub use chain_verifier::BackwardsCompatibleChainVerifier;
-pub use deployments::Deployments;
 pub use error::{Error, TransactionError};
 // pub use sigops::transaction_sigops;
 pub use timestamp::{median_timestamp, median_timestamp_inclusive};
