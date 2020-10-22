@@ -53,15 +53,9 @@ impl<'a> HeaderVersion<'a> {
         }
     }
 
+    // TODO: can add more rules here
     fn check(&self) -> Result<(), Error> {
-        if (self.header.raw.version < 2 && self.height >= self.consensus_params.bip34_height)
-            || (self.header.raw.version < 3 && self.height >= self.consensus_params.bip66_height)
-            || (self.header.raw.version < 4 && self.height >= self.consensus_params.bip65_height)
-        {
-            Err(Error::OldVersionBlock)
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 
