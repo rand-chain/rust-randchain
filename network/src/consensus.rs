@@ -6,10 +6,6 @@ use {Magic, Network};
 pub struct ConsensusParams {
     /// Network.
     pub network: Network,
-    /// Version bits activation
-    pub rule_change_activation_threshold: u32,
-    /// Number of blocks with the same set of rules
-    pub miner_confirmation_window: u32,
 }
 
 // TODO: should extract this
@@ -35,21 +31,9 @@ impl ConsensusParams {
     // TODO: remove "_fork: ConsensusFork"
     pub fn new(network: Network, _fork: ConsensusFork) -> Self {
         match network {
-            Network::Mainnet | Network::Other(_) => ConsensusParams {
-                network: network,
-                rule_change_activation_threshold: 1916, // 95%
-                miner_confirmation_window: 2016,
-            },
-            Network::Testnet => ConsensusParams {
-                network: network,
-                rule_change_activation_threshold: 1512, // 75%
-                miner_confirmation_window: 2016,
-            },
-            Network::Regtest | Network::Unitest => ConsensusParams {
-                network: network,
-                rule_change_activation_threshold: 108, // 75%
-                miner_confirmation_window: 144,
-            },
+            Network::Mainnet | Network::Other(_) => ConsensusParams { network: network },
+            Network::Testnet => ConsensusParams { network: network },
+            Network::Regtest | Network::Unitest => ConsensusParams { network: network },
         }
     }
 
