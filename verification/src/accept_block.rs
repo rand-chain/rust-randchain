@@ -94,23 +94,8 @@ impl<'a> BlockSerializedSize<'a> {
         }
     }
 
+    // TODO:
     fn check(&self) -> Result<(), Error> {
-        let size = self.block.size();
-
-        // block size (without witness) is valid for all forks:
-        // before SegWit: it is main check for size
-        // after SegWit: without witness data, block size should be <= 1_000_000
-        // after BitcoinCash fork: block size is increased to 8_000_000
-        if size < self.consensus.fork.min_block_size(self.height)
-            || size
-                > self
-                    .consensus
-                    .fork
-                    .max_block_size(self.height, self.median_time_past)
-        {
-            return Err(Error::Size(size));
-        }
-
         Ok(())
     }
 }
