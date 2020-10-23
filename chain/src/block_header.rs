@@ -9,6 +9,7 @@ use std::fmt;
 pub struct BlockHeader {
     pub version: u32,
     pub previous_header_hash: H256,
+    // TODO:
     pub merkle_root_hash: H256,
     pub time: u32,
     pub bits: Compact,
@@ -31,6 +32,7 @@ impl fmt::Debug for BlockHeader {
                 "previous_header_hash",
                 &self.previous_header_hash.reversed(),
             )
+            // TODO:
             .field("merkle_root_hash", &self.merkle_root_hash.reversed())
             .field("time", &self.time)
             .field("bits", &self.bits)

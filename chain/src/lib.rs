@@ -11,7 +11,6 @@ pub mod constants;
 
 mod block;
 mod block_header;
-mod merkle_root;
 
 mod indexed_block;
 mod indexed_header;
@@ -22,7 +21,6 @@ pub use primitives::{bigint, bytes, compact, hash};
 
 pub use block::Block;
 pub use block_header::BlockHeader;
-pub use merkle_root::{merkle_node_hash, merkle_root};
 
 pub use indexed_block::IndexedBlock;
 pub use indexed_header::IndexedBlockHeader;
