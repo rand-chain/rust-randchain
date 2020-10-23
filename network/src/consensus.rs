@@ -7,14 +7,6 @@ pub struct ConsensusParams {
     pub network: Network,
 }
 
-// TODO: should extract this
-#[derive(Debug, Clone)]
-/// Concurrent consensus rule forks.
-pub enum ConsensusFork {
-    /// No fork.
-    BitcoinCore,
-}
-
 impl ConsensusParams {
     pub fn new(network: Network) -> Self {
         ConsensusParams { network: network }
