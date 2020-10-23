@@ -3,7 +3,7 @@ use futures::{finished, lazy};
 use message::types;
 use miner::BlockAssembler;
 use miner::BlockTemplate;
-use network::ConsensusParams;
+use network::Network;
 use std::sync::Arc;
 use synchronization_client::Client;
 use synchronization_peers::{BlockAnnouncementType, TransactionAnnouncementType};
@@ -17,7 +17,7 @@ use types::{
 /// Local synchronization node
 pub struct LocalNode<U: Server, V: Client> {
     /// Network we are working on
-    consensus: ConsensusParams,
+    network: Network,
     /// Storage reference
     storage: StorageRef,
     /// Synchronization peers
@@ -38,7 +38,7 @@ where
     /// Create new synchronization node
     #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new(
-        consensus: ConsensusParams,
+        network: Network,
         storage: StorageRef,
         peers: PeersRef,
         state: SynchronizationStateRef,
@@ -46,7 +46,7 @@ where
         server: ServerRef<U>,
     ) -> Self {
         LocalNode {
-            consensus: consensus,
+            network: network,
             storage: storage,
             peers: peers,
             state: state,
@@ -217,11 +217,7 @@ where
     /// Get block template for mining
     pub fn get_block_template(&self) -> BlockTemplate {
         let block_assembler = BlockAssembler {};
-        block_assembler.create_new_block(
-            &self.storage,
-            time::get_time().sec as u32,
-            &self.consensus,
-        )
+        block_assembler.create_new_block(&self.storage, time::get_time().sec as u32, &self.network)
     }
 
     /// Install synchronization events listener

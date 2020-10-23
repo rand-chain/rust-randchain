@@ -1,6 +1,6 @@
 use clap;
 use message::Services;
-use network::{ConsensusParams, Network};
+use network::Network;
 use p2p::InternetProtocol;
 use primitives::hash::H256;
 use rpc::HttpConfiguration as RpcHttpConfig;
@@ -15,7 +15,6 @@ use {REGTEST_USER_AGENT, USER_AGENT};
 
 pub struct Config {
     pub network: Network,
-    pub consensus: ConsensusParams,
     pub services: Services,
     pub port: u16,
     pub connect: Option<net::SocketAddr>,
@@ -59,8 +58,6 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         (false, false) => Network::Mainnet,
         (true, true) => return Err("Only one testnet option can be used".into()),
     };
-
-    let consensus = ConsensusParams::new(network);
 
     let (in_connections, out_connections) = match network {
         Network::Testnet | Network::Mainnet | Network::Other(_) => (10, 10),
@@ -154,7 +151,6 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     let config = Config {
         quiet: quiet,
         network: network,
-        consensus: consensus,
         services: services,
         port: port,
         connect: connect,

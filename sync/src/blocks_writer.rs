@@ -1,6 +1,6 @@
 use super::Error;
 use chain;
-use network::ConsensusParams;
+use network::Network;
 use parking_lot::Mutex;
 use primitives::hash::H256;
 use std::collections::VecDeque;
@@ -47,12 +47,12 @@ impl BlocksWriter {
     /// Create new synchronous blocks writer
     pub fn new(
         storage: StorageRef,
-        consensus: ConsensusParams,
+        network: Network,
         verification_params: VerificationParameters,
     ) -> BlocksWriter {
         let sink_data = Arc::new(Mutex::new(BlocksWriterSinkData::new(storage.clone())));
         let sink = Arc::new(BlocksWriterSink::new(sink_data.clone()));
-        let verifier = SyncVerifier::new(consensus, storage.clone(), sink, verification_params);
+        let verifier = SyncVerifier::new(network, storage.clone(), sink, verification_params);
         BlocksWriter {
             storage: storage,
             orphaned_blocks_pool: OrphanBlocksPool::new(),

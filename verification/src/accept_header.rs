@@ -1,6 +1,6 @@
 use canon::CanonHeader;
 use error::Error;
-use network::ConsensusParams;
+use network::Network;
 use storage::BlockHeaderProvider;
 use timestamp::median_timestamp;
 use work::work_required;
@@ -15,14 +15,14 @@ pub struct HeaderAcceptor<'a> {
 impl<'a> HeaderAcceptor<'a> {
     pub fn new(
         store: &'a dyn BlockHeaderProvider,
-        consensus: &'a ConsensusParams,
+        network: &'a Network,
         header: CanonHeader<'a>,
         height: u32,
     ) -> Self {
         HeaderAcceptor {
-            work: HeaderWork::new(header, store, height, consensus),
+            work: HeaderWork::new(header, store, height, network),
             median_timestamp: HeaderMedianTimestamp::new(header, store),
-            version: HeaderVersion::new(header, height, consensus),
+            version: HeaderVersion::new(header, height, network),
         }
     }
 
@@ -39,15 +39,15 @@ impl<'a> HeaderAcceptor<'a> {
 pub struct HeaderVersion<'a> {
     header: CanonHeader<'a>,
     height: u32,
-    consensus_params: &'a ConsensusParams,
+    network: &'a Network,
 }
 
 impl<'a> HeaderVersion<'a> {
-    fn new(header: CanonHeader<'a>, height: u32, consensus_params: &'a ConsensusParams) -> Self {
+    fn new(header: CanonHeader<'a>, height: u32, network: &'a Network) -> Self {
         HeaderVersion {
             header: header,
             height: height,
-            consensus_params: consensus_params,
+            network: network,
         }
     }
 
@@ -61,7 +61,7 @@ pub struct HeaderWork<'a> {
     header: CanonHeader<'a>,
     store: &'a dyn BlockHeaderProvider,
     height: u32,
-    consensus: &'a ConsensusParams,
+    network: &'a Network,
 }
 
 impl<'a> HeaderWork<'a> {
@@ -69,13 +69,13 @@ impl<'a> HeaderWork<'a> {
         header: CanonHeader<'a>,
         store: &'a dyn BlockHeaderProvider,
         height: u32,
-        consensus: &'a ConsensusParams,
+        network: &'a Network,
     ) -> Self {
         HeaderWork {
             header: header,
             store: store,
             height: height,
-            consensus: consensus,
+            network: network,
         }
     }
 
@@ -87,7 +87,7 @@ impl<'a> HeaderWork<'a> {
             time,
             self.height,
             self.store,
-            self.consensus,
+            self.network,
         );
         if work == self.header.raw.bits {
             Ok(())

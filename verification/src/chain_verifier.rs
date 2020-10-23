@@ -5,7 +5,7 @@ use canon::CanonBlock;
 use chain::{BlockHeader, IndexedBlock, IndexedBlockHeader};
 use error::Error;
 use hash::H256;
-use network::ConsensusParams;
+use network::Network;
 use storage::{BlockHeaderProvider, BlockOrigin, SharedStore};
 use timestamp::median_timestamp_inclusive;
 use verify_chain::ChainVerifier;
@@ -14,14 +14,14 @@ use {VerificationLevel, Verify};
 
 pub struct BackwardsCompatibleChainVerifier {
     store: SharedStore,
-    consensus: ConsensusParams,
+    network: Network,
 }
 
 impl BackwardsCompatibleChainVerifier {
-    pub fn new(store: SharedStore, consensus: ConsensusParams) -> Self {
+    pub fn new(store: SharedStore, network: Network) -> Self {
         BackwardsCompatibleChainVerifier {
             store: store,
-            consensus: consensus,
+            network: network,
         }
     }
 
@@ -36,7 +36,7 @@ impl BackwardsCompatibleChainVerifier {
 
         let current_time = ::time::get_time().sec as u32;
         // first run pre-verification
-        let chain_verifier = ChainVerifier::new(block, self.consensus.network, current_time);
+        let chain_verifier = ChainVerifier::new(block, self.network, current_time);
         chain_verifier.check()?;
 
         assert_eq!(
@@ -67,7 +67,7 @@ impl BackwardsCompatibleChainVerifier {
                 let header_provider = self.store.as_store().as_block_header_provider();
                 let chain_acceptor = ChainAcceptor::new(
                     header_provider,
-                    &self.consensus,
+                    &self.network,
                     canon_block,
                     block_number,
                     median_time_past,
@@ -80,7 +80,7 @@ impl BackwardsCompatibleChainVerifier {
                 let header_provider = fork.store().as_block_header_provider();
                 let chain_acceptor = ChainAcceptor::new(
                     header_provider,
-                    &self.consensus,
+                    &self.network,
                     canon_block,
                     block_number,
                     median_time_past,
@@ -93,7 +93,7 @@ impl BackwardsCompatibleChainVerifier {
                 let header_provider = fork.store().as_block_header_provider();
                 let chain_acceptor = ChainAcceptor::new(
                     header_provider,
-                    &self.consensus,
+                    &self.network,
                     canon_block,
                     block_number,
                     median_time_past,
@@ -119,7 +119,7 @@ impl BackwardsCompatibleChainVerifier {
         // TODO: full verification
         let current_time = ::time::get_time().sec as u32;
         let header = IndexedBlockHeader::new(hash.clone(), header.clone());
-        let header_verifier = HeaderVerifier::new(&header, self.consensus.network, current_time);
+        let header_verifier = HeaderVerifier::new(&header, self.network, current_time);
         header_verifier.check()
     }
 }

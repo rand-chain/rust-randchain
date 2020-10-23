@@ -39,7 +39,7 @@ mod utils;
 pub use types::LocalNodeRef;
 pub use types::PeersRef;
 
-use network::{ConsensusParams, Network};
+use network::Network;
 use primitives::hash::H256;
 use std::sync::Arc;
 use verification::BackwardsCompatibleChainVerifier as ChainVerifier;
@@ -76,10 +76,10 @@ pub trait SyncListener: Send + 'static {
 /// Create blocks writer.
 pub fn create_sync_blocks_writer(
     db: storage::SharedStore,
-    consensus: ConsensusParams,
+    network: Network,
     verification_params: VerificationParameters,
 ) -> blocks_writer::BlocksWriter {
-    blocks_writer::BlocksWriter::new(db, consensus, verification_params)
+    blocks_writer::BlocksWriter::new(db, network, verification_params)
 }
 
 /// Create synchronization peers
@@ -91,7 +91,7 @@ pub fn create_sync_peers() -> PeersRef {
 
 /// Creates local sync node for given `db`
 pub fn create_local_sync_node(
-    consensus: ConsensusParams,
+    network: Network,
     db: storage::SharedStore,
     peers: PeersRef,
     verification_params: VerificationParameters,
@@ -108,7 +108,6 @@ pub fn create_local_sync_node(
     use types::SynchronizationStateRef;
     use utils::SynchronizationState;
 
-    let network = consensus.network;
     let sync_client_config = SynchronizationConfig {
         // during regtests, peer is providing us with bad blocks => we shouldn't close connection because of this
         close_connection_on_bad_block: network != Network::Regtest,
@@ -117,7 +116,7 @@ pub fn create_local_sync_node(
     let sync_state = SynchronizationStateRef::new(SynchronizationState::with_storage(db.clone()));
     let sync_chain = SyncChain::new(db.clone());
 
-    let chain_verifier = Arc::new(ChainVerifier::new(db.clone(), consensus.clone()));
+    let chain_verifier = Arc::new(ChainVerifier::new(db.clone(), network.clone()));
     let sync_executor = SyncExecutor::new(peers.clone());
     let sync_server = Arc::new(ServerImpl::new(
         peers.clone(),
@@ -141,7 +140,7 @@ pub fn create_local_sync_node(
     );
     let sync_client = SynchronizationClient::new(sync_client_core, verifier);
     Arc::new(SyncNode::new(
-        consensus,
+        network,
         db,
         peers,
         sync_state,

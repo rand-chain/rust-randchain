@@ -1,5 +1,5 @@
 use chain::IndexedBlock;
-use network::ConsensusParams;
+use network::Network;
 use parking_lot::Mutex;
 use primitives::hash::H256;
 use std::collections::VecDeque;
@@ -213,12 +213,12 @@ where
 {
     /// Create new sync verifier
     pub fn new(
-        consensus: ConsensusParams,
+        network: Network,
         storage: StorageRef,
         sink: Arc<T>,
         verification_params: VerificationParameters,
     ) -> Self {
-        let verifier = ChainVerifier::new(storage.clone(), consensus);
+        let verifier = ChainVerifier::new(storage.clone(), network);
         let verifier = ChainVerifierWrapper::new(Arc::new(verifier), &storage, verification_params);
         SyncVerifier {
             verifier: verifier,

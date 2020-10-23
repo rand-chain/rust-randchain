@@ -1,4 +1,4 @@
-use network::ConsensusParams;
+use network::Network;
 use primitives::compact::Compact;
 use primitives::hash::H256;
 use storage::SharedStore;
@@ -30,7 +30,7 @@ impl BlockAssembler {
         &self,
         store: &SharedStore,
         time: u32,
-        consensus: &ConsensusParams,
+        network: &Network,
     ) -> BlockTemplate {
         // get best block
         // take it's hash && height
@@ -42,7 +42,7 @@ impl BlockAssembler {
             time,
             height,
             store.as_block_header_provider(),
-            consensus,
+            network,
         );
         let version = BLOCK_VERSION;
 

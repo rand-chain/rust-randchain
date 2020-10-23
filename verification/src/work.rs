@@ -1,5 +1,5 @@
 use chain::IndexedBlockHeader;
-use network::{ConsensusParams, Network};
+use network::Network;
 use primitives::bigint::U256;
 use primitives::compact::Compact;
 use primitives::hash::H256;
@@ -61,9 +61,9 @@ pub fn work_required(
     time: u32,
     height: u32,
     store: &dyn BlockHeaderProvider,
-    consensus: &ConsensusParams,
+    network: &Network,
 ) -> Compact {
-    let max_bits = consensus.network.max_bits().into();
+    let max_bits = network.max_bits().into();
     if height == 0 {
         return max_bits;
     }
@@ -76,7 +76,7 @@ pub fn work_required(
         return work_required_retarget(parent_header, height, store, max_bits);
     }
 
-    if consensus.network == Network::Testnet {
+    if *network == Network::Testnet {
         return work_required_testnet(parent_hash, time, height, store, Network::Testnet);
     }
 

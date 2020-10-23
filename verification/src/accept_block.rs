@@ -1,6 +1,6 @@
 use canon::CanonBlock;
 use error::Error;
-use network::ConsensusParams;
+use network::Network;
 use storage::BlockHeaderProvider;
 
 /// Flexible verification of ordered block
@@ -12,7 +12,7 @@ pub struct BlockAcceptor<'a> {
 
 impl<'a> BlockAcceptor<'a> {
     pub fn new(
-        consensus: &'a ConsensusParams,
+        network: &'a Network,
         block: CanonBlock<'a>,
         height: u32,
         median_time_past: u32,
@@ -20,7 +20,7 @@ impl<'a> BlockAcceptor<'a> {
     ) -> Self {
         BlockAcceptor {
             finality: BlockFinality::new(block, height, headers),
-            serialized_size: BlockSerializedSize::new(block, consensus, height, median_time_past),
+            serialized_size: BlockSerializedSize::new(block, network, height, median_time_past),
             witness: BlockWitness::new(block),
         }
     }
@@ -56,7 +56,7 @@ impl<'a> BlockFinality<'a> {
 
 pub struct BlockSerializedSize<'a> {
     block: CanonBlock<'a>,
-    consensus: &'a ConsensusParams,
+    network: &'a Network,
     height: u32,
     median_time_past: u32,
 }
@@ -64,13 +64,13 @@ pub struct BlockSerializedSize<'a> {
 impl<'a> BlockSerializedSize<'a> {
     fn new(
         block: CanonBlock<'a>,
-        consensus: &'a ConsensusParams,
+        network: &'a Network,
         height: u32,
         median_time_past: u32,
     ) -> Self {
         BlockSerializedSize {
             block: block,
-            consensus: consensus,
+            network: network,
             height: height,
             median_time_past: median_time_past,
         }
