@@ -7,8 +7,6 @@ extern crate serialization as ser;
 #[macro_use]
 extern crate serialization_derive;
 
-pub mod constants;
-
 mod block;
 mod block_header;
 
