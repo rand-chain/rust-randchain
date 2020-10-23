@@ -1,4 +1,3 @@
-pub mod address;
 mod block;
 mod block_template;
 mod block_template_request;

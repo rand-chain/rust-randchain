@@ -10,7 +10,6 @@ extern crate jsonrpc_macros;
 extern crate chain;
 extern crate db;
 extern crate jsonrpc_http_server;
-extern crate keys;
 extern crate miner;
 extern crate network;
 extern crate p2p;

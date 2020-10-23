@@ -10,14 +10,12 @@ extern crate libc;
 
 extern crate chain;
 extern crate db;
-extern crate keys;
 extern crate logs;
 extern crate message;
 extern crate network;
 extern crate p2p;
 extern crate primitives;
 extern crate rpc as ethcore_rpc;
-extern crate script;
 extern crate storage;
 extern crate sync;
 extern crate verification;
