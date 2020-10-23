@@ -22,7 +22,6 @@ message = { path = "../message" }
 miner = { path = "../miner" }
 p2p = { path = "../p2p" }
 primitives = { path = "../primitives" }
-script = { path = "../script" }
 serialization = { path = "../serialization" }
 verification = { path = "../verification" }
 network = { path = "../network" }

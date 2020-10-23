@@ -38,13 +38,9 @@ impl<'a> BlockSerializedSize<'a> {
         }
     }
 
+    // TODO:
     fn check(&self) -> Result<(), Error> {
-        let size = self.block.size();
-        if size > self.max_size {
-            Err(Error::Size(size))
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 
@@ -57,11 +53,12 @@ impl<'a> BlockMerkleRoot<'a> {
         BlockMerkleRoot { block: block }
     }
 
+    // TODO:
     fn check(&self) -> Result<(), Error> {
-        if self.block.merkle_root() == self.block.header.raw.merkle_root_hash {
-            Ok(())
-        } else {
-            Err(Error::MerkleRoot)
-        }
+        Ok(())
+        // if self.block.merkle_root() == self.block.header.raw.merkle_root_hash {
+        // } else {
+        //     Err(Error::MerkleRoot)
+        // }
     }
 }

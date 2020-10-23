@@ -12,12 +12,10 @@ app_dirs = { git = "https://github.com/paritytech/app-dirs-rs" }
 libc = "0.2"
 clap = { version = "2", features = ["yaml"] }
 chain = { path = "chain" }
-keys = { path = "keys" }
 message = { path = "message" }
 network = { path = "network" }
 miner = { path = "miner" }
 p2p = { path = "p2p" }
-script = { path = "script" }
 storage = { path = "storage" }
 db = { path = "db" }
 verification = { path = "verification" }

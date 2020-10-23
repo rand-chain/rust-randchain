@@ -26,7 +26,6 @@ storage = { path = "../storage" }
 db = { path = "../db" }
 miner = { path = "../miner" }
 verification = { path = "../verification" }
-keys = { path = "../keys" }
 
 [dev-dependencies]
 test-data = { path = "../test-data" }

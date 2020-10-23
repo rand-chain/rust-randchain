@@ -14,8 +14,6 @@ network = { path = "../network" }
 primitives = { path = "../primitives" }
 serialization = { path = "../serialization" }
 verification = { path = "../verification" }
-keys = { path = "../keys" }
-script = { path = "../script" }
 
 [dev-dependencies]
 test-data = { path = "../test-data" }

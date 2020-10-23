@@ -65,7 +65,6 @@ extern crate chain;
 extern crate db;
 extern crate network;
 extern crate primitives;
-extern crate script;
 extern crate serialization as ser;
 extern crate storage;
 
@@ -101,7 +100,7 @@ pub use verify_chain::ChainVerifier;
 pub use verify_header::HeaderVerifier;
 
 pub use chain_verifier::BackwardsCompatibleChainVerifier;
-pub use error::{Error, TransactionError};
+pub use error::Error;
 // pub use sigops::transaction_sigops;
 pub use timestamp::{median_timestamp, median_timestamp_inclusive};
 pub use work::{
