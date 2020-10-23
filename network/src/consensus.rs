@@ -1,4 +1,3 @@
-use hash::H256;
 use {Magic, Network};
 
 #[derive(Debug, Clone)]
@@ -18,92 +17,17 @@ pub enum ConsensusFork {
 
 impl ConsensusParams {
     pub fn new(network: Network) -> Self {
-        match network {
-            Network::Mainnet | Network::Other(_) => ConsensusParams { network: network },
-            Network::Testnet => ConsensusParams { network: network },
-            Network::Regtest | Network::Unitest => ConsensusParams { network: network },
-        }
+        ConsensusParams { network: network }
     }
 
     pub fn magic(&self) -> Magic {
         self.network.magic()
     }
 
-    pub fn is_bip30_exception(&self, hash: &H256, height: u32) -> bool {
-        (height == 91842
-            && hash
-                == &H256::from_reversed_str(
-                    "00000000000a4d0a398161ffc163c503763b1f4360639393e0e4c8e300e0caec",
-                ))
-            || (height == 91880
-                && hash
-                    == &H256::from_reversed_str(
-                        "00000000000743f190a18c5577a3c2d2a1f610ae9601ac046a38084ccb7cd721",
-                    ))
-    }
-
     // TODO: remove this
     /// Returns true if SegWit is possible on this chain.
     pub fn is_segwit_possible(&self) -> bool {
         self.network != Network::Regtest
-    }
-}
-
-impl ConsensusFork {
-    /// Absolute (across all forks) maximum block size. Currently is 8MB for post-HF BitcoinCash
-    pub fn absolute_maximum_block_size() -> usize {
-        32_000_000
-    }
-
-    /// Absolute (across all forks) maximum number of sigops in single block. Currently is max(sigops) for 8MB post-HF BitcoinCash block
-    pub fn absolute_maximum_block_sigops() -> usize {
-        160_000
-    }
-
-    /// Witness scale factor (equal among all forks)
-    pub fn witness_scale_factor() -> usize {
-        4
-    }
-
-    pub fn activation_height(&self) -> u32 {
-        0
-    }
-
-    // TODO: remove this
-    pub fn min_transaction_size(&self, _median_time_past: u32) -> usize {
-        0
-    }
-
-    // TODO: remove this
-    pub fn max_transaction_size(&self) -> usize {
-        // BitcoinCash: according to REQ-5: max size of tx is still 1_000_000
-        // SegWit: size * 4 <= 4_000_000 ===> max size of tx is still 1_000_000
-        1_000_000
-    }
-
-    // TODO: remove this
-    pub fn min_block_size(&self, _height: u32) -> usize {
-        0
-    }
-
-    // TODO: remove this
-    pub fn max_block_size(&self, _height: u32, _median_time_past: u32) -> usize {
-        1_000_000
-    }
-
-    // TODO: remove this
-    pub fn max_block_sigops(&self, _height: u32, _block_size: usize) -> usize {
-        20_000
-    }
-
-    // TODO: remove this
-    pub fn max_block_sigops_cost(&self, _height: u32, _block_size: usize) -> usize {
-        80_000
-    }
-
-    // TODO: remove this
-    pub fn max_block_weight(&self, _height: u32) -> usize {
-        4_000_000
     }
 }
 

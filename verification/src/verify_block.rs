@@ -1,6 +1,5 @@
 use chain::IndexedBlock;
 use error::Error;
-use network::ConsensusFork;
 
 pub struct BlockVerifier<'a> {
     pub serialized_size: BlockSerializedSize<'a>,
@@ -10,10 +9,7 @@ pub struct BlockVerifier<'a> {
 impl<'a> BlockVerifier<'a> {
     pub fn new(block: &'a IndexedBlock) -> Self {
         BlockVerifier {
-            serialized_size: BlockSerializedSize::new(
-                block,
-                ConsensusFork::absolute_maximum_block_size(),
-            ),
+            serialized_size: BlockSerializedSize::new(block),
             merkle_root: BlockMerkleRoot::new(block),
         }
     }
@@ -27,15 +23,11 @@ impl<'a> BlockVerifier<'a> {
 
 pub struct BlockSerializedSize<'a> {
     block: &'a IndexedBlock,
-    max_size: usize,
 }
 
 impl<'a> BlockSerializedSize<'a> {
-    fn new(block: &'a IndexedBlock, max_size: usize) -> Self {
-        BlockSerializedSize {
-            block: block,
-            max_size: max_size,
-        }
+    fn new(block: &'a IndexedBlock) -> Self {
+        BlockSerializedSize { block: block }
     }
 
     // TODO:
