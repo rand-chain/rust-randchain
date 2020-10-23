@@ -63,9 +63,5 @@ fn run() -> Result<(), String> {
         env_logger::init();
     }
 
-    // TODO:
-    // + import
-    // + rollback
-
     commands::start(cfg)
 }
