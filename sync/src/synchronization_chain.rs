@@ -1,5 +1,4 @@
 use chain::{IndexedBlock, IndexedBlockHeader};
-use network::ConsensusParams;
 use primitives::bytes::Bytes;
 use primitives::hash::H256;
 use std::collections::{HashSet, VecDeque};
@@ -97,10 +96,6 @@ pub struct Chain {
     headers_chain: BestHeadersChain,
     /// Blocks that have been marked as dead-ends
     dead_end_blocks: HashSet<H256>,
-    // TODO:
-    /// Is SegWit is possible on this chain? SegWit inventory types are used when block/tx-es are
-    /// requested and this flag is true.
-    is_segwit_possible: bool,
 }
 
 impl BlockState {
@@ -125,14 +120,13 @@ impl BlockState {
 
 impl Chain {
     /// Create new `Chain` with given storage
-    pub fn new(storage: StorageRef, consensus: ConsensusParams) -> Self {
+    pub fn new(storage: StorageRef) -> Self {
         // we only work with storages with genesis block
         let genesis_block_hash = storage
             .block_hash(0)
             .expect("storage with genesis block is required");
         let best_storage_block = storage.best_block();
         let best_storage_block_hash = best_storage_block.hash.clone();
-        let is_segwit_possible = consensus.is_segwit_possible();
 
         Chain {
             genesis_block_hash: genesis_block_hash,
@@ -141,7 +135,6 @@ impl Chain {
             hash_chain: HashQueueChain::with_number_of_queues(NUMBER_OF_QUEUES),
             headers_chain: BestHeadersChain::new(best_storage_block_hash),
             dead_end_blocks: HashSet::new(),
-            is_segwit_possible,
         }
     }
 
@@ -159,11 +152,6 @@ impl Chain {
     /// Get storage
     pub fn storage(&self) -> StorageRef {
         self.storage.clone()
-    }
-
-    /// Is segwit active
-    pub fn is_segwit_possible(&self) -> bool {
-        self.is_segwit_possible
     }
 
     /// Get number of blocks in given state

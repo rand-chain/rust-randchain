@@ -39,7 +39,6 @@ mod utils;
 pub use types::LocalNodeRef;
 pub use types::PeersRef;
 
-use message::Services;
 use network::{ConsensusParams, Network};
 use primitives::hash::H256;
 use std::sync::Arc;
@@ -116,10 +115,7 @@ pub fn create_local_sync_node(
     };
 
     let sync_state = SynchronizationStateRef::new(SynchronizationState::with_storage(db.clone()));
-    let sync_chain = SyncChain::new(db.clone(), consensus.clone());
-    if sync_chain.is_segwit_possible() {
-        peers.require_peer_services(Services::default().with_witness(true));
-    }
+    let sync_chain = SyncChain::new(db.clone());
 
     let chain_verifier = Arc::new(ChainVerifier::new(db.clone(), consensus.clone()));
     let sync_executor = SyncExecutor::new(peers.clone());

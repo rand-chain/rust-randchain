@@ -12,8 +12,8 @@ pub enum InventoryType {
     MessageFilteredBlock = 3,
     MessageCompactBlock = 4,
     // MessageWitnessTx = 0x40000001,
-    MessageWitnessBlock = 0x40000002,
-    MessageWitnessFilteredBlock = 0x40000003,
+    // MessageWitnessBlock = 0x40000002,
+    // MessageWitnessFilteredBlock = 0x40000003,
 }
 
 // TODO:
@@ -26,8 +26,8 @@ impl InventoryType {
             3 => Some(InventoryType::MessageFilteredBlock),
             4 => Some(InventoryType::MessageCompactBlock),
             // 0x40000001 => Some(InventoryType::MessageWitnessTx),
-            0x40000002 => Some(InventoryType::MessageWitnessBlock),
-            0x40000003 => Some(InventoryType::MessageWitnessFilteredBlock),
+            // 0x40000002 => Some(InventoryType::MessageWitnessBlock),
+            // 0x40000003 => Some(InventoryType::MessageWitnessFilteredBlock),
             _ => None,
         }
     }
@@ -65,13 +65,6 @@ impl InventoryVector {
     pub fn block(hash: H256) -> Self {
         InventoryVector {
             inv_type: InventoryType::MessageBlock,
-            hash: hash,
-        }
-    }
-
-    pub fn witness_block(hash: H256) -> Self {
-        InventoryVector {
-            inv_type: InventoryType::MessageWitnessBlock,
             hash: hash,
         }
     }

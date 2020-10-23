@@ -323,16 +323,7 @@ where
                     notfound.inventory.push(next_item);
                 }
             }
-            common::InventoryType::MessageWitnessBlock => {
-                if let Some(block) = self.storage.block(next_item.hash.clone().into()) {
-                    trace!(target: "sync", "'getblocks' response to peer#{} is ready with witness-block {}", peer_index, next_item.hash.to_reversed_str());
-                    self.executor
-                        .execute(Task::WitnessBlock(peer_index, block.into()));
-                } else {
-                    notfound.inventory.push(next_item);
-                }
-            }
-            common::InventoryType::Error | common::InventoryType::MessageWitnessFilteredBlock => (),
+            common::InventoryType::Error => (),
         }
 
         Some(ServerTask::ReversedGetData(peer_index, message, notfound))

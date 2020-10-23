@@ -50,10 +50,7 @@ impl BlocksWriter {
         consensus: ConsensusParams,
         verification_params: VerificationParameters,
     ) -> BlocksWriter {
-        let sink_data = Arc::new(Mutex::new(BlocksWriterSinkData::new(
-            storage.clone(),
-            consensus.clone(),
-        )));
+        let sink_data = Arc::new(Mutex::new(BlocksWriterSinkData::new(storage.clone())));
         let sink = Arc::new(BlocksWriterSink::new(sink_data.clone()));
         let verifier = SyncVerifier::new(consensus, storage.clone(), sink, verification_params);
         BlocksWriter {
@@ -111,9 +108,9 @@ impl BlocksWriterSink {
 
 impl BlocksWriterSinkData {
     /// Create new blocks writer data
-    pub fn new(storage: StorageRef, consensus: ConsensusParams) -> Self {
+    pub fn new(storage: StorageRef) -> Self {
         BlocksWriterSinkData {
-            chain: Chain::new(storage, consensus),
+            chain: Chain::new(storage),
             err: None,
         }
     }

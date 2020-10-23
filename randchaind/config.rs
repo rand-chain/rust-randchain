@@ -131,7 +131,6 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     };
 
     let services = Services::default().with_network(true);
-    services.with_witness(true);
 
     let verification_level = match matches.value_of("verification-level") {
         Some(s) if s == "full" => VerificationLevel::Full,

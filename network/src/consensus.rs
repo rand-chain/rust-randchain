@@ -15,12 +15,6 @@ impl ConsensusParams {
     pub fn magic(&self) -> Magic {
         self.network.magic()
     }
-
-    // TODO: remove this
-    /// Returns true if SegWit is possible on this chain.
-    pub fn is_segwit_possible(&self) -> bool {
-        self.network != Network::Regtest
-    }
 }
 
 #[cfg(test)]

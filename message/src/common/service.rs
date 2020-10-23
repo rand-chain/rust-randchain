@@ -43,15 +43,6 @@ impl Services {
         self
     }
 
-    pub fn witness(&self) -> bool {
-        self.bit_at(3)
-    }
-
-    pub fn with_witness(mut self, v: bool) -> Self {
-        self.set_bit(3, v);
-        self
-    }
-
     pub fn xthin(&self) -> bool {
         self.bit_at(4)
     }

@@ -224,17 +224,13 @@ where
 
     fn on_inventory(&self, peer_index: PeerIndex, message: types::Inv) {
         // else ask for all unknown transactions and blocks
-        let is_segwit_possible = self.chain.is_segwit_possible();
         let unknown_inventory: Vec<_> = message
             .inventory
             .into_iter()
             .filter(|item| {
                 match item.inv_type {
                     // check that block is unknown to us
-                    InventoryType::MessageBlock | InventoryType::MessageWitnessBlock => match self
-                        .chain
-                        .block_state(&item.hash)
-                    {
+                    InventoryType::MessageBlock => match self.chain.block_state(&item.hash) {
                         BlockState::Unknown => {
                             !self.orphaned_blocks_pool.contains_unknown_block(&item.hash)
                         }
@@ -252,9 +248,9 @@ where
                         _ => false,
                     },
                     // we never ask for merkle blocks && we never ask for compact blocks
-                    InventoryType::MessageCompactBlock
-                    | InventoryType::MessageFilteredBlock
-                    | InventoryType::MessageWitnessFilteredBlock => false,
+                    InventoryType::MessageCompactBlock | InventoryType::MessageFilteredBlock => {
+                        false
+                    }
                     // unknown inventory type
                     InventoryType::Error => {
                         self.peers.misbehaving(
@@ -265,22 +261,6 @@ where
                             ),
                         );
                         false
-                    }
-                }
-            })
-            // we are not synchronizing =>
-            // 1) either segwit is active and we are connected to segwit-enabled nodes => we could ask for witness
-            // 2) or segwit is inactive => we shall not ask for witness
-            .map(|item| {
-                if !is_segwit_possible {
-                    item
-                } else {
-                    match item.inv_type {
-                        InventoryType::MessageBlock => InventoryVector {
-                            inv_type: InventoryType::MessageWitnessBlock,
-                            hash: item.hash,
-                        },
-                        _ => item,
                     }
                 }
             })
@@ -1087,12 +1067,7 @@ where
         );
         let last_peer_index = peers.len() - 1;
         let mut tasks: Vec<Task> = Vec::new();
-        let is_segwit_possible = self.chain.is_segwit_possible();
-        let inv_type = if is_segwit_possible {
-            InventoryType::MessageWitnessBlock
-        } else {
-            InventoryType::MessageBlock
-        };
+        let inv_type = InventoryType::MessageBlock;
         for (peer_index, peer) in peers.into_iter().enumerate() {
             // we have to request all blocks => we will request last peer for all remaining blocks
             let peer_chunk_size = if peer_index == last_peer_index {
