@@ -62,8 +62,6 @@ pub struct Information {
     pub chain: ChainInformation,
     /// Number of currently orphaned blocks.
     pub orphaned_blocks: usize,
-    /// Number of currently orphaned transactions.
-    pub orphaned_transactions: usize,
 }
 
 /// Synchronization client trait

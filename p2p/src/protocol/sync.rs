@@ -2,7 +2,6 @@ use bytes::Bytes;
 use message::{deserialize_payload, types, Command, Error, Payload, Services};
 use net::PeerContext;
 use protocol::Protocol;
-use ser::SERIALIZE_TRANSACTION_WITNESS;
 use std::sync::Arc;
 
 pub type InboundSyncConnectionRef = Box<dyn InboundSyncConnection>;
