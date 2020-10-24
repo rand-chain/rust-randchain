@@ -99,7 +99,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
         connection: p2p::NetConfig {
             protocol_version: PROTOCOL_VERSION,
             protocol_minimum: PROTOCOL_MINIMUM,
-            magic: cfg.consensus.magic(),
+            magic: cfg.network.magic(),
             local_address: SocketAddr::new(cfg.host, cfg.port),
             services: cfg.services,
             user_agent: cfg.user_agent,
@@ -115,7 +115,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
 
     let sync_peers = create_sync_peers();
     let local_sync_node = create_local_sync_node(
-        cfg.consensus,
+        cfg.network,
         cfg.db.clone(),
         sync_peers.clone(),
         cfg.verification_params,

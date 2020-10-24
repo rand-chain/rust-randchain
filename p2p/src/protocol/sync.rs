@@ -51,7 +51,6 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn send_getblocks(&self, message: &types::GetBlocks);
     fn send_getheaders(&self, message: &types::GetHeaders);
     fn send_block(&self, message: &types::Block);
-    fn send_witness_block(&self, message: &types::Block);
     fn send_headers(&self, message: &types::Headers);
     fn respond_headers(&self, message: &types::Headers, id: u32);
     fn send_mempool(&self, message: &types::MemPool);
@@ -97,11 +96,6 @@ impl OutboundSyncConnection for OutboundSync {
 
     fn send_block(&self, message: &types::Block) {
         self.context.send_request(message);
-    }
-
-    fn send_witness_block(&self, message: &types::Block) {
-        self.context
-            .send_request_with_flags(message, SERIALIZE_TRANSACTION_WITNESS);
     }
 
     fn send_headers(&self, message: &types::Headers) {

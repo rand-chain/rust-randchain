@@ -8,6 +8,7 @@ use {MessageResult, Payload};
 #[derive(Debug, PartialEq)]
 pub struct MerkleBlock {
     pub block_header: BlockHeader,
+    // TODO:
     pub hashes: Vec<H256>,
     pub flags: Bytes,
 }
