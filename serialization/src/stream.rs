@@ -1,4 +1,4 @@
-//! Stream used for serialization of Bitcoin structures
+//! Stream used for serialization of RandChain structures
 use bytes::Bytes;
 use compact_integer::CompactInteger;
 use std::borrow::Borrow;
@@ -82,7 +82,7 @@ pub trait Serializable {
     }
 }
 
-/// Stream used for serialization of Bitcoin structures
+/// Stream used for serialization of RandChain structures
 #[derive(Default)]
 pub struct Stream {
     buffer: Vec<u8>,

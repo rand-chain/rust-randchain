@@ -1,11 +1,14 @@
-//! Bitcoin network
-//! https://www.anintegratedworld.com/unravelling-the-mysterious-block-chain-magic-number/
+//! randchain network
 
 use chain::IndexedBlock;
 use compact::Compact;
 use primitives::bigint::U256;
 use primitives::hash::H256;
 
+// TODO:
+//! These are the same as bitcoin as described in 
+//! https://www.anintegratedworld.com/unravelling-the-mysterious-block-chain-magic-number/
+//! but we may need to design our own
 const MAGIC_MAINNET: u32 = 0xD9B4BEF9;
 const MAGIC_TESTNET: u32 = 0x0709110B;
 const MAGIC_REGTEST: u32 = 0xDAB5BFFA;
@@ -29,18 +32,18 @@ lazy_static! {
 /// Network magic type.
 pub type Magic = u32;
 
-/// Bitcoin [network](https://bitcoin.org/en/glossary/mainnet)
+/// RandChain network
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Network {
-    /// The original and main network for Bitcoin transactions, where satoshis have real economic value.
+    /// The original and main network for RandChain.
     Mainnet,
-    /// The main bitcoin testnet.
+    /// The main RandChain testnet.
     Testnet,
-    /// Bitcoin regtest network.
+    /// RandChain regtest network.
     Regtest,
     /// Testnet for unittests, proof of work difficulty is almost 0
     Unitest,
-    /// Any other network. By default behaves like bitcoin mainnet.
+    /// Any other network. By default behaves like RandChain mainnet.
     Other(u32),
 }
 

@@ -2,11 +2,7 @@ use super::hash::H256;
 use miner;
 use std::collections::HashMap;
 
-/// Block template as described in:
-/// https://github.com/bitcoin/bips/blob/master/bip-0022.mediawiki
-/// https://github.com/bitcoin/bips/blob/master/bip-0023.mediawiki
-/// https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki#getblocktemplate_changes
-/// https://github.com/bitcoin/bips/blob/master/bip-0145.mediawiki
+/// Block template
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct BlockTemplate {
     /// The preferred block version
@@ -21,6 +17,7 @@ pub struct BlockTemplate {
     pub vbrequired: Option<u32>,
     /// The hash of previous (best known) block
     pub previousblockhash: H256,
+    // TODO:
     /// Data that should be included in the coinbase's scriptSig content
     /// Keys: ignored
     /// Values: value to be included in scriptSig

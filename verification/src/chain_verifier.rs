@@ -1,4 +1,4 @@
-//! Bitcoin chain verifier
+//! RandChain chain verifier
 
 use accept_chain::ChainAcceptor;
 use canon::CanonBlock;

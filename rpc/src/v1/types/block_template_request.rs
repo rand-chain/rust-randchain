@@ -24,6 +24,7 @@ pub struct BlockTemplateRequest {
     pub mode: Option<BlockTemplateRequestMode>,
     /// Capabilities, supported by client
     pub capabilities: Option<HashSet<String>>,
+    // TODO:
     /// Softfork deployments, supported by client
     pub rules: Option<HashSet<String>>,
 }

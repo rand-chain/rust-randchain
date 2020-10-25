@@ -47,7 +47,7 @@ pub trait Deserializable {
         T: io::Read;
 }
 
-/// Bitcoin structures reader.
+/// RandChain structures reader.
 #[derive(Debug)]
 pub struct Reader<T> {
     buffer: T,

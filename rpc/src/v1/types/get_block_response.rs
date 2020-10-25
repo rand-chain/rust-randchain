@@ -23,6 +23,7 @@ pub struct VerboseBlock {
     pub size: u32,
     /// Block size, excluding witness data
     pub strippedsize: u32,
+    // TODO:
     /// Block weight
     pub weight: u32,
     /// Block height
@@ -33,10 +34,12 @@ pub struct VerboseBlock {
     /// Block version as hex
     #[serde(rename = "versionHex")]
     pub version_hex: String,
+    // TODO:
     /// Merkle root of this block
     pub merkleroot: H256,
     /// Block time in seconds since epoch (Jan 1 1970 GMT)
     pub time: u32,
+    // TODO: what is mediantime? remove mediantime?
     /// Median block time in seconds since epoch (Jan 1 1970 GMT)
     /// TODO: bitcoind always returns value, but we can calculate this only if height(block) > 2
     pub mediantime: Option<u32>,

@@ -1,4 +1,4 @@
-//! Bitcoin consensus verification
+//! RandChain consensus verification
 //!
 //!	Full block verification consists of two phases:
 //!	- pre-verification
