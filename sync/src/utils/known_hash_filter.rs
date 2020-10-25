@@ -7,8 +7,6 @@ pub const MAX_KNOWN_HASHES_LEN: usize = 2048;
 /// Hash-knowledge type
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum KnownHashType {
-    /// Peer knows transaction with this hash
-    Transaction,
     /// Peer knows block with this hash
     Block,
     /// Peer knows compact block with this hash

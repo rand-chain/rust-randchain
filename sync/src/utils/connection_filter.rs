@@ -3,15 +3,13 @@ use message::types;
 use primitives::bytes::Bytes;
 use primitives::hash::H256;
 use synchronization_peers::MerkleBlockArtefacts;
-use utils::{build_compact_block, BloomFilter, FeeRateFilter, KnownHashFilter, KnownHashType};
+use utils::{build_compact_block, BloomFilter, KnownHashFilter, KnownHashType};
 
 /// Filter, which controls data relayed over connection.
 #[derive(Debug, Default)]
 pub struct ConnectionFilter {
     /// Known hashes filter
     known_hash_filter: KnownHashFilter,
-    /// Fee rate filter
-    fee_rate_filter: FeeRateFilter,
     /// Bloom filter
     bloom_filter: BloomFilter,
 }
@@ -45,11 +43,6 @@ impl ConnectionFilter {
     /// Clear filter
     pub fn clear(&mut self) {
         self.bloom_filter.remove_bloom_filter();
-    }
-
-    /// Limit transaction announcing by transaction fee
-    pub fn set_fee_rate(&mut self, message: types::FeeFilter) {
-        self.fee_rate_filter.set_min_fee_rate(message);
     }
 
     /// Convert block to compact block using this filter

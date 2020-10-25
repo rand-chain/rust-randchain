@@ -163,12 +163,6 @@ where
         self.peers.clear_bloom_filter(peer_index);
     }
 
-    /// When peer sets up a minimum fee rate filter for connection
-    pub fn on_feefilter(&self, peer_index: PeerIndex, message: types::FeeFilter) {
-        trace!(target: "sync", "Got `feefilter` message from peer#{}", peer_index);
-        self.peers.set_fee_filter(peer_index, message);
-    }
-
     /// When peer asks us to announce new blocks using headers message
     pub fn on_sendheaders(&self, peer_index: PeerIndex, _message: types::SendHeaders) {
         trace!(target: "sync", "Got `sendheaders` message from peer#{}", peer_index);

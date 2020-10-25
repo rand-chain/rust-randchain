@@ -71,8 +71,6 @@ pub trait PeersFilters {
     fn update_bloom_filter(&self, peer_index: PeerIndex, filter: types::FilterAdd);
     /// Clear bloom filter for the connection
     fn clear_bloom_filter(&self, peer_index: PeerIndex);
-    /// Set up fee filter for the connection
-    fn set_fee_filter(&self, peer_index: PeerIndex, filter: types::FeeFilter);
     /// Is block passing filters for the connection
     fn filter_block(&self, peer_index: PeerIndex, block: &IndexedBlock) -> BlockAnnouncementType;
     /// Remember known hash
@@ -233,12 +231,6 @@ impl PeersFilters for PeersImpl {
     fn clear_bloom_filter(&self, peer_index: PeerIndex) {
         if let Some(peer) = self.peers.write().get_mut(&peer_index) {
             peer.filter.clear();
-        }
-    }
-
-    fn set_fee_filter(&self, peer_index: PeerIndex, filter: types::FeeFilter) {
-        if let Some(peer) = self.peers.write().get_mut(&peer_index) {
-            peer.filter.set_fee_rate(filter);
         }
     }
 

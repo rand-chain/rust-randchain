@@ -38,7 +38,6 @@ pub trait InboundSyncConnection: Send + Sync {
     fn on_filterclear(&self, message: types::FilterClear);
     fn on_merkleblock(&self, message: types::MerkleBlock);
     fn on_sendheaders(&self, message: types::SendHeaders);
-    fn on_feefilter(&self, message: types::FeeFilter);
     fn on_send_compact(&self, message: types::SendCompact);
     fn on_compact_block(&self, message: types::CompactBlock);
     fn on_notfound(&self, message: types::NotFound);
@@ -257,9 +256,6 @@ impl Protocol for SyncProtocol {
         } else if command == &types::SendHeaders::command() {
             let message: types::SendHeaders = deserialize_payload(payload, version)?;
             self.inbound_connection.on_sendheaders(message);
-        } else if command == &types::FeeFilter::command() {
-            let message: types::FeeFilter = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_feefilter(message);
         } else if command == &types::SendCompact::command() {
             let message: types::SendCompact = deserialize_payload(payload, version)?;
             self.inbound_connection.on_send_compact(message);

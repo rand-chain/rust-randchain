@@ -180,10 +180,6 @@ impl InboundSyncConnection for InboundConnection {
         self.node.on_sendheaders(self.peer_index, message);
     }
 
-    fn on_feefilter(&self, message: types::FeeFilter) {
-        self.node.on_feefilter(self.peer_index, message);
-    }
-
     fn on_send_compact(&self, message: types::SendCompact) {
         self.node.on_send_compact(self.peer_index, message);
     }
