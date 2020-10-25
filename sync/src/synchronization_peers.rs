@@ -14,8 +14,6 @@ pub enum BlockAnnouncementType {
     SendInventory,
     /// Send headers message with block header
     SendHeaders,
-    /// Send cmpctblock message with this block
-    SendCompactBlock,
     /// Do not announce blocks at all
     DoNotAnnounce,
 }
@@ -82,12 +80,6 @@ pub trait PeersFilters {
         hash: &H256,
         hash_type: KnownHashType,
     ) -> bool;
-    /// Build compact block using filter for given peer
-    fn build_compact_block(
-        &self,
-        peer_index: PeerIndex,
-        block: &IndexedBlock,
-    ) -> Option<types::CompactBlock>;
     /// Build merkle block using filter for given peer
     fn build_merkle_block(
         &self,
@@ -261,17 +253,6 @@ impl PeersFilters for PeersImpl {
             .get(&peer_index)
             .map(|peer| peer.filter.is_hash_known_as(hash, hash_type))
             .unwrap_or(false)
-    }
-
-    fn build_compact_block(
-        &self,
-        peer_index: PeerIndex,
-        block: &IndexedBlock,
-    ) -> Option<types::CompactBlock> {
-        self.peers
-            .read()
-            .get(&peer_index)
-            .map(|peer| peer.filter.build_compact_block(block))
     }
 
     fn build_merkle_block(

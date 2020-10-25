@@ -180,14 +180,6 @@ impl InboundSyncConnection for InboundConnection {
         self.node.on_sendheaders(self.peer_index, message);
     }
 
-    fn on_send_compact(&self, message: types::SendCompact) {
-        self.node.on_send_compact(self.peer_index, message);
-    }
-
-    fn on_compact_block(&self, message: types::CompactBlock) {
-        self.node.on_compact_block(self.peer_index, message);
-    }
-
     fn on_notfound(&self, message: types::NotFound) {
         self.node.on_notfound(self.peer_index, message);
     }
@@ -330,20 +322,7 @@ pub mod tests {
                 .entry("feefilter".to_owned())
                 .or_insert(0) += 1;
         }
-        fn send_send_compact(&self, _message: &types::SendCompact) {
-            *self
-                .messages
-                .lock()
-                .entry("sendcompact".to_owned())
-                .or_insert(0) += 1;
-        }
-        fn send_compact_block(&self, _message: &types::CompactBlock) {
-            *self
-                .messages
-                .lock()
-                .entry("cmpctblock".to_owned())
-                .or_insert(0) += 1;
-        }
+        // TODO:
         fn send_get_block_txn(&self, _message: &types::GetBlockTxn) {
             *self
                 .messages
@@ -351,6 +330,7 @@ pub mod tests {
                 .entry("getblocktxn".to_owned())
                 .or_insert(0) += 1;
         }
+        // TODO:
         fn send_block_txn(&self, _message: &types::BlockTxn) {
             *self
                 .messages

@@ -308,21 +308,6 @@ where
                     notfound.inventory.push(next_item);
                 }
             }
-            common::InventoryType::MessageCompactBlock => {
-                if let Some(block) = self.storage.block(next_item.hash.clone().into()) {
-                    let message = self.peers.build_compact_block(peer_index, &block);
-                    if let Some(message) = message {
-                        trace!(target: "sync", "'getblocks' response to peer#{} is ready with compactblock {}", peer_index, next_item.hash.to_reversed_str());
-                        self.executor.execute(Task::CompactBlock(
-                            peer_index,
-                            *block.hash(),
-                            message,
-                        ));
-                    }
-                } else {
-                    notfound.inventory.push(next_item);
-                }
-            }
             common::InventoryType::Error => (),
         }
 

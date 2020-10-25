@@ -1,7 +1,6 @@
 mod average_speed_meter;
 mod best_headers_chain;
 mod bloom_filter;
-mod compact_block_builder;
 mod connection_filter;
 mod hash_queue;
 mod known_hash_filter;
@@ -12,7 +11,6 @@ mod synchronization_state;
 pub use self::average_speed_meter::AverageSpeedMeter;
 pub use self::best_headers_chain::{BestHeadersChain, Information as BestHeadersChainInformation};
 pub use self::bloom_filter::BloomFilter;
-pub use self::compact_block_builder::build_compact_block;
 pub use self::connection_filter::ConnectionFilter;
 pub use self::hash_queue::{HashPosition, HashQueue, HashQueueChain};
 pub use self::known_hash_filter::{KnownHashFilter, KnownHashType};

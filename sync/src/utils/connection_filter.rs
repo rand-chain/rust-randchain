@@ -3,7 +3,7 @@ use message::types;
 use primitives::bytes::Bytes;
 use primitives::hash::H256;
 use synchronization_peers::MerkleBlockArtefacts;
-use utils::{build_compact_block, BloomFilter, KnownHashFilter, KnownHashType};
+use utils::{BloomFilter, KnownHashFilter, KnownHashType};
 
 /// Filter, which controls data relayed over connection.
 #[derive(Debug, Default)]
@@ -43,13 +43,6 @@ impl ConnectionFilter {
     /// Clear filter
     pub fn clear(&mut self) {
         self.bloom_filter.remove_bloom_filter();
-    }
-
-    /// Convert block to compact block using this filter
-    pub fn build_compact_block(&self, block: &IndexedBlock) -> types::CompactBlock {
-        types::CompactBlock {
-            header: build_compact_block(block),
-        }
     }
 
     /// Convert `Block` to `MerkleBlock` using this filter

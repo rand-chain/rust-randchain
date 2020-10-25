@@ -38,8 +38,6 @@ pub trait InboundSyncConnection: Send + Sync {
     fn on_filterclear(&self, message: types::FilterClear);
     fn on_merkleblock(&self, message: types::MerkleBlock);
     fn on_sendheaders(&self, message: types::SendHeaders);
-    fn on_send_compact(&self, message: types::SendCompact);
-    fn on_compact_block(&self, message: types::CompactBlock);
     fn on_notfound(&self, message: types::NotFound);
 }
 
@@ -58,8 +56,6 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn send_merkleblock(&self, message: &types::MerkleBlock);
     fn send_sendheaders(&self, message: &types::SendHeaders);
     fn send_feefilter(&self, message: &types::FeeFilter);
-    fn send_send_compact(&self, message: &types::SendCompact);
-    fn send_compact_block(&self, message: &types::CompactBlock);
     fn send_notfound(&self, message: &types::NotFound);
     fn ignored(&self, id: u32);
     fn close(&self);
@@ -129,14 +125,6 @@ impl OutboundSyncConnection for OutboundSync {
     }
 
     fn send_feefilter(&self, message: &types::FeeFilter) {
-        self.context.send_request(message);
-    }
-
-    fn send_send_compact(&self, message: &types::SendCompact) {
-        self.context.send_request(message);
-    }
-
-    fn send_compact_block(&self, message: &types::CompactBlock) {
         self.context.send_request(message);
     }
 
@@ -256,12 +244,6 @@ impl Protocol for SyncProtocol {
         } else if command == &types::SendHeaders::command() {
             let message: types::SendHeaders = deserialize_payload(payload, version)?;
             self.inbound_connection.on_sendheaders(message);
-        } else if command == &types::SendCompact::command() {
-            let message: types::SendCompact = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_send_compact(message);
-        } else if command == &types::CompactBlock::command() {
-            let message: types::CompactBlock = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_compact_block(message);
         } else if command == &types::NotFound::command() {
             let message: types::NotFound = deserialize_payload(payload, version)?;
             self.inbound_connection.on_notfound(message);

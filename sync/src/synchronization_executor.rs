@@ -27,8 +27,6 @@ pub enum Task {
     Block(PeerIndex, IndexedBlock),
     /// Send merkleblock
     MerkleBlock(PeerIndex, H256, types::MerkleBlock),
-    /// Send cmpcmblock
-    CompactBlock(PeerIndex, H256, types::CompactBlock),
     /// Send notfound
     NotFound(PeerIndex, types::NotFound),
     /// Send inventory
@@ -102,15 +100,6 @@ impl LocalSynchronizationTaskExecutor {
         }
     }
 
-    fn execute_compact_block(&self, peer_index: PeerIndex, hash: H256, block: types::CompactBlock) {
-        if let Some(connection) = self.peers.connection(peer_index) {
-            trace!(target: "sync", "Sending compact block {} to peer#{}", hash.to_reversed_str(), peer_index);
-            self.peers
-                .hash_known_as(peer_index, hash, KnownHashType::CompactBlock);
-            connection.send_compact_block(&block);
-        }
-    }
-
     fn execute_notfound(&self, peer_index: PeerIndex, notfound: types::NotFound) {
         if let Some(connection) = self.peers.connection(peer_index) {
             trace!(target: "sync", "Sending notfound to peer#{} with {} items", peer_index, notfound.inventory.len());
@@ -158,12 +147,6 @@ impl LocalSynchronizationTaskExecutor {
                         None,
                     );
                 }
-                BlockAnnouncementType::SendCompactBlock => {
-                    if let Some(compact_block) = self.peers.build_compact_block(peer_index, &block)
-                    {
-                        self.execute_compact_block(peer_index, *block.hash(), compact_block);
-                    }
-                }
                 BlockAnnouncementType::DoNotAnnounce => (),
             }
         }
@@ -182,9 +165,6 @@ impl TaskExecutor for LocalSynchronizationTaskExecutor {
             Task::Block(peer_index, block) => self.execute_block(peer_index, block),
             Task::MerkleBlock(peer_index, hash, block) => {
                 self.execute_merkleblock(peer_index, hash, block)
-            }
-            Task::CompactBlock(peer_index, hash, block) => {
-                self.execute_compact_block(peer_index, hash, block)
             }
             Task::NotFound(peer_index, notfound) => self.execute_notfound(peer_index, notfound),
             Task::Inventory(peer_index, inventory) => self.execute_inventory(peer_index, inventory),

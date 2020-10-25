@@ -9,8 +9,6 @@ pub const MAX_KNOWN_HASHES_LEN: usize = 2048;
 pub enum KnownHashType {
     /// Peer knows block with this hash
     Block,
-    /// Peer knows compact block with this hash
-    CompactBlock,
 }
 
 /// Known-hashes filter
@@ -50,10 +48,7 @@ impl KnownHashFilter {
     pub fn filter_block(&self, hash: &H256) -> bool {
         self.known_hashes
             .get(hash)
-            .map(|stored_hash_type| {
-                *stored_hash_type != KnownHashType::Block
-                    && *stored_hash_type != KnownHashType::CompactBlock
-            })
+            .map(|stored_hash_type| *stored_hash_type != KnownHashType::Block)
             .unwrap_or(true)
     }
 }

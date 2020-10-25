@@ -170,42 +170,12 @@ where
             .set_block_announcement_type(peer_index, BlockAnnouncementType::SendHeaders);
     }
 
-    /// When peer asks us to announce new blocks using cpmctblock message
-    pub fn on_send_compact(&self, peer_index: PeerIndex, message: types::SendCompact) {
-        trace!(target: "sync", "Got `sendcmpct` message from peer#{}", peer_index);
-
-        // The second integer SHALL be interpreted as a little-endian version number. Nodes sending a sendcmpct message MUST currently set this value to 1.
-        // TODO: version 2 supports segregated witness transactions
-        if message.second != 1 {
-            return;
-        }
-
-        // Upon receipt of a "sendcmpct" message with the first and second integers set to 1, the node SHOULD announce new blocks by sending a cmpctblock message.
-        if message.first {
-            self.peers
-                .set_block_announcement_type(peer_index, BlockAnnouncementType::SendCompactBlock);
-        }
-
-        // else:
-        // Upon receipt of a "sendcmpct" message with the first integer set to 0, the node SHOULD NOT announce new blocks by sending a cmpctblock message,
-        // but SHOULD announce new blocks by sending invs or headers, as defined by BIP130.
-        // => work as before
-    }
-
     /// When peer sents us a merkle block
     pub fn on_merkleblock(&self, peer_index: PeerIndex, _message: types::MerkleBlock) {
         trace!(target: "sync", "Got `merkleblock` message from peer#{}", peer_index);
         // we never setup filter on connections => misbehaving
         self.peers
             .misbehaving(peer_index, "Got unrequested 'merkleblock' message");
-    }
-
-    /// When peer sents us a compact block
-    pub fn on_compact_block(&self, peer_index: PeerIndex, _message: types::CompactBlock) {
-        trace!(target: "sync", "Got `cmpctblock` message from peer#{}", peer_index);
-        // we never ask compact block from peers => misbehaving
-        self.peers
-            .misbehaving(peer_index, "Got unrequested 'cmpctblock' message");
     }
 
     /// Get block template for mining
