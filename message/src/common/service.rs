@@ -23,16 +23,6 @@ impl Services {
         self
     }
 
-    // TODO:
-    pub fn xthin(&self) -> bool {
-        self.bit_at(4)
-    }
-
-    pub fn with_xthin(mut self, v: bool) -> Self {
-        self.set_bit(4, v);
-        self
-    }
-
     pub fn includes(&self, other: &Self) -> bool {
         self.0 & other.0 == other.0
     }
