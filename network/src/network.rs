@@ -6,9 +6,9 @@ use primitives::bigint::U256;
 use primitives::hash::H256;
 
 // TODO:
-//! These are the same as bitcoin as described in 
-//! https://www.anintegratedworld.com/unravelling-the-mysterious-block-chain-magic-number/
-//! but we may need to design our own
+// These are the same as bitcoin as described in
+// https://www.anintegratedworld.com/unravelling-the-mysterious-block-chain-magic-number/
+// but we may need to design our own
 const MAGIC_MAINNET: u32 = 0xD9B4BEF9;
 const MAGIC_TESTNET: u32 = 0x0709110B;
 const MAGIC_REGTEST: u32 = 0xDAB5BFFA;
