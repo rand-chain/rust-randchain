@@ -24,25 +24,6 @@ impl Services {
     }
 
     // TODO:
-    pub fn getutxo(&self) -> bool {
-        self.bit_at(1)
-    }
-
-    // TODO:
-    pub fn with_getutxo(mut self, v: bool) -> Self {
-        self.set_bit(1, v);
-        self
-    }
-
-    pub fn bloom(&self) -> bool {
-        self.bit_at(2)
-    }
-
-    pub fn with_bloom(mut self, v: bool) -> Self {
-        self.set_bit(2, v);
-        self
-    }
-
     pub fn xthin(&self) -> bool {
         self.bit_at(4)
     }
