@@ -30,7 +30,6 @@ pub mod tests {
     extern crate test_data;
 
     use super::ConnectionFilter;
-    use chain::IndexedTransaction;
     use message::types;
     use primitives::bytes::Bytes;
     use std::iter::repeat;

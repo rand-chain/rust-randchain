@@ -148,7 +148,7 @@ mod tests {
     use super::super::Error;
     use super::{BlocksWriter, MAX_ORPHANED_BLOCKS};
     use db::BlockChainDatabase;
-    use network::{ConsensusFork, ConsensusParams, Network};
+    use network::Network;
     use std::sync::Arc;
     use verification::VerificationLevel;
     use VerificationParameters;

@@ -166,7 +166,6 @@ pub mod tests {
     extern crate test_data;
 
     use super::*;
-    use chain::Transaction;
     use inbound_connection::tests::DummyOutboundSyncConnection;
     use local_node::tests::{default_filterload, make_filteradd};
     use message::{types, Services};

@@ -169,12 +169,10 @@ pub mod tests {
     extern crate test_data;
 
     use super::LocalNode;
-    use chain::Transaction;
     use db::BlockChainDatabase;
     use message::common::{InventoryType, InventoryVector};
     use message::types;
-    use miner::MemoryPool;
-    use network::{ConsensusFork, ConsensusParams, Network};
+    use network::Network;
     use parking_lot::RwLock;
     use primitives::bytes::Bytes;
     use std::iter::repeat;

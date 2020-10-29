@@ -400,13 +400,11 @@ pub mod tests {
     extern crate test_data;
 
     use super::{Server, ServerImpl, ServerTask, ServerTaskExecutor};
-    use chain::Transaction;
     use db::BlockChainDatabase;
     use inbound_connection::tests::DummyOutboundSyncConnection;
     use local_node::tests::{default_filterload, make_filteradd};
     use message::common::{self, InventoryType, InventoryVector, Services};
     use message::types;
-    use miner::{MemoryPool, NonZeroFeeCalculator};
     use parking_lot::{Mutex, RwLock};
     use primitives::hash::H256;
     use std::mem::replace;
@@ -414,7 +412,7 @@ pub mod tests {
     use synchronization_executor::tests::DummyTaskExecutor;
     use synchronization_executor::Task;
     use synchronization_peers::{PeersContainer, PeersFilters, PeersImpl};
-    use types::{ExecutorRef, MemoryPoolRef, PeerIndex, PeersRef, StorageRef};
+    use types::{ExecutorRef, PeerIndex, PeersRef, StorageRef};
     use utils::KnownHashType;
 
     pub struct DummyServer {

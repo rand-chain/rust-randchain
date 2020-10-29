@@ -252,23 +252,21 @@ pub mod tests {
     extern crate test_data;
 
     use super::{
-        AsyncVerifier, BlockVerificationSink, ChainVerifierWrapper, TransactionVerificationSink,
-        VerificationTask, Verifier,
+        AsyncVerifier, BlockVerificationSink, ChainVerifierWrapper, VerificationTask, Verifier,
     };
-    use chain::{IndexedBlock, IndexedTransaction};
+    use chain::IndexedBlock;
     use db::BlockChainDatabase;
-    use network::{ConsensusFork, ConsensusParams, Network};
+    use network::Network;
     use primitives::hash::H256;
-    use script::Error as ScriptError;
     use std::collections::{HashMap, HashSet};
     use std::sync::atomic::Ordering;
     use std::sync::Arc;
     use synchronization_client_core::CoreVerificationSink;
     use synchronization_executor::tests::DummyTaskExecutor;
-    use types::{BlockHeight, MemoryPoolRef, StorageRef};
+    use types::{BlockHeight, StorageRef};
     use verification::{
         BackwardsCompatibleChainVerifier as ChainVerifier, Error as VerificationError,
-        TransactionError, VerificationLevel,
+        VerificationLevel,
     };
     use VerificationParameters;
 

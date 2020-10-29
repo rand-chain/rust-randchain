@@ -183,6 +183,7 @@ impl Default for ManageUnknownBlocksConfig {
     }
 }
 
+// TODO:
 /// Orphan transactions management configuration
 pub struct ManageOrphanTransactionsConfig {
     /// Time interval (in milliseconds) to wait before removing orphan transactions from orphan pool
@@ -346,16 +347,15 @@ mod tests {
     extern crate test_data;
 
     use super::{
-        manage_orphaned_transactions, manage_synchronization_peers_blocks,
-        manage_unknown_orphaned_blocks, ManageOrphanTransactionsConfig, ManagePeersConfig,
-        ManageUnknownBlocksConfig,
+        manage_synchronization_peers_blocks, manage_unknown_orphaned_blocks,
+        ManageOrphanTransactionsConfig, ManagePeersConfig, ManageUnknownBlocksConfig,
     };
     use primitives::hash::H256;
     use std::collections::HashSet;
     use std::sync::Arc;
     use synchronization_peers::PeersImpl;
     use synchronization_peers_tasks::{PeersTasks, TrustLevel};
-    use utils::{OrphanBlocksPool, OrphanTransactionsPool};
+    use utils::OrphanBlocksPool;
 
     #[test]
     fn manage_good_peer() {

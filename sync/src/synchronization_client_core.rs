@@ -1317,13 +1317,12 @@ pub mod tests {
 
     use super::super::SyncListener;
     use super::{ClientCore, Config, CoreVerificationSink, SynchronizationClientCore};
-    use chain::{Block, Transaction};
+    use chain::Block;
     use db::BlockChainDatabase;
     use inbound_connection::tests::DummyOutboundSyncConnection;
     use message::common::InventoryVector;
     use message::{types, Services};
-    use miner::MemoryPool;
-    use network::{ConsensusFork, ConsensusParams, Network};
+    use network::Network;
     use parking_lot::{Mutex, RwLock};
     use primitives::hash::H256;
     use std::sync::Arc;
