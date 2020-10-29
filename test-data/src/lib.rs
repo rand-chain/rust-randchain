@@ -4,7 +4,6 @@ extern crate time;
 
 extern crate chain;
 extern crate primitives;
-extern crate script;
 extern crate serialization as ser;
 
 use chain::Block;

@@ -6,7 +6,6 @@ use invoke::{Identity, Invoke};
 use primitives::bytes::Bytes;
 use primitives::compact::Compact;
 use primitives::hash::H256;
-use script::{Builder as ScriptBuilder, Opcode};
 use ser::{serialized_list_size, Serializable};
 use std::cell::Cell;
 
