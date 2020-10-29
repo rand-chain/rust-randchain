@@ -14,7 +14,7 @@ pub enum BlockTemplateRequestMode {
 }
 
 // TODO:
-// refactor this 
+// refactor this
 /// Block template request parameters as described in:
 /// https://github.com/bitcoin/bips/blob/master/bip-0022.mediawiki
 /// https://github.com/bitcoin/bips/blob/master/bip-0023.mediawiki

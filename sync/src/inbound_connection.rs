@@ -235,29 +235,8 @@ pub mod tests {
                 .entry("getheaders".to_owned())
                 .or_insert(0) += 1;
         }
-        fn send_transaction(&self, _message: &types::Tx) {
-            *self
-                .messages
-                .lock()
-                .entry("transaction".to_owned())
-                .or_insert(0) += 1;
-        }
         fn send_block(&self, _message: &types::Block) {
             *self.messages.lock().entry("block".to_owned()).or_insert(0) += 1;
-        }
-        fn send_witness_transaction(&self, _message: &types::Tx) {
-            *self
-                .messages
-                .lock()
-                .entry("witness_transaction".to_owned())
-                .or_insert(0) += 1;
-        }
-        fn send_witness_block(&self, _message: &types::Block) {
-            *self
-                .messages
-                .lock()
-                .entry("witness_block".to_owned())
-                .or_insert(0) += 1;
         }
         fn send_headers(&self, _message: &types::Headers) {
             *self
@@ -280,6 +259,7 @@ pub mod tests {
                 .entry("mempool".to_owned())
                 .or_insert(0) += 1;
         }
+        // TODO:
         fn send_filterload(&self, _message: &types::FilterLoad) {
             *self
                 .messages
@@ -287,6 +267,7 @@ pub mod tests {
                 .entry("filterload".to_owned())
                 .or_insert(0) += 1;
         }
+        // TODO:
         fn send_filteradd(&self, _message: &types::FilterAdd) {
             *self
                 .messages
@@ -294,6 +275,7 @@ pub mod tests {
                 .entry("filteradd".to_owned())
                 .or_insert(0) += 1;
         }
+        // TODO:
         fn send_filterclear(&self, _message: &types::FilterClear) {
             *self
                 .messages
@@ -313,29 +295,6 @@ pub mod tests {
                 .messages
                 .lock()
                 .entry("sendheaders".to_owned())
-                .or_insert(0) += 1;
-        }
-        fn send_feefilter(&self, _message: &types::FeeFilter) {
-            *self
-                .messages
-                .lock()
-                .entry("feefilter".to_owned())
-                .or_insert(0) += 1;
-        }
-        // TODO:
-        fn send_get_block_txn(&self, _message: &types::GetBlockTxn) {
-            *self
-                .messages
-                .lock()
-                .entry("getblocktxn".to_owned())
-                .or_insert(0) += 1;
-        }
-        // TODO:
-        fn send_block_txn(&self, _message: &types::BlockTxn) {
-            *self
-                .messages
-                .lock()
-                .entry("blocktxn".to_owned())
                 .or_insert(0) += 1;
         }
         fn send_notfound(&self, _message: &types::NotFound) {

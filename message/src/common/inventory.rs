@@ -10,10 +10,6 @@ pub enum InventoryType {
     // MessageTx = 1,
     MessageBlock = 2,
     MessageFilteredBlock = 3,
-    // MessageCompactBlock = 4,
-    // MessageWitnessTx = 0x40000001,
-    // MessageWitnessBlock = 0x40000002,
-    // MessageWitnessFilteredBlock = 0x40000003,
 }
 
 // TODO:
@@ -24,10 +20,6 @@ impl InventoryType {
             // 1 => Some(InventoryType::MessageTx),
             2 => Some(InventoryType::MessageBlock),
             3 => Some(InventoryType::MessageFilteredBlock),
-            // 4 => Some(InventoryType::MessageCompactBlock),
-            // 0x40000001 => Some(InventoryType::MessageWitnessTx),
-            // 0x40000002 => Some(InventoryType::MessageWitnessBlock),
-            // 0x40000003 => Some(InventoryType::MessageWitnessFilteredBlock),
             _ => None,
         }
     }
