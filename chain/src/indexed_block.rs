@@ -2,7 +2,6 @@ use block::Block;
 use hash::H256;
 use hex::FromHex;
 use indexed_header::IndexedBlockHeader;
-// use merkle_root::merkle_root;
 use ser::{deserialize, Serializable};
 use std::cmp;
 
