@@ -41,71 +41,11 @@ pub mod tests {
     }
 
     #[test]
-    fn filter_default_accepts_transaction() {
-        assert!(ConnectionFilter::default().filter_transaction(
-            &test_data::genesis().transactions[0].clone().into(),
-            Some(0)
-        ));
-    }
-
-    #[test]
     fn filter_rejects_block_known() {
         let mut filter = ConnectionFilter::default();
         filter.hash_known_as(test_data::block_h1().hash(), KnownHashType::Block);
-        filter.hash_known_as(test_data::block_h2().hash(), KnownHashType::CompactBlock);
         assert!(!filter.filter_block(&test_data::block_h1().hash()));
         assert!(!filter.filter_block(&test_data::block_h2().hash()));
         assert!(filter.filter_block(&test_data::genesis().hash()));
-    }
-
-    #[test]
-    fn filter_rejects_transaction_known() {
-        let mut filter = ConnectionFilter::default();
-        filter.hash_known_as(
-            test_data::block_h1().transactions[0].hash(),
-            KnownHashType::Transaction,
-        );
-        assert!(
-            !filter.filter_transaction(&test_data::block_h1().transactions[0].clone().into(), None)
-        );
-        assert!(
-            filter.filter_transaction(&test_data::block_h2().transactions[0].clone().into(), None)
-        );
-    }
-
-    #[test]
-    fn filter_rejects_transaction_feerate() {
-        let mut filter = ConnectionFilter::default();
-        filter.set_fee_rate(types::FeeFilter::with_fee_rate(1000));
-        assert!(
-            filter.filter_transaction(&test_data::block_h1().transactions[0].clone().into(), None)
-        );
-        assert!(filter.filter_transaction(
-            &test_data::block_h1().transactions[0].clone().into(),
-            Some(1500)
-        ));
-        assert!(!filter.filter_transaction(
-            &test_data::block_h1().transactions[0].clone().into(),
-            Some(500)
-        ));
-    }
-
-    #[test]
-    fn filter_rejects_transaction_bloomfilter() {
-        let mut filter = ConnectionFilter::default();
-        let tx: IndexedTransaction = test_data::block_h1().transactions[0].clone().into();
-        filter.load(types::FilterLoad {
-            filter: Bytes::from(repeat(0u8).take(1024).collect::<Vec<_>>()),
-            hash_functions: 10,
-            tweak: 5,
-            flags: types::FilterFlags::None,
-        });
-        assert!(!filter.filter_transaction(&tx, None));
-        filter.add(types::FilterAdd {
-            data: (&*tx.hash as &[u8]).into(),
-        });
-        assert!(filter.filter_transaction(&tx, None));
-        filter.clear();
-        assert!(filter.filter_transaction(&tx, None));
     }
 }

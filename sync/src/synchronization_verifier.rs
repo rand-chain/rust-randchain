@@ -276,7 +276,6 @@ pub mod tests {
         errors: HashMap<H256, String>,
         actual_checks: HashSet<H256>,
         storage: Option<StorageRef>,
-        memory_pool: Option<MemoryPoolRef>,
         verifier: Option<ChainVerifierWrapper>,
     }
 
@@ -287,10 +286,6 @@ pub mod tests {
 
         pub fn set_storage(&mut self, storage: StorageRef) {
             self.storage = Some(storage);
-        }
-
-        pub fn set_memory_pool(&mut self, memory_pool: MemoryPoolRef) {
-            self.memory_pool = Some(memory_pool);
         }
 
         pub fn set_verifier(&mut self, verifier: Arc<ChainVerifier>) {
@@ -322,8 +317,6 @@ pub mod tests {
                         if self.actual_checks.contains(block.hash()) {
                             AsyncVerifier::execute_single_task(
                                 sink,
-                                self.storage.as_ref().unwrap(),
-                                self.memory_pool.as_ref().unwrap(),
                                 self.verifier.as_ref().unwrap(),
                                 VerificationTask::VerifyBlock(block),
                             );
@@ -384,85 +377,6 @@ pub mod tests {
     }
 
     #[test]
-    fn verification_level_header_accept_incorrect_transaction() {
-        let mut blocks: Vec<IndexedBlock> = vec![test_data::genesis().into()];
-        let mut rolling_hash = blocks[0].hash().clone();
-        for _ in 1..101 {
-            let next_block = test_data::block_builder()
-                .transaction()
-                .coinbase()
-                .output()
-                .value(5000000000)
-                .build()
-                .build()
-                .merkled_header()
-                .parent(rolling_hash.clone())
-                .bits(Network::Unitest.max_bits().into())
-                .build()
-                .build();
-            rolling_hash = next_block.hash();
-            blocks.push(next_block.into());
-        }
-
-        let coinbase_transaction_hash = blocks[0].transactions[0].hash.clone();
-        let last_block_hash = blocks[blocks.len() - 1].hash().clone();
-        let storage: StorageRef = Arc::new(BlockChainDatabase::init_test_chain(blocks));
-        let verifier = Arc::new(ChainVerifier::new(
-            storage.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-        ));
-        let bad_transaction_block: IndexedBlock = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .output()
-            .value(50)
-            .build()
-            .build()
-            .transaction()
-            .input()
-            .hash(coinbase_transaction_hash)
-            .build()
-            .output()
-            .value(1000)
-            .build()
-            .build()
-            .merkled_header()
-            .parent(last_block_hash)
-            .bits(Network::Unitest.max_bits().into())
-            .build()
-            .build()
-            .into();
-
-        // Ok(()) when tx script is not checked
-        let wrapper = ChainVerifierWrapper::new(
-            verifier.clone(),
-            &storage,
-            VerificationParameters {
-                verification_level: VerificationLevel::Header,
-                verification_edge: 1.into(),
-            },
-        );
-        assert_eq!(wrapper.verify_block(&bad_transaction_block), Ok(()));
-
-        // Error when tx script is checked
-        let wrapper = ChainVerifierWrapper::new(
-            verifier,
-            &storage,
-            VerificationParameters {
-                verification_level: VerificationLevel::Full,
-                verification_edge: 1.into(),
-            },
-        );
-        assert_eq!(
-            wrapper.verify_block(&bad_transaction_block),
-            Err(VerificationError::Transaction(
-                1,
-                TransactionError::Signature(0, ScriptError::InvalidStackOperation)
-            ))
-        );
-    }
-
-    #[test]
     fn verification_level_none_accept_incorrect_block() {
         let storage: StorageRef = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
@@ -483,19 +397,5 @@ pub mod tests {
             },
         );
         assert_eq!(wrapper.verify_block(&bad_block), Ok(()));
-
-        // Error when everything is verified
-        let wrapper = ChainVerifierWrapper::new(
-            verifier,
-            &storage,
-            VerificationParameters {
-                verification_level: VerificationLevel::Full,
-                verification_edge: 1.into(),
-            },
-        );
-        assert_eq!(
-            wrapper.verify_block(&bad_block),
-            Err(VerificationError::Empty)
-        );
     }
 }

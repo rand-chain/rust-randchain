@@ -190,19 +190,6 @@ pub mod tests {
     use utils::SynchronizationState;
     use verification::BackwardsCompatibleChainVerifier as ChainVerifier;
 
-    pub fn default_filterload() -> types::FilterLoad {
-        types::FilterLoad {
-            filter: Bytes::from(repeat(0u8).take(1024).collect::<Vec<_>>()),
-            hash_functions: 10,
-            tweak: 5,
-            flags: types::FilterFlags::None,
-        }
-    }
-
-    pub fn make_filteradd(data: &[u8]) -> types::FilterAdd {
-        types::FilterAdd { data: data.into() }
-    }
-
     fn create_local_node(
         verifier: Option<DummyVerifier>,
     ) -> (
