@@ -167,7 +167,6 @@ pub mod tests {
 
     use super::*;
     use inbound_connection::tests::DummyOutboundSyncConnection;
-    use local_node::tests::{default_filterload, make_filteradd};
     use message::{types, Services};
     use parking_lot::{Condvar, Mutex};
     use std::sync::Arc;

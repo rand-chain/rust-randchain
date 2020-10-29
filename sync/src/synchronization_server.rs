@@ -402,7 +402,6 @@ pub mod tests {
     use super::{Server, ServerImpl, ServerTask, ServerTaskExecutor};
     use db::BlockChainDatabase;
     use inbound_connection::tests::DummyOutboundSyncConnection;
-    use local_node::tests::{default_filterload, make_filteradd};
     use message::common::{self, InventoryType, InventoryVector, Services};
     use message::types;
     use parking_lot::{Mutex, RwLock};
