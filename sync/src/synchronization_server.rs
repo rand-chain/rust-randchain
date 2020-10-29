@@ -411,7 +411,7 @@ pub mod tests {
     use std::sync::Arc;
     use synchronization_executor::tests::DummyTaskExecutor;
     use synchronization_executor::Task;
-    use synchronization_peers::{PeersContainer, PeersImpl};
+    use synchronization_peers::PeersImpl;
     use types::{ExecutorRef, PeerIndex, PeersRef, StorageRef};
     use utils::KnownHashType;
 
@@ -452,12 +452,7 @@ pub mod tests {
         ]));
         let memory_pool = Arc::new(RwLock::new(MemoryPool::new()));
         let executor = DummyTaskExecutor::new();
-        let server = ServerImpl::new(
-            peers.clone(),
-            storage.clone(),
-            memory_pool.clone(),
-            executor.clone(),
-        );
+        let server = ServerImpl::new(peers.clone(), storage.clone(), executor.clone());
         (storage, memory_pool, executor, peers, server)
     }
 
