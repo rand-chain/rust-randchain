@@ -247,7 +247,6 @@ where
                     },
                     // we never ask for merkle blocks && we never ask for compact blocks
                     // TODO:
-                    // InventoryType::MessageCompactBlock | InventoryType::MessageFilteredBlock => {
                     InventoryType::MessageFilteredBlock => false,
                     // unknown inventory type
                     InventoryType::Error => {
