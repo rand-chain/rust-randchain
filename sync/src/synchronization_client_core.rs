@@ -1322,7 +1322,7 @@ pub mod tests {
     use message::common::InventoryVector;
     use message::{types, Services};
     use network::Network;
-    use parking_lot::{Mutex, RwLock};
+    use parking_lot::Mutex;
     use primitives::hash::H256;
     use std::sync::Arc;
     use synchronization_chain::Chain;
@@ -1378,7 +1378,6 @@ pub mod tests {
         };
         let sync_state =
             SynchronizationStateRef::new(SynchronizationState::with_storage(storage.clone()));
-        let memory_pool = Arc::new(RwLock::new(MemoryPool::new()));
         let chain = Chain::new(storage.clone());
         let executor = DummyTaskExecutor::new();
         let config = Config {

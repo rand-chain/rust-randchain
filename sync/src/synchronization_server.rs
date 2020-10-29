@@ -403,7 +403,7 @@ pub mod tests {
     use db::BlockChainDatabase;
     use message::common::{InventoryType, InventoryVector};
     use message::types;
-    use parking_lot::{Mutex, RwLock};
+    use parking_lot::Mutex;
     use primitives::hash::H256;
     use std::mem::replace;
     use std::sync::Arc;
@@ -438,7 +438,6 @@ pub mod tests {
 
     fn create_synchronization_server() -> (
         StorageRef,
-        MemoryPoolRef,
         ExecutorRef<DummyTaskExecutor>,
         PeersRef,
         ServerImpl,
@@ -447,15 +446,14 @@ pub mod tests {
         let storage = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
         ]));
-        let memory_pool = Arc::new(RwLock::new(MemoryPool::new()));
         let executor = DummyTaskExecutor::new();
         let server = ServerImpl::new(peers.clone(), storage.clone(), executor.clone());
-        (storage, memory_pool, executor, peers, server)
+        (storage, executor, peers, server)
     }
 
     #[test]
     fn server_getdata_responds_notfound_when_block_not_found() {
-        let (_, _, executor, _, server) = create_synchronization_server();
+        let (_, executor, _, server) = create_synchronization_server();
         // when asking for unknown block
         let inventory = vec![InventoryVector {
             inv_type: InventoryType::MessageBlock,
@@ -478,7 +476,7 @@ pub mod tests {
 
     #[test]
     fn server_getdata_responds_block_when_block_is_found() {
-        let (_, _, executor, _, server) = create_synchronization_server();
+        let (_, executor, _, server) = create_synchronization_server();
         // when asking for known block
         let inventory = vec![InventoryVector {
             inv_type: InventoryType::MessageBlock,
@@ -495,7 +493,7 @@ pub mod tests {
 
     #[test]
     fn server_getblocks_do_not_responds_inventory_when_synchronized() {
-        let (_, _, executor, _, server) = create_synchronization_server();
+        let (_, executor, _, server) = create_synchronization_server();
         // when asking for blocks hashes
         let genesis_block_hash = test_data::genesis().hash();
         server.execute(ServerTask::GetBlocks(
@@ -513,7 +511,7 @@ pub mod tests {
 
     #[test]
     fn server_getblocks_responds_inventory_when_have_unknown_blocks() {
-        let (storage, _, executor, _, server) = create_synchronization_server();
+        let (storage, executor, _, server) = create_synchronization_server();
         storage
             .insert(test_data::block_h1().into())
             .expect("Db write error");
@@ -541,7 +539,7 @@ pub mod tests {
 
     #[test]
     fn server_getheaders_do_not_responds_headers_when_synchronized() {
-        let (_, _, executor, _, server) = create_synchronization_server();
+        let (_, executor, _, server) = create_synchronization_server();
         // when asking for blocks hashes
         let genesis_block_hash = test_data::genesis().hash();
         let dummy_id = 6;
@@ -568,7 +566,7 @@ pub mod tests {
 
     #[test]
     fn server_getheaders_responds_headers_when_have_unknown_blocks() {
-        let (storage, _, executor, _, server) = create_synchronization_server();
+        let (storage, executor, _, server) = create_synchronization_server();
         storage
             .insert(test_data::block_h1().into())
             .expect("Db write error");
@@ -599,7 +597,7 @@ pub mod tests {
 
     #[test]
     fn server_mempool_do_not_responds_inventory_when_empty_memory_pool() {
-        let (_, _, executor, _, server) = create_synchronization_server();
+        let (_, executor, _, server) = create_synchronization_server();
         // when asking for memory pool transactions ids
         server.execute(ServerTask::Mempool(0));
         // => no response
@@ -609,7 +607,7 @@ pub mod tests {
 
     #[test]
     fn server_responds_with_nonempty_inventory_when_getdata_stop_hash_filled() {
-        let (storage, _, executor, _, server) = create_synchronization_server();
+        let (storage, executor, _, server) = create_synchronization_server();
         {
             storage
                 .insert(test_data::block_h1().into())
@@ -639,7 +637,7 @@ pub mod tests {
 
     #[test]
     fn server_responds_with_nonempty_headers_when_getdata_stop_hash_filled() {
-        let (storage, _, executor, _, server) = create_synchronization_server();
+        let (storage, executor, _, server) = create_synchronization_server();
         {
             storage
                 .insert(test_data::block_h1().into())
