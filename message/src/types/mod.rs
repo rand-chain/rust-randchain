@@ -1,8 +1,5 @@
 pub mod addr;
 mod block;
-mod filteradd;
-mod filterclear;
-mod filterload;
 mod getaddr;
 mod getblocks;
 mod getdata;
@@ -20,10 +17,6 @@ pub mod version;
 
 pub use self::addr::Addr;
 pub use self::block::Block;
-pub use self::filteradd::{FilterAdd, FILTERADD_MAX_DATA_LEN};
-pub use self::filterclear::FilterClear;
-pub use self::filterload::FilterFlags;
-pub use self::filterload::{FilterLoad, FILTERLOAD_MAX_FILTER_LEN, FILTERLOAD_MAX_HASH_FUNCS};
 pub use self::getaddr::GetAddr;
 pub use self::getblocks::{GetBlocks, GETBLOCKS_MAX_RESPONSE_HASHES};
 pub use self::getdata::{GetData, GETDATA_MAX_INVENTORY_LEN};

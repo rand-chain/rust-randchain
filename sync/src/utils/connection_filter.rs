@@ -1,14 +1,11 @@
-use message::types;
 use primitives::hash::H256;
-use utils::{BloomFilter, KnownHashFilter, KnownHashType};
+use utils::{KnownHashFilter, KnownHashType};
 
 /// Filter, which controls data relayed over connection.
 #[derive(Debug, Default)]
 pub struct ConnectionFilter {
     /// Known hashes filter
     known_hash_filter: KnownHashFilter,
-    /// Bloom filter
-    bloom_filter: BloomFilter,
 }
 
 impl ConnectionFilter {
@@ -25,21 +22,6 @@ impl ConnectionFilter {
     /// Check if block should be sent to this connection
     pub fn filter_block(&self, block_hash: &H256) -> bool {
         self.known_hash_filter.filter_block(block_hash)
-    }
-
-    /// Load filter
-    pub fn load(&mut self, message: types::FilterLoad) {
-        self.bloom_filter.set_bloom_filter(message);
-    }
-
-    /// Add filter
-    pub fn add(&mut self, message: types::FilterAdd) {
-        self.bloom_filter.update_bloom_filter(message);
-    }
-
-    /// Clear filter
-    pub fn clear(&mut self) {
-        self.bloom_filter.remove_bloom_filter();
     }
 }
 

@@ -125,53 +125,6 @@ impl InboundSyncConnection for InboundConnection {
         self.node.on_mempool(self.peer_index, message);
     }
 
-    fn on_filterload(&self, message: types::FilterLoad) {
-        // if filter is too big => possible DOS
-        if message.filter.len() > types::FILTERLOAD_MAX_FILTER_LEN {
-            self.peers.dos(
-                self.peer_index,
-                &format!(
-                    "'filterload' message contains {}-len filter",
-                    message.filter.len()
-                ),
-            );
-            return;
-        }
-        // if too many hash functions => possible DOS
-        if message.hash_functions as usize > types::FILTERLOAD_MAX_HASH_FUNCS {
-            self.peers.dos(
-                self.peer_index,
-                &format!(
-                    "'filterload' message contains {} hash functions",
-                    message.hash_functions
-                ),
-            );
-            return;
-        }
-
-        self.node.on_filterload(self.peer_index, message);
-    }
-
-    fn on_filteradd(&self, message: types::FilterAdd) {
-        // if filter item is too big => possible DOS
-        if message.data.len() > types::FILTERADD_MAX_DATA_LEN {
-            self.peers.dos(
-                self.peer_index,
-                &format!(
-                    "'filteradd' message contains {}-len data item",
-                    message.data.len()
-                ),
-            );
-            return;
-        }
-
-        self.node.on_filteradd(self.peer_index, message);
-    }
-
-    fn on_filterclear(&self, message: types::FilterClear) {
-        self.node.on_filterclear(self.peer_index, message);
-    }
-
     fn on_sendheaders(&self, message: types::SendHeaders) {
         self.node.on_sendheaders(self.peer_index, message);
     }
@@ -253,30 +206,6 @@ pub mod tests {
                 .messages
                 .lock()
                 .entry("mempool".to_owned())
-                .or_insert(0) += 1;
-        }
-        // TODO:
-        fn send_filterload(&self, _message: &types::FilterLoad) {
-            *self
-                .messages
-                .lock()
-                .entry("filterload".to_owned())
-                .or_insert(0) += 1;
-        }
-        // TODO:
-        fn send_filteradd(&self, _message: &types::FilterAdd) {
-            *self
-                .messages
-                .lock()
-                .entry("filteradd".to_owned())
-                .or_insert(0) += 1;
-        }
-        // TODO:
-        fn send_filterclear(&self, _message: &types::FilterClear) {
-            *self
-                .messages
-                .lock()
-                .entry("filterclear".to_owned())
                 .or_insert(0) += 1;
         }
         fn send_sendheaders(&self, _message: &types::SendHeaders) {
