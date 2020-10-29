@@ -1,6 +1,5 @@
 pub mod addr;
 mod block;
-mod feefilter;
 mod filteradd;
 mod filterclear;
 mod filterload;
@@ -21,7 +20,6 @@ pub mod version;
 
 pub use self::addr::Addr;
 pub use self::block::Block;
-pub use self::feefilter::FeeFilter;
 pub use self::filteradd::{FilterAdd, FILTERADD_MAX_DATA_LEN};
 pub use self::filterclear::FilterClear;
 pub use self::filterload::FilterFlags;
