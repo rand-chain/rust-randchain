@@ -399,10 +399,9 @@ where
 pub mod tests {
     extern crate test_data;
 
-    use super::{Server, ServerImpl, ServerTask, ServerTaskExecutor};
+    use super::{Server, ServerImpl, ServerTask};
     use db::BlockChainDatabase;
-    use inbound_connection::tests::DummyOutboundSyncConnection;
-    use message::common::{self, InventoryType, InventoryVector, Services};
+    use message::common::{InventoryType, InventoryVector};
     use message::types;
     use parking_lot::{Mutex, RwLock};
     use primitives::hash::H256;
@@ -412,7 +411,6 @@ pub mod tests {
     use synchronization_executor::Task;
     use synchronization_peers::PeersImpl;
     use types::{ExecutorRef, PeerIndex, PeersRef, StorageRef};
-    use utils::KnownHashType;
 
     pub struct DummyServer {
         tasks: Mutex<Vec<ServerTask>>,

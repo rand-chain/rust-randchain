@@ -263,11 +263,8 @@ pub mod tests {
     use std::sync::Arc;
     use synchronization_client_core::CoreVerificationSink;
     use synchronization_executor::tests::DummyTaskExecutor;
-    use types::{BlockHeight, StorageRef};
-    use verification::{
-        BackwardsCompatibleChainVerifier as ChainVerifier, Error as VerificationError,
-        VerificationLevel,
-    };
+    use types::StorageRef;
+    use verification::{BackwardsCompatibleChainVerifier as ChainVerifier, VerificationLevel};
     use VerificationParameters;
 
     #[derive(Default)]

@@ -167,13 +167,11 @@ pub mod tests {
 
     use super::*;
     use inbound_connection::tests::DummyOutboundSyncConnection;
-    use message::{types, Services};
+    use message::Services;
     use parking_lot::{Condvar, Mutex};
     use std::sync::Arc;
     use std::time;
-    use synchronization_peers::{
-        BlockAnnouncementType, PeersContainer, PeersFilters, PeersImpl, PeersOptions,
-    };
+    use synchronization_peers::{BlockAnnouncementType, PeersContainer, PeersImpl, PeersOptions};
 
     pub struct DummyTaskExecutor {
         tasks: Mutex<Vec<Task>>,

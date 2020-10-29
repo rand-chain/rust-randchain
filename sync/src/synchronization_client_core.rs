@@ -901,7 +901,6 @@ where
             peers_tasks: self.peers_tasks.information(),
             chain: self.chain.information(),
             orphaned_blocks: self.orphaned_blocks_pool.len(),
-            orphaned_transactions: self.orphaned_transactions_pool.len(),
         }
     }
 
@@ -1408,10 +1407,9 @@ pub mod tests {
         let mut verifier = verifier.unwrap_or_default();
         verifier.set_sink(Arc::new(CoreVerificationSink::new(client_core.clone())));
         verifier.set_storage(storage);
-        verifier.set_memory_pool(memory_pool);
         verifier.set_verifier(chain_verifier);
 
-        let client = SynchronizationClient::new(sync_state, client_core.clone(), verifier);
+        let client = SynchronizationClient::new(client_core.clone(), verifier);
         (executor, client_core, client)
     }
 
@@ -1434,10 +1432,7 @@ pub mod tests {
         Task::GetData(
             peer_index,
             types::GetData {
-                inventory: hashes
-                    .into_iter()
-                    .map(InventoryVector::witness_block)
-                    .collect(),
+                inventory: hashes.into_iter().map(InventoryVector::block).collect(),
             },
         )
     }
@@ -1458,7 +1453,6 @@ pub mod tests {
         let info = core.lock().information();
         assert!(!info.state.is_synchronizing());
         assert_eq!(info.orphaned_blocks, 0);
-        assert_eq!(info.orphaned_transactions, 0);
     }
 
     #[test]
@@ -1995,8 +1989,8 @@ pub mod tests {
         sync.on_inventory(
             1,
             types::Inv::with_inventory(vec![
-                InventoryVector::witness_block(test_data::block_h1().hash()),
-                InventoryVector::witness_block(test_data::block_h2().hash()),
+                InventoryVector::block(test_data::block_h1().hash()),
+                InventoryVector::block(test_data::block_h2().hash()),
             ]),
         );
 
@@ -2005,7 +1999,7 @@ pub mod tests {
             tasks,
             vec![Task::GetData(
                 1,
-                types::GetData::with_inventory(vec![InventoryVector::witness_block(
+                types::GetData::with_inventory(vec![InventoryVector::block(
                     test_data::block_h1().hash()
                 )])
             )]

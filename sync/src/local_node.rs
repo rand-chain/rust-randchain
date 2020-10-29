@@ -174,14 +174,11 @@ pub mod tests {
     use message::types;
     use network::Network;
     use parking_lot::RwLock;
-    use primitives::bytes::Bytes;
-    use std::iter::repeat;
     use std::sync::Arc;
     use synchronization_chain::Chain;
     use synchronization_client::SynchronizationClient;
     use synchronization_client_core::{Config, CoreVerificationSink, SynchronizationClientCore};
     use synchronization_executor::tests::DummyTaskExecutor;
-    use synchronization_executor::Task;
     use synchronization_peers::PeersImpl;
     use synchronization_server::tests::DummyServer;
     use synchronization_server::ServerTask;
@@ -231,11 +228,10 @@ pub mod tests {
             None => DummyVerifier::default(),
         };
         verifier.set_sink(Arc::new(CoreVerificationSink::new(client_core.clone())));
-        let client = SynchronizationClient::new(sync_state.clone(), client_core, verifier);
+        let client = SynchronizationClient::new(client_core, verifier);
         let local_node = LocalNode::new(
-            ConsensusParams::new(Network::Mainnet, ConsensusFork::BitcoinCore),
+            Network::Mainnet,
             storage,
-            memory_pool,
             sync_peers,
             sync_state,
             client,
@@ -270,53 +266,5 @@ pub mod tests {
                 types::GetData::with_inventory(inventory)
             )]
         );
-    }
-
-    #[test]
-    fn local_node_accepts_local_transaction() {
-        let (executor, _, local_node) = create_local_node(None);
-
-        // transaction will be relayed to this peer
-        let peer_index1 = 0;
-        local_node.on_connect(peer_index1, "test".into(), types::Version::default());
-        executor.take_tasks();
-
-        let genesis = test_data::genesis();
-        let transaction: Transaction = test_data::TransactionBuilder::with_output(1)
-            .add_input(&genesis.transactions[0], 0)
-            .into();
-        let transaction_hash = transaction.hash();
-
-        let result = local_node.accept_transaction(transaction.clone().into());
-        assert_eq!(result, Ok(transaction_hash.clone()));
-
-        assert_eq!(
-            executor.take_tasks(),
-            vec![Task::RelayNewTransaction(transaction.into(), 83333333)]
-        );
-    }
-
-    #[test]
-    fn local_node_discards_local_transaction() {
-        let genesis = test_data::genesis();
-        let transaction: Transaction = test_data::TransactionBuilder::with_output(1)
-            .add_input(&genesis.transactions[0], 0)
-            .into();
-        let transaction_hash = transaction.hash();
-
-        // simulate transaction verification fail
-        let mut verifier = DummyVerifier::default();
-        verifier.error_when_verifying(transaction_hash.clone(), "simulated");
-
-        let (executor, _, local_node) = create_local_node(Some(verifier));
-
-        let peer_index1 = 0;
-        local_node.on_connect(peer_index1, "test".into(), types::Version::default());
-        executor.take_tasks();
-
-        let result = local_node.accept_transaction(transaction.into());
-        assert_eq!(result, Err("simulated".to_owned()));
-
-        assert_eq!(executor.take_tasks(), vec![]);
     }
 }

@@ -30,9 +30,6 @@ pub mod tests {
     extern crate test_data;
 
     use super::ConnectionFilter;
-    use message::types;
-    use primitives::bytes::Bytes;
-    use std::iter::repeat;
     use utils::KnownHashType;
 
     #[test]

@@ -347,11 +347,10 @@ mod tests {
     extern crate test_data;
 
     use super::{
-        manage_synchronization_peers_blocks, manage_unknown_orphaned_blocks,
-        ManageOrphanTransactionsConfig, ManagePeersConfig, ManageUnknownBlocksConfig,
+        manage_synchronization_peers_blocks, manage_unknown_orphaned_blocks, ManagePeersConfig,
+        ManageUnknownBlocksConfig,
     };
     use primitives::hash::H256;
-    use std::collections::HashSet;
     use std::sync::Arc;
     use synchronization_peers::PeersImpl;
     use synchronization_peers_tasks::{PeersTasks, TrustLevel};

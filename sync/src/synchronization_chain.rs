@@ -601,7 +601,7 @@ impl fmt::Debug for Chain {
 mod tests {
     extern crate test_data;
 
-    use super::{BlockInsertionResult, BlockState, Chain};
+    use super::{BlockState, Chain};
     use chain::IndexedBlockHeader;
     use db::BlockChainDatabase;
     use network::Network;
