@@ -111,26 +111,13 @@ mod tests {
         MAX_BITS_REGTEST, MAX_BITS_TESTNET,
     };
     use compact::Compact;
-    use ConsensusFork;
 
     #[test]
     fn test_network_magic_number() {
-        assert_eq!(
-            MAGIC_MAINNET,
-            Network::Mainnet.magic(&ConsensusFork::BitcoinCore)
-        );
-        assert_eq!(
-            MAGIC_TESTNET,
-            Network::Testnet.magic(&ConsensusFork::BitcoinCore)
-        );
-        assert_eq!(
-            MAGIC_REGTEST,
-            Network::Regtest.magic(&ConsensusFork::BitcoinCore)
-        );
-        assert_eq!(
-            MAGIC_UNITEST,
-            Network::Unitest.magic(&ConsensusFork::BitcoinCore)
-        );
+        assert_eq!(MAGIC_MAINNET, Network::Mainnet.magic());
+        assert_eq!(MAGIC_TESTNET, Network::Testnet.magic());
+        assert_eq!(MAGIC_REGTEST, Network::Regtest.magic());
+        assert_eq!(MAGIC_UNITEST, Network::Unitest.magic());
     }
 
     #[test]
