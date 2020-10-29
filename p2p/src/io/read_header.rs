@@ -40,36 +40,30 @@ mod tests {
     use bytes::Bytes;
     use futures::Future;
     use message::{Error, MessageHeader};
-    use network::{ConsensusFork, Network};
+    use network::Network;
 
     #[test]
     fn test_read_header() {
         let raw: Bytes = "f9beb4d96164647200000000000000001f000000ed52399b".into();
         let expected = MessageHeader {
-            magic: Network::Mainnet.magic(&ConsensusFork::BitcoinCore),
+            magic: Network::Mainnet.magic(),
             command: "addr".into(),
             len: 0x1f,
             checksum: "ed52399b".into(),
         };
 
         assert_eq!(
-            read_header(
-                raw.as_ref(),
-                Network::Mainnet.magic(&ConsensusFork::BitcoinCore)
-            )
-            .wait()
-            .unwrap()
-            .1,
+            read_header(raw.as_ref(), Network::Mainnet.magic())
+                .wait()
+                .unwrap()
+                .1,
             Ok(expected)
         );
         assert_eq!(
-            read_header(
-                raw.as_ref(),
-                Network::Testnet.magic(&ConsensusFork::BitcoinCore)
-            )
-            .wait()
-            .unwrap()
-            .1,
+            read_header(raw.as_ref(), Network::Testnet.magic())
+                .wait()
+                .unwrap()
+                .1,
             Err(Error::InvalidMagic)
         );
     }
@@ -78,13 +72,10 @@ mod tests {
     fn test_read_header_with_invalid_magic() {
         let raw: Bytes = "f9beb4d86164647200000000000000001f000000ed52399b".into();
         assert_eq!(
-            read_header(
-                raw.as_ref(),
-                Network::Testnet.magic(&ConsensusFork::BitcoinCore)
-            )
-            .wait()
-            .unwrap()
-            .1,
+            read_header(raw.as_ref(), Network::Testnet.magic())
+                .wait()
+                .unwrap()
+                .1,
             Err(Error::InvalidMagic)
         );
     }
@@ -92,11 +83,8 @@ mod tests {
     #[test]
     fn test_read_too_short_header() {
         let raw: Bytes = "f9beb4d96164647200000000000000001f000000ed5239".into();
-        assert!(read_header(
-            raw.as_ref(),
-            Network::Mainnet.magic(&ConsensusFork::BitcoinCore)
-        )
-        .wait()
-        .is_err());
+        assert!(read_header(raw.as_ref(), Network::Mainnet.magic())
+            .wait()
+            .is_err());
     }
 }

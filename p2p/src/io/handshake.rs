@@ -245,7 +245,7 @@ mod tests {
     use message::types::version::{Version, V0, V106, V70001};
     use message::types::Verack;
     use message::{Error, Message};
-    use network::{BitcoinCashConsensusParams, ConsensusFork, Network};
+    use network::Network;
     use ser::Stream;
     use std::io;
     use tokio_io::{AsyncRead, AsyncWrite};
@@ -324,7 +324,7 @@ mod tests {
 
     #[test]
     fn test_handshake() {
-        let magic = Network::Mainnet.magic(&ConsensusFork::BitcoinCore);
+        let magic = Network::Mainnet.magic();
         let version = 70012;
         let local_version = local_version();
         let remote_version = remote_version();
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn test_accept_handshake() {
-        let magic = Network::Mainnet.magic(&ConsensusFork::BitcoinCore);
+        let magic = Network::Mainnet.magic();
         let version = 70012;
         let local_version = local_version();
         let remote_version = remote_version();
@@ -401,7 +401,7 @@ mod tests {
 
     #[test]
     fn test_self_handshake() {
-        let magic = Network::Mainnet.magic(&ConsensusFork::BitcoinCore);
+        let magic = Network::Mainnet.magic();
         let version = 70012;
         let remote_version = local_version();
         let local_version = local_version();
@@ -426,7 +426,7 @@ mod tests {
 
     #[test]
     fn test_accept_self_handshake() {
-        let magic = Network::Mainnet.magic(&ConsensusFork::BitcoinCore);
+        let magic = Network::Mainnet.magic();
         let version = 70012;
         let remote_version = local_version();
         let local_version = local_version();
@@ -446,36 +446,6 @@ mod tests {
         let expected = Error::InvalidVersion;
 
         let hs = accept_handshake(test_io, magic, local_version, 0)
-            .wait()
-            .unwrap();
-        assert_eq!(hs.1.unwrap_err(), expected);
-    }
-
-    #[test]
-    fn test_fails_to_accept_other_fork_node() {
-        let magic1 = Network::Mainnet.magic(&ConsensusFork::BitcoinCore);
-        let magic2 = Network::Mainnet.magic(&ConsensusFork::BitcoinCash(
-            BitcoinCashConsensusParams::new(Network::Mainnet),
-        ));
-        let version = 70012;
-        let local_version = local_version();
-        let remote_version = remote_version();
-
-        let mut remote_stream = Stream::new();
-        remote_stream.append_slice(
-            Message::new(magic2, version, &remote_version)
-                .unwrap()
-                .as_ref(),
-        );
-
-        let test_io = TestIo {
-            read: io::Cursor::new(remote_stream.out()),
-            write: Bytes::default(),
-        };
-
-        let expected = Error::InvalidMagic;
-
-        let hs = accept_handshake(test_io, magic1, local_version, 0)
             .wait()
             .unwrap();
         assert_eq!(hs.1.unwrap_err(), expected);

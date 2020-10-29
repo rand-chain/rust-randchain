@@ -74,7 +74,7 @@ mod tests {
     use bytes::Bytes;
     use futures::Future;
     use message::Error;
-    use network::{ConsensusFork, Network};
+    use network::Network;
 
     #[test]
     fn test_read_any_message() {
@@ -84,21 +84,15 @@ mod tests {
         let expected = (name, nonce);
 
         assert_eq!(
-            read_any_message(
-                raw.as_ref(),
-                Network::Mainnet.magic(&ConsensusFork::BitcoinCore)
-            )
-            .wait()
-            .unwrap(),
+            read_any_message(raw.as_ref(), Network::Mainnet.magic())
+                .wait()
+                .unwrap(),
             Ok(expected)
         );
         assert_eq!(
-            read_any_message(
-                raw.as_ref(),
-                Network::Testnet.magic(&ConsensusFork::BitcoinCore)
-            )
-            .wait()
-            .unwrap(),
+            read_any_message(raw.as_ref(), Network::Testnet.magic())
+                .wait()
+                .unwrap(),
             Err(Error::InvalidMagic)
         );
     }
@@ -106,24 +100,18 @@ mod tests {
     #[test]
     fn test_read_too_short_any_message() {
         let raw: Bytes = "f9beb4d970696e6700000000000000000800000083c00c765845303b6da977".into();
-        assert!(read_any_message(
-            raw.as_ref(),
-            Network::Mainnet.magic(&ConsensusFork::BitcoinCore)
-        )
-        .wait()
-        .is_err());
+        assert!(read_any_message(raw.as_ref(), Network::Mainnet.magic())
+            .wait()
+            .is_err());
     }
 
     #[test]
     fn test_read_any_message_with_invalid_checksum() {
         let raw: Bytes = "f9beb4d970696e6700000000000000000800000083c01c765845303b6da97786".into();
         assert_eq!(
-            read_any_message(
-                raw.as_ref(),
-                Network::Mainnet.magic(&ConsensusFork::BitcoinCore)
-            )
-            .wait()
-            .unwrap(),
+            read_any_message(raw.as_ref(), Network::Mainnet.magic())
+                .wait()
+                .unwrap(),
             Err(Error::InvalidChecksum)
         );
     }
