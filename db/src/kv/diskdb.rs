@@ -60,8 +60,6 @@ pub struct DatabaseConfig {
     pub max_open_files: i32,
     /// Cache sizes (in MiB) for specific columns.
     pub cache_sizes: HashMap<Option<u32>, usize>,
-    /// Specific number of bloom filter bits, if any
-    pub bloom_filters: HashMap<Option<u32>, u8>,
     /// Compaction profile
     pub compaction: CompactionProfile,
     /// Set number of columns
@@ -89,7 +87,6 @@ impl Default for DatabaseConfig {
     fn default() -> DatabaseConfig {
         DatabaseConfig {
             cache_sizes: HashMap::new(),
-            bloom_filters: HashMap::new(),
             max_open_files: 512,
             compaction: CompactionProfile::default(),
             columns: None,
@@ -193,9 +190,6 @@ impl Database {
                     .get(&col_opt)
                     .cloned()
                     .unwrap_or(DEFAULT_CACHE);
-                if let Some(bloom_bits) = config.bloom_filters.get(&col_opt) {
-                    block_opts.set_filter(bloom_bits.clone() as i32);
-                }
                 // all goes to read cache.
                 block_opts.set_cache(Cache::new(cache_size * 1024 * 1024));
                 opts.set_block_based_table_factory(&block_opts);

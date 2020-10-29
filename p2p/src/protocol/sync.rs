@@ -33,9 +33,6 @@ pub trait InboundSyncConnection: Send + Sync {
     fn on_block(&self, message: types::Block);
     fn on_headers(&self, message: types::Headers);
     fn on_mempool(&self, message: types::MemPool);
-    fn on_filterload(&self, message: types::FilterLoad);
-    fn on_filteradd(&self, message: types::FilterAdd);
-    fn on_filterclear(&self, message: types::FilterClear);
     fn on_sendheaders(&self, message: types::SendHeaders);
     fn on_notfound(&self, message: types::NotFound);
 }
@@ -49,9 +46,6 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn send_headers(&self, message: &types::Headers);
     fn respond_headers(&self, message: &types::Headers, id: u32);
     fn send_mempool(&self, message: &types::MemPool);
-    fn send_filterload(&self, message: &types::FilterLoad);
-    fn send_filteradd(&self, message: &types::FilterAdd);
-    fn send_filterclear(&self, message: &types::FilterClear);
     fn send_sendheaders(&self, message: &types::SendHeaders);
     fn send_notfound(&self, message: &types::NotFound);
     fn ignored(&self, id: u32);
@@ -98,18 +92,6 @@ impl OutboundSyncConnection for OutboundSync {
     }
 
     fn send_mempool(&self, message: &types::MemPool) {
-        self.context.send_request(message);
-    }
-
-    fn send_filterload(&self, message: &types::FilterLoad) {
-        self.context.send_request(message);
-    }
-
-    fn send_filteradd(&self, message: &types::FilterAdd) {
-        self.context.send_request(message);
-    }
-
-    fn send_filterclear(&self, message: &types::FilterClear) {
         self.context.send_request(message);
     }
 
@@ -218,15 +200,6 @@ impl Protocol for SyncProtocol {
         } else if command == &types::Headers::command() {
             let message: types::Headers = deserialize_payload(payload, version)?;
             self.inbound_connection.on_headers(message);
-        } else if command == &types::FilterLoad::command() {
-            let message: types::FilterLoad = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_filterload(message);
-        } else if command == &types::FilterAdd::command() {
-            let message: types::FilterAdd = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_filteradd(message);
-        } else if command == &types::FilterClear::command() {
-            let message: types::FilterClear = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_filterclear(message);
         } else if command == &types::SendHeaders::command() {
             let message: types::SendHeaders = deserialize_payload(payload, version)?;
             self.inbound_connection.on_sendheaders(message);

@@ -1,5 +1,5 @@
 use chain::IndexedBlock;
-use message::{types, Services};
+use message::Services;
 use p2p::OutboundSyncConnectionRef;
 use parking_lot::RwLock;
 use primitives::hash::H256;
@@ -56,12 +56,6 @@ pub trait PeersContainer {
 
 /// Filters for peers connections
 pub trait PeersFilters {
-    /// Set up bloom filter for the connection
-    fn set_bloom_filter(&self, peer_index: PeerIndex, filter: types::FilterLoad);
-    /// Update bloom filter for the connection
-    fn update_bloom_filter(&self, peer_index: PeerIndex, filter: types::FilterAdd);
-    /// Clear bloom filter for the connection
-    fn clear_bloom_filter(&self, peer_index: PeerIndex);
     /// Is block passing filters for the connection
     fn filter_block(&self, peer_index: PeerIndex, block: &IndexedBlock) -> BlockAnnouncementType;
     /// Remember known hash
@@ -195,24 +189,6 @@ impl PeersContainer for PeersImpl {
 }
 
 impl PeersFilters for PeersImpl {
-    fn set_bloom_filter(&self, peer_index: PeerIndex, filter: types::FilterLoad) {
-        if let Some(peer) = self.peers.write().get_mut(&peer_index) {
-            peer.filter.load(filter);
-        }
-    }
-
-    fn update_bloom_filter(&self, peer_index: PeerIndex, filter: types::FilterAdd) {
-        if let Some(peer) = self.peers.write().get_mut(&peer_index) {
-            peer.filter.add(filter);
-        }
-    }
-
-    fn clear_bloom_filter(&self, peer_index: PeerIndex) {
-        if let Some(peer) = self.peers.write().get_mut(&peer_index) {
-            peer.filter.clear();
-        }
-    }
-
     fn filter_block(&self, peer_index: PeerIndex, block: &IndexedBlock) -> BlockAnnouncementType {
         if let Some(peer) = self.peers.read().get(&peer_index) {
             if peer.filter.filter_block(&block.header.hash) {

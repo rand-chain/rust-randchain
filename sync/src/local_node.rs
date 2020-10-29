@@ -145,24 +145,6 @@ where
         self.server.execute(ServerTask::Mempool(peer_index));
     }
 
-    /// When peer sets bloom filter for connection
-    pub fn on_filterload(&self, peer_index: PeerIndex, message: types::FilterLoad) {
-        trace!(target: "sync", "Got `filterload` message from peer#{}", peer_index);
-        self.peers.set_bloom_filter(peer_index, message);
-    }
-
-    /// When peer updates bloom filter for connection
-    pub fn on_filteradd(&self, peer_index: PeerIndex, message: types::FilterAdd) {
-        trace!(target: "sync", "Got `filteradd` message from peer#{}", peer_index);
-        self.peers.update_bloom_filter(peer_index, message);
-    }
-
-    /// When peer removes bloom filter from connection
-    pub fn on_filterclear(&self, peer_index: PeerIndex, _message: types::FilterClear) {
-        trace!(target: "sync", "Got `filterclear` message from peer#{}", peer_index);
-        self.peers.clear_bloom_filter(peer_index);
-    }
-
     /// When peer asks us to announce new blocks using headers message
     pub fn on_sendheaders(&self, peer_index: PeerIndex, _message: types::SendHeaders) {
         trace!(target: "sync", "Got `sendheaders` message from peer#{}", peer_index);

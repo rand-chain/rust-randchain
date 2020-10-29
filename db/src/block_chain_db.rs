@@ -67,9 +67,6 @@ impl BlockChainDatabase<CacheDatabase<AutoFlushingOverlayDatabase<DiskDatabase>>
         // cfg.set_cache(Some(COL_BLOCK_TRANSACTIONS), total_cache / 12);
         cfg.set_cache(Some(COL_BLOCK_NUMBERS), total_cache / 12);
 
-        // TODO:
-        // cfg.bloom_filters.insert(Some(COL_TRANSACTIONS_META), 32);
-
         match DiskDatabase::open(cfg, path) {
             Ok(db) => Ok(Self::open_with_cache(db)),
             Err(err) => Err(Error::DatabaseError(err)),
