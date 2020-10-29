@@ -171,15 +171,4 @@ mod tests {
         let verifier = ChainVerifier::new(storage, Network::Unitest);
         assert!(verifier.verify(VerificationLevel::Full, &b1.into()).is_ok());
     }
-
-    #[test]
-    fn first_tx() {
-        let storage = BlockChainDatabase::init_test_chain(vec![
-            test_data::block_h0().into(),
-            test_data::block_h1().into(),
-        ]);
-        let b1 = test_data::block_h2();
-        let verifier = ChainVerifier::new(Arc::new(storage), Network::Unitest);
-        assert!(verifier.verify(VerificationLevel::Full, &b1.into()).is_ok());
-    }
 }
