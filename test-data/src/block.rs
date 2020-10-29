@@ -3,10 +3,8 @@
 use super::genesis;
 use chain;
 use invoke::{Identity, Invoke};
-use primitives::bytes::Bytes;
 use primitives::compact::Compact;
 use primitives::hash::H256;
-use ser::{serialized_list_size, Serializable};
 use std::cell::Cell;
 
 thread_local! {
@@ -66,7 +64,6 @@ where
 pub struct BlockBuilder<F = Identity> {
     callback: F,
     header: Option<chain::BlockHeader>,
-    transactions: Vec<chain::Transaction>,
 }
 
 impl BlockBuilder {
@@ -83,7 +80,6 @@ where
         BlockBuilder {
             callback: callback,
             header: None,
-            transactions: Vec::new(),
         }
     }
 
@@ -92,22 +88,8 @@ where
         self
     }
 
-    pub fn with_transaction(mut self, transaction: chain::Transaction) -> Self {
-        self.transactions.push(transaction);
-        self
-    }
-
-    pub fn with_transactions<I>(mut self, txs: I) -> Self
-    where
-        I: IntoIterator<Item = chain::Transaction>,
-    {
-        self.transactions.extend(txs);
-        self
-    }
-
     pub fn with_raw(mut self, raw: &'static str) -> Self {
         let raw_block: chain::Block = raw.into();
-        self.transactions = raw_block.transactions.to_vec();
         self.header = Some(raw_block.header().clone());
         self
     }
@@ -116,82 +98,9 @@ where
         BlockHeaderBuilder::with_callback(self)
     }
 
-    pub fn merkled_header(self) -> BlockHeaderBuilder<Self> {
-        let hashes: Vec<H256> = self.transactions.iter().map(|t| t.hash()).collect();
-        let builder = self.header().merkle_root(chain::merkle_root(&hashes));
-        builder
-    }
-
-    pub fn transaction(self) -> TransactionBuilder<Self> {
-        TransactionBuilder::with_callback(self)
-    }
-
-    pub fn transaction_with_sigops(self, sigops: usize) -> TransactionBuilder<Self> {
-        // calling `index` creates previous output
-        TransactionBuilder::with_callback(self)
-            .input()
-            .index(0)
-            .signature_with_sigops(sigops)
-            .build()
-    }
-
-    pub fn transaction_with_size(self, size: usize) -> TransactionBuilder<Self> {
-        let builder = TransactionBuilder::with_callback(self);
-        let current_size = builder.size();
-        assert!(size > current_size, "desired transaction size is too low");
-        // calling `index` creates previous output
-        // let's remove current size and 1 (size of 0 script len)
-        builder
-            .input_with_size(size - current_size - 1)
-            .index(0)
-            .build()
-    }
-
-    pub fn derived_transaction(self, tx_idx: usize, output_idx: u32) -> TransactionBuilder<Self> {
-        let tx = self
-            .transactions
-            .get(tx_idx)
-            .expect(&format!(
-                "using derive_transaction with the wrong index ({})",
-                tx_idx
-            ))
-            .clone();
-        TransactionBuilder::with_callback(self)
-            .input()
-            .hash(tx.hash())
-            .index(output_idx)
-            .build()
-    }
-
-    // use vec![(0, 1), (0, 2), (1, 1)]
-    pub fn derived_transactions<I>(self, outputs: I) -> TransactionBuilder<Self>
-    where
-        I: IntoIterator<Item = (usize, u32)>,
-    {
-        let mut derives = Vec::new();
-        for (tx_idx, output_idx) in outputs {
-            derives.push((
-                self.transactions
-                    .get(tx_idx)
-                    .expect(&format!(
-                        "using derive_transaction with the wrong index ({})",
-                        tx_idx
-                    ))
-                    .hash(),
-                output_idx,
-            ));
-        }
-
-        let mut builder = TransactionBuilder::with_callback(self);
-        for (tx_hash, output_idx) in derives {
-            builder = builder.input().hash(tx_hash).index(output_idx).build();
-        }
-        builder
-    }
-
     pub fn build(self) -> F::Result {
         self.callback
-            .invoke(chain::Block::new(self.header.unwrap(), self.transactions))
+            .invoke(chain::Block::new(self.header.unwrap()))
     }
 }
 
@@ -203,17 +112,6 @@ where
 
     fn invoke(self, header: chain::BlockHeader) -> Self {
         self.with_header(header)
-    }
-}
-
-impl<F> Invoke<chain::Transaction> for BlockBuilder<F>
-where
-    F: Invoke<chain::Block>,
-{
-    type Result = Self;
-
-    fn invoke(self, tx: chain::Transaction) -> Self {
-        self.with_transaction(tx)
     }
 }
 
@@ -333,58 +231,6 @@ fn example1() {
 }
 
 #[test]
-fn example2() {
-    let block = BlockBuilder::new()
-        .header()
-        .build()
-        .transaction()
-        .lock_time(100500)
-        .build()
-        .build();
-
-    assert_eq!(block.transactions().len(), 1);
-}
-
-#[test]
-fn example3() {
-    let block = block_builder()
-        .header()
-        .build()
-        .transaction()
-        .coinbase()
-        .build()
-        .build();
-
-    assert!(block.transactions()[0].is_coinbase());
-}
-
-#[test]
-fn example4() {
-    let block = block_builder()
-        .header()
-        .build()
-        .transaction()
-        .coinbase()
-        .output()
-        .value(10)
-        .build()
-        .build()
-        .transaction()
-        .input()
-        .hash(H256::from(1))
-        .index(1)
-        .build()
-        .build()
-        .build();
-
-    assert_eq!(block.transactions().len(), 2);
-    assert_eq!(
-        block.transactions()[1].inputs[0].previous_output.hash,
-        H256::from(1)
-    );
-}
-
-#[test]
 fn example5() {
     let (hash, block) = block_hash_builder()
         .block()
@@ -402,28 +248,4 @@ fn example5() {
         block.header().previous_header_hash,
         "0000000000000000000000000000000000000000000000000000000000000000".into()
     );
-}
-
-#[test]
-fn transaction_with_size() {
-    let block = block_builder()
-        .header()
-        .build()
-        .transaction()
-        .coinbase()
-        .output()
-        .value(10)
-        .build()
-        .build()
-        .transaction_with_size(100)
-        .build()
-        .transaction_with_size(2000)
-        .build()
-        .transaction_with_size(50000)
-        .build()
-        .build();
-
-    assert_eq!(block.transactions[1].serialized_size(), 100);
-    assert_eq!(block.transactions[2].serialized_size(), 2000);
-    assert_eq!(block.transactions[3].serialized_size(), 50000);
 }
