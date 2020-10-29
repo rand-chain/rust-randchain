@@ -9,7 +9,6 @@ pub enum InventoryType {
     MessageBlock = 1,
 }
 
-// TODO:
 impl InventoryType {
     pub fn from_u32(v: u32) -> Option<Self> {
         match v {
