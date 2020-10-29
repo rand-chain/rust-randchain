@@ -13,6 +13,8 @@ pub enum BlockTemplateRequestMode {
     Proposal,
 }
 
+// TODO:
+// refactor this 
 /// Block template request parameters as described in:
 /// https://github.com/bitcoin/bips/blob/master/bip-0022.mediawiki
 /// https://github.com/bitcoin/bips/blob/master/bip-0023.mediawiki
@@ -24,7 +26,6 @@ pub struct BlockTemplateRequest {
     pub mode: Option<BlockTemplateRequestMode>,
     /// Capabilities, supported by client
     pub capabilities: Option<HashSet<String>>,
-    // TODO:
     /// Softfork deployments, supported by client
     pub rules: Option<HashSet<String>>,
 }
