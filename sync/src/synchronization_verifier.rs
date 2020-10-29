@@ -332,10 +332,7 @@ pub mod tests {
         let storage: StorageRef = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
         ]));
-        let verifier = Arc::new(ChainVerifier::new(
-            storage.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-        ));
+        let verifier = Arc::new(ChainVerifier::new(storage.clone(), Network::Unitest));
 
         // switching to full verification when block is already in db
         assert_eq!(
@@ -378,10 +375,7 @@ pub mod tests {
         let storage: StorageRef = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
         ]));
-        let verifier = Arc::new(ChainVerifier::new(
-            storage.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-        ));
+        let verifier = Arc::new(ChainVerifier::new(storage.clone(), Network::Unitest));
         let bad_block: IndexedBlock = test_data::block_builder().header().build().build().into();
 
         // Ok(()) when nothing is verified

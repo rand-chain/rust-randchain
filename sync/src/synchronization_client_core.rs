@@ -1379,20 +1379,13 @@ pub mod tests {
         let sync_state =
             SynchronizationStateRef::new(SynchronizationState::with_storage(storage.clone()));
         let memory_pool = Arc::new(RwLock::new(MemoryPool::new()));
-        let chain = Chain::new(
-            storage.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-            memory_pool.clone(),
-        );
+        let chain = Chain::new(storage.clone());
         let executor = DummyTaskExecutor::new();
         let config = Config {
             close_connection_on_bad_block: true,
         };
 
-        let chain_verifier = Arc::new(ChainVerifier::new(
-            storage.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-        ));
+        let chain_verifier = Arc::new(ChainVerifier::new(storage.clone(), Network::Unitest));
         let client_core = SynchronizationClientCore::new(
             config,
             sync_state.clone(),

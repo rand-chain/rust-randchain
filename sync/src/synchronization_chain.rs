@@ -604,8 +604,6 @@ mod tests {
     use super::{BlockState, Chain};
     use chain::IndexedBlockHeader;
     use db::BlockChainDatabase;
-    use network::Network;
-    use parking_lot::RwLock;
     use primitives::hash::H256;
     use std::sync::Arc;
     use utils::HashPosition;
@@ -616,11 +614,7 @@ mod tests {
             test_data::genesis().into(),
         ]));
         let db_best_block = db.best_block();
-        let chain = Chain::new(
-            db.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-            Arc::new(RwLock::new(MemoryPool::new())),
-        );
+        let chain = Chain::new(db.clone());
         assert_eq!(chain.information().scheduled, 0);
         assert_eq!(chain.information().requested, 0);
         assert_eq!(chain.information().verifying, 0);
@@ -639,11 +633,7 @@ mod tests {
         let db = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
         ]));
-        let mut chain = Chain::new(
-            db.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-            Arc::new(RwLock::new(MemoryPool::new())),
-        );
+        let mut chain = Chain::new(db.clone());
 
         // add 6 blocks to scheduled queue
         let blocks = test_data::build_n_empty_blocks_from_genesis(6, 0);
@@ -748,11 +738,7 @@ mod tests {
         let db = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
         ]));
-        let mut chain = Chain::new(
-            db,
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-            Arc::new(RwLock::new(MemoryPool::new())),
-        );
+        let mut chain = Chain::new(db);
         let genesis_hash = chain.best_block().hash;
         assert_eq!(chain.block_locator_hashes(), vec![genesis_hash.clone()]);
 

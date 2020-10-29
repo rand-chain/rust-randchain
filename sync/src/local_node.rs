@@ -173,7 +173,6 @@ pub mod tests {
     use message::common::{InventoryType, InventoryVector};
     use message::types;
     use network::Network;
-    use parking_lot::RwLock;
     use std::sync::Arc;
     use synchronization_chain::Chain;
     use synchronization_client::SynchronizationClient;
@@ -194,27 +193,19 @@ pub mod tests {
         Arc<DummyServer>,
         LocalNode<DummyServer, SynchronizationClient<DummyTaskExecutor, DummyVerifier>>,
     ) {
-        let memory_pool = Arc::new(RwLock::new(MemoryPool::new()));
         let storage = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
         ]));
         let sync_state =
             SynchronizationStateRef::new(SynchronizationState::with_storage(storage.clone()));
-        let chain = Chain::new(
-            storage.clone(),
-            ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-            memory_pool.clone(),
-        );
+        let chain = Chain::new(storage.clone());
         let sync_peers = Arc::new(PeersImpl::default());
         let executor = DummyTaskExecutor::new();
         let server = Arc::new(DummyServer::new());
         let config = Config {
             close_connection_on_bad_block: true,
         };
-        let chain_verifier = Arc::new(ChainVerifier::new(
-            storage.clone(),
-            ConsensusParams::new(Network::Mainnet, ConsensusFork::BitcoinCore),
-        ));
+        let chain_verifier = Arc::new(ChainVerifier::new(storage.clone(), Network::Mainnet));
         let client_core = SynchronizationClientCore::new(
             config,
             sync_state.clone(),
