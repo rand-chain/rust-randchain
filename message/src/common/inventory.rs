@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn test_inventory_serialize() {
         let expected =
-            "020000000400000000000000000000000000000000000000000000000000000000000000".into();
+            "010000000400000000000000000000000000000000000000000000000000000000000000".into();
 
         let inventory = InventoryVector {
             inv_type: InventoryType::MessageBlock,
@@ -98,7 +98,7 @@ mod tests {
     #[test]
     fn test_inventory_deserialize() {
         let raw: Bytes =
-            "020000000400000000000000000000000000000000000000000000000000000000000000".into();
+            "010000000400000000000000000000000000000000000000000000000000000000000000".into();
 
         let expected = InventoryVector {
             inv_type: InventoryType::MessageBlock,
@@ -111,11 +111,11 @@ mod tests {
     #[test]
     fn test_inventory_type_conversion() {
         assert_eq!(0u32, InventoryType::Error.into());
-        assert_eq!(2u32, InventoryType::MessageBlock.into());
+        assert_eq!(1u32, InventoryType::MessageBlock.into());
 
         assert_eq!(InventoryType::from_u32(0).unwrap(), InventoryType::Error);
         assert_eq!(
-            InventoryType::from_u32(2).unwrap(),
+            InventoryType::from_u32(1).unwrap(),
             InventoryType::MessageBlock
         );
     }
