@@ -18,9 +18,6 @@ pub enum Error {
     NonFinalBlock,
     /// Old version block.
     OldVersionBlock,
-    // TODO:
-    /// SegWit: bad witess nonce size
-    WitnessInvalidNonceSize,
     /// Database error
     Database(DBError),
 }
