@@ -294,7 +294,7 @@ mod tests {
                 // services set to 0, because we support nothing
                 from: "00000000000000000000000000000000000000007f000001208d".into(),
                 nonce: 0x3c76a409eb48a227,
-                user_agent: "pbtc".into(),
+                user_agent: "randchaind".into(),
                 start_height: 0,
             },
             V70001 { relay: true },
@@ -315,7 +315,7 @@ mod tests {
                 // and supported protocols
                 from: "050000000000000000000000000000000000ffff2f5a0808208d".into(),
                 nonce: 0x3c76a409eb48a228,
-                user_agent: "/Satoshi:0.12.1/".into(),
+                user_agent: "/randchaind-testnet:0.0.1/".into(),
                 start_height: 0,
             },
             V70001 { relay: true },
