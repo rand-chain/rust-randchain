@@ -290,24 +290,6 @@ where
                     notfound.inventory.push(next_item);
                 }
             }
-            common::InventoryType::MessageFilteredBlock => {
-                if let Some(block) = self.storage.block(next_item.hash.clone().into()) {
-                    let message_artefacts = self.peers.build_merkle_block(peer_index, &block);
-                    if let Some(message_artefacts) = message_artefacts {
-                        // send merkleblock first
-                        trace!(target: "sync", "'getblocks' response to peer#{} is ready with merkleblock {}", peer_index, next_item.hash.to_reversed_str());
-                        self.executor.execute(Task::MerkleBlock(
-                            peer_index,
-                            *block.hash(),
-                            message_artefacts.merkleblock,
-                        ));
-                    } else {
-                        notfound.inventory.push(next_item);
-                    }
-                } else {
-                    notfound.inventory.push(next_item);
-                }
-            }
             common::InventoryType::Error => (),
         }
 

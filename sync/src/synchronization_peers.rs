@@ -27,13 +27,6 @@ pub enum TransactionAnnouncementType {
     DoNotAnnounce,
 }
 
-/// `merkleblock` build artefacts
-#[derive(Debug, PartialEq)]
-pub struct MerkleBlockArtefacts {
-    /// `merkleblock` message
-    pub merkleblock: types::MerkleBlock,
-}
-
 /// Connected peers
 pub trait Peers: Send + Sync + PeersContainer + PeersFilters + PeersOptions {
     /// Require peers services.
@@ -80,12 +73,6 @@ pub trait PeersFilters {
         hash: &H256,
         hash_type: KnownHashType,
     ) -> bool;
-    /// Build merkle block using filter for given peer
-    fn build_merkle_block(
-        &self,
-        peer_index: PeerIndex,
-        block: &IndexedBlock,
-    ) -> Option<MerkleBlockArtefacts>;
 }
 
 /// Options for peers connections
@@ -253,17 +240,6 @@ impl PeersFilters for PeersImpl {
             .get(&peer_index)
             .map(|peer| peer.filter.is_hash_known_as(hash, hash_type))
             .unwrap_or(false)
-    }
-
-    fn build_merkle_block(
-        &self,
-        peer_index: PeerIndex,
-        block: &IndexedBlock,
-    ) -> Option<MerkleBlockArtefacts> {
-        self.peers
-            .read()
-            .get(&peer_index)
-            .and_then(|peer| peer.filter.build_merkle_block(block))
     }
 }
 

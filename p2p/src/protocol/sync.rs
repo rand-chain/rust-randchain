@@ -36,7 +36,6 @@ pub trait InboundSyncConnection: Send + Sync {
     fn on_filterload(&self, message: types::FilterLoad);
     fn on_filteradd(&self, message: types::FilterAdd);
     fn on_filterclear(&self, message: types::FilterClear);
-    fn on_merkleblock(&self, message: types::MerkleBlock);
     fn on_sendheaders(&self, message: types::SendHeaders);
     fn on_notfound(&self, message: types::NotFound);
 }
@@ -53,9 +52,7 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn send_filterload(&self, message: &types::FilterLoad);
     fn send_filteradd(&self, message: &types::FilterAdd);
     fn send_filterclear(&self, message: &types::FilterClear);
-    fn send_merkleblock(&self, message: &types::MerkleBlock);
     fn send_sendheaders(&self, message: &types::SendHeaders);
-    fn send_feefilter(&self, message: &types::FeeFilter);
     fn send_notfound(&self, message: &types::NotFound);
     fn ignored(&self, id: u32);
     fn close(&self);
@@ -116,15 +113,7 @@ impl OutboundSyncConnection for OutboundSync {
         self.context.send_request(message);
     }
 
-    fn send_merkleblock(&self, message: &types::MerkleBlock) {
-        self.context.send_request(message);
-    }
-
     fn send_sendheaders(&self, message: &types::SendHeaders) {
-        self.context.send_request(message);
-    }
-
-    fn send_feefilter(&self, message: &types::FeeFilter) {
         self.context.send_request(message);
     }
 
@@ -238,9 +227,6 @@ impl Protocol for SyncProtocol {
         } else if command == &types::FilterClear::command() {
             let message: types::FilterClear = deserialize_payload(payload, version)?;
             self.inbound_connection.on_filterclear(message);
-        } else if command == &types::MerkleBlock::command() {
-            let message: types::MerkleBlock = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_merkleblock(message);
         } else if command == &types::SendHeaders::command() {
             let message: types::SendHeaders = deserialize_payload(payload, version)?;
             self.inbound_connection.on_sendheaders(message);

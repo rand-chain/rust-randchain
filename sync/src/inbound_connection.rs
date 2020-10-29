@@ -172,10 +172,6 @@ impl InboundSyncConnection for InboundConnection {
         self.node.on_filterclear(self.peer_index, message);
     }
 
-    fn on_merkleblock(&self, message: types::MerkleBlock) {
-        self.node.on_merkleblock(self.peer_index, message);
-    }
-
     fn on_sendheaders(&self, message: types::SendHeaders) {
         self.node.on_sendheaders(self.peer_index, message);
     }
@@ -281,13 +277,6 @@ pub mod tests {
                 .messages
                 .lock()
                 .entry("filterclear".to_owned())
-                .or_insert(0) += 1;
-        }
-        fn send_merkleblock(&self, _message: &types::MerkleBlock) {
-            *self
-                .messages
-                .lock()
-                .entry("merkleblock".to_owned())
                 .or_insert(0) += 1;
         }
         fn send_sendheaders(&self, _message: &types::SendHeaders) {

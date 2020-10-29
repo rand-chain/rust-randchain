@@ -245,9 +245,6 @@ where
                         }
                         _ => false,
                     },
-                    // we never ask for merkle blocks && we never ask for compact blocks
-                    // TODO:
-                    InventoryType::MessageFilteredBlock => false,
                     // unknown inventory type
                     InventoryType::Error => {
                         self.peers.misbehaving(

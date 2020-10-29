@@ -1,8 +1,5 @@
-use chain::IndexedBlock;
 use message::types;
-use primitives::bytes::Bytes;
 use primitives::hash::H256;
-use synchronization_peers::MerkleBlockArtefacts;
 use utils::{BloomFilter, KnownHashFilter, KnownHashType};
 
 /// Filter, which controls data relayed over connection.
@@ -43,50 +40,6 @@ impl ConnectionFilter {
     /// Clear filter
     pub fn clear(&mut self) {
         self.bloom_filter.remove_bloom_filter();
-    }
-
-    /// Convert `Block` to `MerkleBlock` using this filter
-    pub fn build_merkle_block(&self, block: &IndexedBlock) -> Option<MerkleBlockArtefacts> {
-        if !self.bloom_filter.is_set() {
-            // only respond when bloom filter is set
-            return None;
-        }
-
-        // prepare result
-        let result = MerkleBlockArtefacts {
-            // let mut result = MerkleBlockArtefacts {
-            merkleblock: types::MerkleBlock {
-                block_header: block.header.raw.clone(),
-                hashes: Vec::default(),
-                flags: Bytes::default(),
-            },
-        };
-
-        // TODO:
-        // // build partial merkle tree
-        // let partial_merkle_tree = build_partial_merkle_tree(all_hashes, all_flags);
-        // result.merkleblock.hashes.extend(partial_merkle_tree.hashes);
-
-        // // to_bytes() converts [true, false, true] to 0b10100000
-        // // while protocol requires [true, false, true] to be serialized as 0x00000101
-        // result.merkleblock.flags = partial_merkle_tree
-        //     .flags
-        //     .to_bytes()
-        //     .into_iter()
-        //     .map(|b| {
-        //         ((b & 0b10000000) >> 7)
-        //             | ((b & 0b01000000) >> 5)
-        //             | ((b & 0b00100000) >> 3)
-        //             | ((b & 0b00010000) >> 1)
-        //             | ((b & 0b00001000) << 1)
-        //             | ((b & 0b00000100) << 3)
-        //             | ((b & 0b00000010) << 5)
-        //             | ((b & 0b00000001) << 7)
-        //     })
-        //     .collect::<Vec<u8>>()
-        //     .into();
-
-        Some(result)
     }
 }
 

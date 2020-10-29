@@ -170,14 +170,6 @@ where
             .set_block_announcement_type(peer_index, BlockAnnouncementType::SendHeaders);
     }
 
-    /// When peer sents us a merkle block
-    pub fn on_merkleblock(&self, peer_index: PeerIndex, _message: types::MerkleBlock) {
-        trace!(target: "sync", "Got `merkleblock` message from peer#{}", peer_index);
-        // we never setup filter on connections => misbehaving
-        self.peers
-            .misbehaving(peer_index, "Got unrequested 'merkleblock' message");
-    }
-
     /// Get block template for mining
     pub fn get_block_template(&self) -> BlockTemplate {
         let block_assembler = BlockAssembler {};

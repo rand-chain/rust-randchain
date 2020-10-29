@@ -2,14 +2,11 @@ use hash::H256;
 use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use std::io;
 
-// TODO:
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(u32)]
 pub enum InventoryType {
     Error = 0,
-    // MessageTx = 1,
-    MessageBlock = 2,
-    MessageFilteredBlock = 3,
+    MessageBlock = 1,
 }
 
 // TODO:
@@ -17,9 +14,7 @@ impl InventoryType {
     pub fn from_u32(v: u32) -> Option<Self> {
         match v {
             0 => Some(InventoryType::Error),
-            // 1 => Some(InventoryType::MessageTx),
-            2 => Some(InventoryType::MessageBlock),
-            3 => Some(InventoryType::MessageFilteredBlock),
+            1 => Some(InventoryType::MessageBlock),
             _ => None,
         }
     }

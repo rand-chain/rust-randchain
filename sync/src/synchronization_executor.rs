@@ -1,7 +1,6 @@
 use chain::IndexedBlock;
 use message::common::InventoryVector;
 use message::types;
-use primitives::hash::H256;
 use std::sync::Arc;
 use synchronization_peers::BlockAnnouncementType;
 use types::{PeerIndex, PeersRef, RequestId};
@@ -25,8 +24,6 @@ pub enum Task {
     MemoryPool(PeerIndex),
     /// Send block
     Block(PeerIndex, IndexedBlock),
-    /// Send merkleblock
-    MerkleBlock(PeerIndex, H256, types::MerkleBlock),
     /// Send notfound
     NotFound(PeerIndex, types::NotFound),
     /// Send inventory
@@ -88,15 +85,6 @@ impl LocalSynchronizationTaskExecutor {
                 block: block.to_raw_block(),
             };
             connection.send_block(&block);
-        }
-    }
-
-    fn execute_merkleblock(&self, peer_index: PeerIndex, hash: H256, block: types::MerkleBlock) {
-        if let Some(connection) = self.peers.connection(peer_index) {
-            trace!(target: "sync", "Sending merkle block {} to peer#{}", hash.to_reversed_str(), peer_index);
-            self.peers
-                .hash_known_as(peer_index, hash, KnownHashType::Block);
-            connection.send_merkleblock(&block);
         }
     }
 
@@ -163,9 +151,6 @@ impl TaskExecutor for LocalSynchronizationTaskExecutor {
             }
             Task::MemoryPool(peer_index) => self.execute_memorypool(peer_index),
             Task::Block(peer_index, block) => self.execute_block(peer_index, block),
-            Task::MerkleBlock(peer_index, hash, block) => {
-                self.execute_merkleblock(peer_index, hash, block)
-            }
             Task::NotFound(peer_index, notfound) => self.execute_notfound(peer_index, notfound),
             Task::Inventory(peer_index, inventory) => self.execute_inventory(peer_index, inventory),
             Task::Headers(peer_index, headers, request_id) => {
