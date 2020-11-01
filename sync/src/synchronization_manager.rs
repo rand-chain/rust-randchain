@@ -25,10 +25,6 @@ const DEFAULT_TRUSTED_PEER_HEADERS_FAILURE_INTERVAL_MS: u32 = 20 * 1000;
 const DEFAULT_UNKNOWN_BLOCK_REMOVAL_TIME_MS: u32 = 20 * 60 * 1000;
 /// Maximal number of orphaned blocks
 const DEFAULT_UNKNOWN_BLOCKS_MAX_LEN: usize = 16;
-/// Unknown orphan transaction removal time
-const DEFAULT_ORPHAN_TRANSACTION_REMOVAL_TIME_MS: u32 = 10 * 60 * 1000;
-/// Maximal number of orphaned transactions
-const DEFAULT_ORPHAN_TRANSACTIONS_MAX_LEN: usize = 10000;
 
 /// Synchronization management worker
 pub struct ManagementWorker {
@@ -179,24 +175,6 @@ impl Default for ManageUnknownBlocksConfig {
         ManageUnknownBlocksConfig {
             removal_time_ms: DEFAULT_UNKNOWN_BLOCK_REMOVAL_TIME_MS,
             max_number: DEFAULT_UNKNOWN_BLOCKS_MAX_LEN,
-        }
-    }
-}
-
-// TODO:
-/// Orphan transactions management configuration
-pub struct ManageOrphanTransactionsConfig {
-    /// Time interval (in milliseconds) to wait before removing orphan transactions from orphan pool
-    pub removal_time_ms: u32,
-    /// Maximal # of unknown transactions in the orphan pool
-    pub max_number: usize,
-}
-
-impl Default for ManageOrphanTransactionsConfig {
-    fn default() -> Self {
-        ManageOrphanTransactionsConfig {
-            removal_time_ms: DEFAULT_ORPHAN_TRANSACTION_REMOVAL_TIME_MS,
-            max_number: DEFAULT_ORPHAN_TRANSACTIONS_MAX_LEN,
         }
     }
 }
