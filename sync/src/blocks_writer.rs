@@ -217,6 +217,7 @@ mod tests {
         let db = Arc::new(BlockChainDatabase::init_test_chain(vec![
             test_data::genesis().into(),
         ]));
+
         let mut blocks_target =
             BlocksWriter::new(db.clone(), Network::Testnet, default_verification_params());
 
