@@ -68,8 +68,6 @@ mod tests {
         let mut filter = KnownHashFilter::default();
         filter.insert(H256::from(0), KnownHashType::Block);
         assert!(!filter.filter_block(&H256::from(0)));
-        assert!(!filter.filter_block(&H256::from(1)));
-        assert!(filter.filter_block(&H256::from(2)));
         assert!(filter.filter_block(&H256::from(3)));
     }
 
