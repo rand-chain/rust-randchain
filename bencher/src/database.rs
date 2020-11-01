@@ -21,14 +21,9 @@ pub fn fetch(benchmark: &mut Benchmark) {
 
     for x in 0..BLOCKS {
         let next_block = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .lock_time(x as u32)
-            .output()
-            .value(5000000000)
+            // TODO:
             .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
             .build()
@@ -69,14 +64,9 @@ pub fn write(benchmark: &mut Benchmark) {
 
     for x in 0..BLOCKS {
         let next_block = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .lock_time(x as u32)
-            .output()
-            .value(5000000000)
+            // TODO:
             .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
             .build()
@@ -112,14 +102,9 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
         let base = rolling_hash.clone();
 
         let next_block = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .lock_time(x as u32)
-            .output()
-            .value(5000000000)
+            // TODO:
             .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32 * 4)
             .build()
@@ -128,14 +113,9 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
         blocks.push(next_block);
 
         let next_block_side = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .lock_time(x as u32)
-            .output()
-            .value(5000000000)
+            // TODO:
             .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(base)
             .nonce(x as u32 * 4 + 2)
             .build()
@@ -144,14 +124,9 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
         blocks.push(next_block_side);
 
         let next_block_side_continue = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .lock_time(x as u32)
-            .output()
-            .value(5000000000)
+            // TODO:
             .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(next_base)
             .nonce(x as u32 * 4 + 3)
             .build()
@@ -159,14 +134,9 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
         blocks.push(next_block_side_continue);
 
         let next_block_continue = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .lock_time(x as u32)
-            .output()
-            .value(5000000000)
+            // TODO:
             .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32 * 4 + 1)
             .build()

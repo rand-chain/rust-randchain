@@ -1,7 +1,7 @@
 use byteorder::{ByteOrder, LittleEndian};
 use chain::IndexedBlock;
 use db::BlockChainDatabase;
-use network::{ConsensusFork, ConsensusParams, Network};
+use network::Network;
 use std::sync::Arc;
 use test_data;
 use verification::{BackwardsCompatibleChainVerifier as ChainVerifier, VerificationLevel, Verify};
@@ -106,10 +106,7 @@ pub fn main(benchmark: &mut Benchmark) {
 
     assert_eq!(store.best_block().hash, rolling_hash);
 
-    let chain_verifier = ChainVerifier::new(
-        store.clone(),
-        ConsensusParams::new(Network::Unitest, ConsensusFork::BitcoinCore),
-    );
+    let chain_verifier = ChainVerifier::new(store.clone(), Network::Unitest);
 
     // bench
     benchmark.start();
