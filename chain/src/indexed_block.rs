@@ -66,20 +66,6 @@ impl IndexedBlock {
     }
 
     // TODO:
-    pub fn witness_merkle_root(&self) -> H256 {
-        unimplemented!()
-        // let hashes = match self.transactions.split_first() {
-        //     None => vec![],
-        //     Some((_, rest)) => {
-        //         let mut hashes = vec![H256::from(0)];
-        //         hashes.extend(rest.iter().map(|tx| tx.raw.witness_hash()));
-        //         hashes
-        //     }
-        // };
-        // merkle_root(&hashes)
-    }
-
-    // TODO:
     pub fn is_final(&self, _height: u32) -> bool {
         true
     }
