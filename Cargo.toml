@@ -1,9 +1,28 @@
 [package]
-name = "prandchain"
-version = "0.0.1"
+name = "pbtc"
+version = "0.1.0"
 license = "GPL-3.0"
-authors = ["Parity Technologies <admin@parity.io>", "Haoyu Lin <chris.haoyul@gmail.com>"]
-description = "Parity randchain client."
+authors = ["RandChain https://github.com/rand-chain/"]
+description = "RandChain daemon client."
+
+[dependencies]
+log = "0.4"
+env_logger = "0.5"
+app_dirs = { git = "https://github.com/paritytech/app-dirs-rs" }
+libc = "0.2"
+clap = { version = "2", features = ["yaml"] }
+chain = { path = "chain" }
+message = { path = "message" }
+network = { path = "network" }
+miner = { path = "miner" }
+p2p = { path = "p2p" }
+storage = { path = "storage" }
+db = { path = "db" }
+verification = { path = "verification" }
+sync = { path = "sync" }
+logs = { path = "logs" }
+rpc = { path = "rpc" }
+primitives = { path = "primitives" }
 
 [profile.dev]
 debug = true
@@ -17,5 +36,8 @@ panic = 'abort'
 debug = true
 
 [[bin]]
-path = "prandchain/main.rs"
-name = "prandchain"
+path = "randchaind/main.rs"
+name = "randchaind"
+
+[workspace]
+members = ["bencher"]
