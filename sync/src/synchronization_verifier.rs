@@ -300,7 +300,7 @@ pub mod tests {
             self.errors.insert(hash, err.into());
         }
 
-        pub fn actual_check_when_verifying(&mut self, hash: H256) {
+        pub fn _actual_check_when_verifying(&mut self, hash: H256) {
             self.actual_checks.insert(hash);
         }
     }
