@@ -203,14 +203,9 @@ pub fn write_heavy(benchmark: &mut Benchmark) {
 
     for x in 0..BLOCKS_INITIAL {
         let next_block = test_data::block_builder()
-            .transaction()
-            .coinbase()
-            .lock_time(x as u32)
-            .output()
-            .value(5000000000)
+            // TODO:
             .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
             .build()
@@ -221,25 +216,10 @@ pub fn write_heavy(benchmark: &mut Benchmark) {
     }
 
     for b in 0..BLOCKS {
-        let mut builder = test_data::block_builder().transaction().coinbase().build();
+        let mut builder = test_data::block_builder().build();
 
-        for t in 0..TRANSACTIONS {
-            builder = builder
-                .transaction()
-                .input()
-                .hash(blocks[b * TRANSACTIONS + t].transactions()[0].hash())
-                .build() // default index is 0 which is ok
-                .output()
-                .value(1000)
-                .build()
-                .build();
-        }
-
-        let next_block = builder
-            .merkled_header()
-            .parent(rolling_hash)
-            .build()
-            .build();
+        // TODO:
+        let next_block = builder.header().parent(rolling_hash).build().build();
 
         rolling_hash = next_block.hash();
         blocks.push(next_block);
