@@ -35,17 +35,9 @@ pub fn main(benchmark: &mut Benchmark) {
         let mut coinbase_nonce = [0u8; 8];
         LittleEndian::write_u64(&mut coinbase_nonce[..], x as u64);
         let next_block = test_data::block_builder()
-            .transaction()
-            .lock_time(x as u32)
-            .input()
-            .coinbase()
-            .signature_bytes(coinbase_nonce.to_vec().into())
+            // TODO:
             .build()
-            .output()
-            .value(5000000000)
-            .build()
-            .build()
-            .merkled_header()
+            .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
             .build()
@@ -67,36 +59,12 @@ pub fn main(benchmark: &mut Benchmark) {
     for b in 0..BLOCKS {
         let mut coinbase_nonce = [0u8; 8];
         LittleEndian::write_u64(&mut coinbase_nonce[..], (b + BLOCKS_INITIAL) as u64);
-        let mut builder = test_data::block_builder()
-            .transaction()
-            .lock_time(b as u32)
-            .input()
-            .coinbase()
-            .signature_bytes(coinbase_nonce.to_vec().into())
-            .build()
-            .output()
-            .value(5000000000)
-            .build()
-            .build();
-
-        for t in 0..TRANSACTIONS {
-            let mut tx_builder = builder.transaction();
-
-            for o in 0..OUTPUTS {
-                let parent_hash = blocks[(b * TRANSACTIONS * OUTPUTS + t * OUTPUTS + o)]
-                    .transactions[0]
-                    .hash
-                    .clone();
-
-                tx_builder = tx_builder.input().hash(parent_hash).index(0).build()
-            }
-
-            builder = tx_builder.output().value(0).build().build()
-        }
+        let mut builder = test_data::block_builder().build();
 
         verification_blocks.push(
             builder
-                .merkled_header()
+                // TODO:
+                .header()
                 .parent(rolling_hash.clone())
                 .build()
                 .build()
