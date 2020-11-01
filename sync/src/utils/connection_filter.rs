@@ -42,7 +42,6 @@ pub mod tests {
         let mut filter = ConnectionFilter::default();
         filter.hash_known_as(test_data::block_h1().hash(), KnownHashType::Block);
         assert!(!filter.filter_block(&test_data::block_h1().hash()));
-        assert!(!filter.filter_block(&test_data::block_h2().hash()));
         assert!(filter.filter_block(&test_data::genesis().hash()));
     }
 }
