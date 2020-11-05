@@ -36,7 +36,7 @@ pub fn verify(
     pubkey: &ecvrf::VrfPk,
     target: &Integer,
 ) -> bool {
-    let hstate = util::h_state(modulus, pubkey, y);
+    let hstate = util::h_state(pubkey, y);
     if !util::validate_difficulty(&hstate, target) {
         return false;
     }
@@ -45,7 +45,7 @@ pub fn verify(
     let mut t = iterations;
     let two: Integer = 2u64.into();
     for mu_i in pi_list {
-        let r_i = util::hash_fs(modulus, &[&x_i, &y_i, &mu_i]);
+        let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
         let xi_ri = x_i.clone().pow_mod(&r_i, modulus).unwrap();
         x_i = (xi_ri * mu_i.clone()).div_rem_floor(modulus.clone()).1;
@@ -73,10 +73,11 @@ pub fn solve(
     let mut y = state.clone();
     for _ in 0..step {
         y = y.clone() * y.clone();
+        // TODO:
         y = y.div_rem_floor(modulus.clone()).1;
     }
 
-    let hstate = util::h_state(modulus, pubkey, &y);
+    let hstate = util::h_state(pubkey, &y);
     (y, util::validate_difficulty(&hstate, target))
 }
 
@@ -90,7 +91,7 @@ pub fn prove(modulus: &Integer, g: &Integer, y: &Integer, iterations: u64) -> Ve
         let two_exp = Integer::from(1) << ((t / 2) as u32); // 2^(t/2)
         let mu_i = x_i.clone().pow_mod(&two_exp, modulus).unwrap();
 
-        let r_i = util::hash_fs(modulus, &[&x_i, &y_i, &mu_i]);
+        let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
         let xi_ri = x_i.clone().pow_mod(&r_i, modulus).unwrap();
         x_i = (xi_ri * mu_i.clone()).div_rem_floor(modulus.clone()).1;
