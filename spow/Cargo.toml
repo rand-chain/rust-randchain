@@ -3,3 +3,9 @@ name = "spow"
 version = "0.1.0"
 authors = ["RandChain https://github.com/rand-chain/"]
 description = "Sequetial Proof-of-Work using Pie19 (https://eprint.iacr.org/2018/627.pdf)."
+
+[dependencies]
+rug = "1.2.1"
+sha2 = "0.9.1"
+elapsed = "0.1.2"
+ecvrf = "0.4.0"
