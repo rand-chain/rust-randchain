@@ -1,5 +1,5 @@
 #[macro_use]
 extern crate lazy_static;
 
-mod spow;
+pub mod spow;
 mod util;
