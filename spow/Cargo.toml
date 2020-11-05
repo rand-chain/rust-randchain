@@ -2,3 +2,4 @@
 name = "spow"
 version = "0.1.0"
 authors = ["RandChain https://github.com/rand-chain/"]
+description = "Sequetial Proof-of-Work using Pie19 (https://eprint.iacr.org/2018/627.pdf)."
