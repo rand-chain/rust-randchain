@@ -115,5 +115,6 @@ pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Vec<Integer> {
         pi_list.push(mu_i);
     }
 
+    // TODO: serialize & unserialize
     pi_list
 }
