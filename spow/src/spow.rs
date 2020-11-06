@@ -1,5 +1,7 @@
 use ecvrf::VrfPk;
 use rug::Integer;
+use sha2::{Digest, Sha256};
+use std::cmp::Ordering;
 use std::vec::Vec;
 
 use super::config::{MODULUS, STEP};
@@ -56,8 +58,8 @@ impl SPoW<'_> {
             y = y.div_rem_floor(MODULUS.clone()).1;
         }
 
-        let hstate = util::h_state(self.pubkey, &y);
-        (y, util::validate_difficulty(&hstate, target))
+        let hstate = self.h_state(&y);
+        (y, validate_difficulty(&hstate, target))
     }
 
     pub fn verify(
@@ -68,8 +70,8 @@ impl SPoW<'_> {
         proof: &Proof,
         target: &Integer,
     ) -> bool {
-        let hstate = util::h_state(self.pubkey, y);
-        if !util::validate_difficulty(&hstate, target) {
+        let hstate = self.h_state(y);
+        if !validate_difficulty(&hstate, target) {
             return false;
         }
 
@@ -94,11 +96,43 @@ impl SPoW<'_> {
 
         y_i == x_i.pow_mod(&two, &MODULUS).unwrap()
     }
+
+    /// int(H("pubkey"||pubkey||"state"||state)) mod N
+    pub fn h_state(&mut self, state: &Integer) -> Integer {
+        let mut hasher = Sha256::new();
+        hasher.update("pubkey".as_bytes());
+        hasher.update(self.pubkey.to_bytes());
+        hasher.update("state".as_bytes());
+        hasher.update(state.to_string_radix(16).as_bytes());
+        let result_hex = hasher.finalize();
+        let result_hex_str = format!("{:#x}", result_hex);
+        let result_int = Integer::from_str_radix(&result_hex_str, 16).unwrap();
+
+        // invert to get enough security bits
+        match result_int.invert(&MODULUS) {
+            Ok(inverse) => inverse,
+            Err(unchanged) => unchanged,
+        }
+    }
 }
 
 ///
-/// helper function
+/// helper functions
 ///
+
+/// state & target should already be modulo
+pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {
+    let mut hasher = Sha256::new();
+    let hash_input: String = state.clone().to_string_radix(16);
+    // TODO:
+    // only hash state for demo purpose, in real-world case, we may need to add other block metadata
+    hasher.update(hash_input.as_bytes());
+    let hash_result = hasher.finalize();
+    let hash_result_str = format!("{:#x}", hash_result);
+    let hashed_int = Integer::from_str_radix(&hash_result_str, 16).unwrap();
+    (hashed_int.cmp(target) == Ordering::Less) || (hashed_int.cmp(target) == Ordering::Equal)
+}
+
 fn prove(g: &Integer, y: &Integer, iterations: u64) -> Proof {
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
     let mut proof = Proof::new();
@@ -127,4 +161,22 @@ fn prove(g: &Integer, y: &Integer, iterations: u64) -> Proof {
     }
 
     proof
+}
+
+/// int(H("pubkey"||pubkey||"residue"||x)) mod N
+pub fn h_g(pubkey: &VrfPk, seed: &Integer) -> Integer {
+    let mut hasher = Sha256::new();
+    hasher.update("pubkey".as_bytes());
+    hasher.update(pubkey.to_bytes());
+    hasher.update("residue".as_bytes());
+    hasher.update(seed.to_string_radix(16).as_bytes());
+    let result_hex = hasher.finalize();
+    let result_hex_str = format!("{:#x}", result_hex);
+    let result_int = Integer::from_str_radix(&result_hex_str, 16).unwrap();
+
+    // invert to get enough security bits
+    match result_int.invert(&MODULUS) {
+        Ok(inverse) => inverse,
+        Err(unchanged) => unchanged,
+    }
 }
