@@ -1,5 +1,6 @@
 extern crate byteorder;
 extern crate primitives;
+extern crate rug;
 
 mod compact_integer;
 mod impls;

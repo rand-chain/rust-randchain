@@ -4,6 +4,7 @@ extern crate primitives;
 extern crate rayon;
 extern crate rustc_hex as hex;
 extern crate serialization as ser;
+extern crate spow;
 #[macro_use]
 extern crate serialization_derive;
 

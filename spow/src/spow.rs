@@ -1,7 +1,9 @@
 use ecvrf::VrfPk;
 use rug::Integer;
+use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
+use std::io;
 use std::vec::Vec;
 
 use super::config::{MODULUS, STEP};
@@ -16,14 +18,40 @@ pub struct SPoW<'a> {
     pubkey: &'a VrfPk,
 }
 
-// TODO: serialize & unserialize
 pub type Proof = Vec<Integer>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SPoWResult {
     iterations: u64,
     randomness: Integer,
     proof: Proof,
+}
+
+impl Serializable for SPoWResult {
+    fn serialize(&self, stream: &mut Stream) {
+        stream
+            .append(&self.iterations)
+            .append(&self.randomness)
+            .append_vector(&self.proof);
+    }
+
+    // TODO:
+    // fn serialized_size(&self) -> usize
+}
+
+impl Deserializable for SPoWResult {
+    fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
+    where
+        T: io::Read,
+    {
+        let res = SPoWResult {
+            iterations: reader.read()?,
+            randomness: reader.read()?,
+            proof: reader.read_vector()?,
+        };
+
+        Ok(res)
+    }
 }
 
 impl SPoW<'_> {
