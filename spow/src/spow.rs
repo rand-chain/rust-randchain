@@ -16,10 +16,9 @@ pub struct SPoW<'a> {
     pubkey: &'a VrfPk,
 }
 
-// TODO: serialize & unserialize
 pub type Proof = Vec<Integer>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serializable, Deserializable)]
 pub struct SPoWResult {
     iterations: u64,
     randomness: Integer,
