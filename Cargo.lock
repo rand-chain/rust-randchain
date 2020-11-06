@@ -195,6 +195,7 @@ dependencies = [
  "rustc-hex 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serialization 0.1.0",
  "serialization_derive 0.1.0",
+ "spow 0.1.0",
 ]
 
 [[package]]

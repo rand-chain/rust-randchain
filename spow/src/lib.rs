@@ -5,3 +5,5 @@ pub mod spow;
 
 mod config;
 mod util;
+
+pub use spow::SPoWResult;
