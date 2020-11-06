@@ -9,6 +9,7 @@ use super::config::MODULUS;
 pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {
     let mut hasher = Sha256::new();
     let hash_input: String = state.clone().to_string_radix(16);
+    // TODO:
     // only hash state for demo purpose, in real-world case, we may need to add other block metadata
     hasher.update(hash_input.as_bytes());
     let hash_result = hasher.finalize();
