@@ -34,6 +34,9 @@ impl Serializable for SPoWResult {
             .append(&self.randomness)
             .append_vector(&self.proof);
     }
+
+    // TODO:
+    // fn serialized_size(&self) -> usize
 }
 
 impl Deserializable for SPoWResult {
