@@ -2,7 +2,8 @@ use ecvrf;
 use rug::Integer;
 use std::vec::Vec;
 
-use super::{config, util};
+use super::config::{MODULUS, STEP};
+use super::util;
 
 ///
 /// type definitions
@@ -27,7 +28,7 @@ pub fn mine(pubkey: &ecvrf::VrfPk, ini_state: &Integer, target: &Integer) -> SPo
     let mut iters: u64 = 0;
 
     loop {
-        iters += config::STEP;
+        iters += STEP;
         let (new_state, diff_valid) = solve(&cur_state, pubkey, target);
         cur_state = new_state;
         if diff_valid {
@@ -61,31 +62,27 @@ pub fn verify(
     for mu_i in proof {
         let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
-        let xi_ri = x_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
-        x_i = (xi_ri * mu_i.clone())
-            .div_rem_floor(config::MODULUS.clone())
-            .1;
+        let xi_ri = x_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
+        x_i = (xi_ri * mu_i.clone()).div_rem_floor(MODULUS.clone()).1;
 
-        let mui_ri = mu_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
-        y_i = (mui_ri * y_i.clone())
-            .div_rem_floor(config::MODULUS.clone())
-            .1;
+        let mui_ri = mu_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
+        y_i = (mui_ri * y_i.clone()).div_rem_floor(MODULUS.clone()).1;
 
         t = t / 2;
         if (t % 2 != 0) && (t != 1) {
             t += 1;
-            y_i = y_i.clone().pow_mod(&two, &config::MODULUS).unwrap();
+            y_i = y_i.clone().pow_mod(&two, &MODULUS).unwrap();
         }
     }
 
-    y_i == x_i.pow_mod(&two, &config::MODULUS).unwrap()
+    y_i == x_i.pow_mod(&two, &MODULUS).unwrap()
 }
 
 pub fn solve(state: &Integer, pubkey: &ecvrf::VrfPk, target: &Integer) -> (Integer, bool) {
     let mut y = state.clone();
-    for _ in 0..config::STEP {
+    for _ in 0..STEP {
         y = y.clone() * y.clone();
-        y = y.div_rem_floor(config::MODULUS.clone()).1;
+        y = y.div_rem_floor(MODULUS.clone()).1;
     }
 
     let hstate = util::h_state(pubkey, &y);
@@ -100,24 +97,20 @@ pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Vec<Integer> {
     let two: Integer = 2u64.into();
     while t >= 2 {
         let two_exp = Integer::from(1) << ((t / 2) as u32); // 2^(t/2)
-        let mu_i = x_i.clone().pow_mod(&two_exp, &config::MODULUS).unwrap();
+        let mu_i = x_i.clone().pow_mod(&two_exp, &MODULUS).unwrap();
 
         let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
-        let xi_ri = x_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
-        x_i = (xi_ri * mu_i.clone())
-            .div_rem_floor(config::MODULUS.clone())
-            .1;
+        let xi_ri = x_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
+        x_i = (xi_ri * mu_i.clone()).div_rem_floor(MODULUS.clone()).1;
 
-        let mui_ri = mu_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
-        y_i = (mui_ri * y_i.clone())
-            .div_rem_floor(config::MODULUS.clone())
-            .1;
+        let mui_ri = mu_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
+        y_i = (mui_ri * y_i.clone()).div_rem_floor(MODULUS.clone()).1;
 
         t = t / 2;
         if (t % 2 != 0) && (t != 1) {
             t += 1;
-            y_i = y_i.clone().pow_mod(&two, &config::MODULUS).unwrap();
+            y_i = y_i.clone().pow_mod(&two, &MODULUS).unwrap();
         }
 
         proof.push(mu_i);
