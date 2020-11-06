@@ -5,21 +5,23 @@ use std::vec::Vec;
 
 ///
 /// type definitions
+/// TODO: serialize & unserialize
 ///
 
-// TODO: serialize & unserialize
 pub type Proof = Vec<Integer>;
+
+#[derive(Debug)]
+pub struct SPoWResult {
+    Iterations: u64,
+    Randomness: Integer,
+    Proof: Proof,
+}
 
 ///
 /// Sequential Proof-of-Work logic functions
 ///
 
-pub fn mine(
-    step: u64,
-    pubkey: &ecvrf::VrfPk,
-    ini_state: &Integer,
-    target: &Integer,
-) -> (Integer, Proof, u64) {
+pub fn mine(step: u64, pubkey: &ecvrf::VrfPk, ini_state: &Integer, target: &Integer) -> SPoWResult {
     let mut cur_state = ini_state.clone();
     let mut iters: u64 = 0;
 
@@ -32,9 +34,11 @@ pub fn mine(
         }
     }
 
-    let pi = prove(ini_state, &cur_state, iters);
-
-    (cur_state.clone(), pi, iters)
+    SPoWResult {
+        Iterations: iters,
+        Randomness: cur_state.clone(),
+        Proof: prove(ini_state, &cur_state, iters),
+    }
 }
 
 pub fn verify(
