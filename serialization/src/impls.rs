@@ -308,7 +308,7 @@ impl Deserializable for Integer {
         let s = String::from_utf8_lossy(&bytes);
         match Integer::from_str_radix(&s, 16) {
             Ok(i) => Ok(i),
-            Err(e) => Err(Error::MalformedData),
+            Err(_) => Err(Error::MalformedData),
         }
     }
 }
