@@ -1,33 +1,34 @@
-use super::util;
 use ecvrf;
 use rug::Integer;
 use std::vec::Vec;
 
+use super::{config, util};
+
 ///
 /// type definitions
-/// TODO: serialize & unserialize
 ///
 
 pub type Proof = Vec<Integer>;
 
 #[derive(Debug)]
 pub struct SPoWResult {
-    Iterations: u64,
-    Randomness: Integer,
-    Proof: Proof,
+    iterations: u64,
+    randomness: Integer,
+    // TODO: serialize & unserialize
+    proof: Proof,
 }
 
 ///
 /// Sequential Proof-of-Work logic functions
 ///
 
-pub fn mine(step: u64, pubkey: &ecvrf::VrfPk, ini_state: &Integer, target: &Integer) -> SPoWResult {
+pub fn mine(pubkey: &ecvrf::VrfPk, ini_state: &Integer, target: &Integer) -> SPoWResult {
     let mut cur_state = ini_state.clone();
     let mut iters: u64 = 0;
 
     loop {
-        iters += step;
-        let (new_state, diff_valid) = solve(&cur_state, step, pubkey, target);
+        iters += config::STEP;
+        let (new_state, diff_valid) = solve(&cur_state, pubkey, target);
         cur_state = new_state;
         if diff_valid {
             break;
@@ -35,9 +36,9 @@ pub fn mine(step: u64, pubkey: &ecvrf::VrfPk, ini_state: &Integer, target: &Inte
     }
 
     SPoWResult {
-        Iterations: iters,
-        Randomness: cur_state.clone(),
-        Proof: prove(ini_state, &cur_state, iters),
+        iterations: iters,
+        randomness: cur_state.clone(),
+        proof: prove(ini_state, &cur_state, iters),
     }
 }
 
@@ -60,36 +61,31 @@ pub fn verify(
     for mu_i in proof {
         let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
-        let xi_ri = x_i.clone().pow_mod(&r_i, &util::RSA2048_MODULUS).unwrap();
+        let xi_ri = x_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
         x_i = (xi_ri * mu_i.clone())
-            .div_rem_floor(util::RSA2048_MODULUS.clone())
+            .div_rem_floor(config::MODULUS.clone())
             .1;
 
-        let mui_ri = mu_i.clone().pow_mod(&r_i, &util::RSA2048_MODULUS).unwrap();
+        let mui_ri = mu_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
         y_i = (mui_ri * y_i.clone())
-            .div_rem_floor(util::RSA2048_MODULUS.clone())
+            .div_rem_floor(config::MODULUS.clone())
             .1;
 
         t = t / 2;
         if (t % 2 != 0) && (t != 1) {
             t += 1;
-            y_i = y_i.clone().pow_mod(&two, &util::RSA2048_MODULUS).unwrap();
+            y_i = y_i.clone().pow_mod(&two, &config::MODULUS).unwrap();
         }
     }
 
-    y_i == x_i.pow_mod(&two, &util::RSA2048_MODULUS).unwrap()
+    y_i == x_i.pow_mod(&two, &config::MODULUS).unwrap()
 }
 
-pub fn solve(
-    state: &Integer,
-    step: u64,
-    pubkey: &ecvrf::VrfPk,
-    target: &Integer,
-) -> (Integer, bool) {
+pub fn solve(state: &Integer, pubkey: &ecvrf::VrfPk, target: &Integer) -> (Integer, bool) {
     let mut y = state.clone();
-    for _ in 0..step {
+    for _ in 0..config::STEP {
         y = y.clone() * y.clone();
-        y = y.div_rem_floor(util::RSA2048_MODULUS.clone()).1;
+        y = y.div_rem_floor(config::MODULUS.clone()).1;
     }
 
     let hstate = util::h_state(pubkey, &y);
@@ -104,27 +100,24 @@ pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Vec<Integer> {
     let two: Integer = 2u64.into();
     while t >= 2 {
         let two_exp = Integer::from(1) << ((t / 2) as u32); // 2^(t/2)
-        let mu_i = x_i
-            .clone()
-            .pow_mod(&two_exp, &util::RSA2048_MODULUS)
-            .unwrap();
+        let mu_i = x_i.clone().pow_mod(&two_exp, &config::MODULUS).unwrap();
 
         let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
-        let xi_ri = x_i.clone().pow_mod(&r_i, &util::RSA2048_MODULUS).unwrap();
+        let xi_ri = x_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
         x_i = (xi_ri * mu_i.clone())
-            .div_rem_floor(util::RSA2048_MODULUS.clone())
+            .div_rem_floor(config::MODULUS.clone())
             .1;
 
-        let mui_ri = mu_i.clone().pow_mod(&r_i, &util::RSA2048_MODULUS).unwrap();
+        let mui_ri = mu_i.clone().pow_mod(&r_i, &config::MODULUS).unwrap();
         y_i = (mui_ri * y_i.clone())
-            .div_rem_floor(util::RSA2048_MODULUS.clone())
+            .div_rem_floor(config::MODULUS.clone())
             .1;
 
         t = t / 2;
         if (t % 2 != 0) && (t != 1) {
             t += 1;
-            y_i = y_i.clone().pow_mod(&two, &util::RSA2048_MODULUS).unwrap();
+            y_i = y_i.clone().pow_mod(&two, &config::MODULUS).unwrap();
         }
 
         proof.push(mu_i);
