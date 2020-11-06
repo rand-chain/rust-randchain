@@ -4,6 +4,10 @@ use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
 use std::str::FromStr;
 
+///
+/// modulus
+///
+
 /// RSA-2048 modulus, taken from [Wikipedia](https://en.wikipedia.org/wiki/RSA_numbers#RSA-2048).
 const RSA2048_MODULUS_DECIMAL: &str =
   "251959084756578934940271832400483985714292821262040320277771378360436620207075955562640185258807\
@@ -17,6 +21,10 @@ const RSA2048_MODULUS_DECIMAL: &str =
 lazy_static! {
     pub static ref RSA2048_MODULUS: Integer = Integer::from_str(RSA2048_MODULUS_DECIMAL).unwrap();
 }
+
+///
+/// helper functions
+///
 
 /// state & target should already be modulo
 pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {

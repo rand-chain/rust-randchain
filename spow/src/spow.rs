@@ -3,12 +3,23 @@ use ecvrf;
 use rug::Integer;
 use std::vec::Vec;
 
+///
+/// type definitions
+///
+
+// TODO: serialize & unserialize
+pub type Proof = Vec<Integer>;
+
+///
+/// Sequential Proof-of-Work logic functions
+///
+
 pub fn mine(
     step: u64,
     pubkey: &ecvrf::VrfPk,
     ini_state: &Integer,
     target: &Integer,
-) -> (Integer, Vec<Integer>, u64) {
+) -> (Integer, Proof, u64) {
     let mut cur_state = ini_state.clone();
     let mut iters: u64 = 0;
 
@@ -30,7 +41,7 @@ pub fn verify(
     g: &Integer,
     y: &Integer,
     iterations: u64,
-    pi_list: &Vec<Integer>,
+    proof: &Proof,
     pubkey: &ecvrf::VrfPk,
     target: &Integer,
 ) -> bool {
@@ -42,7 +53,7 @@ pub fn verify(
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
     let mut t = iterations;
     let two: Integer = 2u64.into();
-    for mu_i in pi_list {
+    for mu_i in proof {
         let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
         let xi_ri = x_i.clone().pow_mod(&r_i, &util::RSA2048_MODULUS).unwrap();
@@ -83,7 +94,7 @@ pub fn solve(
 
 pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Vec<Integer> {
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
-    let mut pi_list = Vec::<Integer>::new();
+    let mut proof = Proof::new();
 
     let mut t = iterations;
     let two: Integer = 2u64.into();
@@ -112,9 +123,10 @@ pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Vec<Integer> {
             y_i = y_i.clone().pow_mod(&two, &util::RSA2048_MODULUS).unwrap();
         }
 
-        pi_list.push(mu_i);
+        proof.push(mu_i);
     }
 
-    // TODO: serialize & unserialize
-    pi_list
+    proof
 }
+
+// TODO: tests
