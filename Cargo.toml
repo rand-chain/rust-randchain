@@ -40,4 +40,4 @@ path = "randchaind/main.rs"
 name = "randchaind"
 
 [workspace]
-members = ["bencher"]
+members = ["bencher", "spow"]
