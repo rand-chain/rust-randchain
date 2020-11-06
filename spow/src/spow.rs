@@ -51,7 +51,7 @@ impl SPoW<'_> {
         }
     }
 
-    pub fn solve(&mut self, state: &Integer, target: &Integer) -> (Integer, bool) {
+    fn solve(&mut self, state: &Integer, target: &Integer) -> (Integer, bool) {
         let mut y = state.clone();
         for _ in 0..STEP {
             y = y.clone() * y.clone();
@@ -98,7 +98,7 @@ impl SPoW<'_> {
     }
 
     /// int(H("pubkey"||pubkey||"state"||state)) mod N
-    pub fn h_state(&mut self, state: &Integer) -> Integer {
+    fn h_state(&mut self, state: &Integer) -> Integer {
         let mut hasher = Sha256::new();
         hasher.update("pubkey".as_bytes());
         hasher.update(self.pubkey.to_bytes());
