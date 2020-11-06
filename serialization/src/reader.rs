@@ -172,7 +172,7 @@ where
         T: Deserializable,
     {
         let len: usize = self.read::<CompactInteger>()?.into();
-        let mut result = Vec::with_capacity(len);
+        let mut result = Vec::<T>::with_capacity(len);
 
         for _ in 0..len {
             result.push(self.read()?);

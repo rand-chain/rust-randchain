@@ -32,11 +32,8 @@ impl Serializable for SPoWResult {
         stream
             .append(&self.iterations)
             .append(&self.randomness)
-            .append(&self.proof);
+            .append_vector(&self.proof);
     }
-
-    // TODO:
-    // serialized_size
 }
 
 impl Deserializable for SPoWResult {
@@ -47,7 +44,7 @@ impl Deserializable for SPoWResult {
         let res = SPoWResult {
             iterations: reader.read()?,
             randomness: reader.read()?,
-            proof: reader.read()?,
+            proof: reader.read_vector()?,
         };
 
         Ok(res)

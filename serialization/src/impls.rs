@@ -281,33 +281,35 @@ impl Deserializable for Compact {
     }
 }
 
+// TODO: test
 impl Serializable for Integer {
-    fn serialize(&self, _stream: &mut Stream) {
-        todo!();
+    fn serialize(&self, stream: &mut Stream) {
+        let s = self.to_string_radix(16);
+        let bytes: &[u8] = s.as_ref();
+        stream
+            .append(&CompactInteger::from(bytes.len()))
+            .append_slice(bytes);
+    }
+
+    #[inline]
+    fn serialized_size(&self) -> usize {
+        let s = self.to_string_radix(16);
+        let bytes: &[u8] = s.as_ref();
+        CompactInteger::from(bytes.len()).serialized_size() + bytes.len()
     }
 }
 
 impl Deserializable for Integer {
-    fn deserialize<T>(_reader: &mut Reader<T>) -> Result<Self, Error>
-    where
-        T: io::Read,
-    {
-        todo!();
-    }
-}
-
-impl Serializable for Vec<Integer> {
-    fn serialize(&self, stream: &mut Stream) {
-        stream.append_vector(self);
-    }
-}
-
-impl Deserializable for Vec<Integer> {
     fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, Error>
     where
         T: io::Read,
     {
-        reader.read_vector()
+        let bytes: Bytes = reader.read()?;
+        let s = String::from_utf8_lossy(&bytes);
+        match Integer::from_str_radix(&s, 16) {
+            Ok(i) => Ok(i),
+            Err(e) => Err(Error::MalformedData),
+        }
     }
 }
 
