@@ -27,6 +27,7 @@ pub struct SPoWResult {
     proof: Proof,
 }
 
+// TODO: maybe move to serialization/src/impls.rs?
 impl Serializable for SPoWResult {
     fn serialize(&self, stream: &mut Stream) {
         stream
@@ -34,6 +35,9 @@ impl Serializable for SPoWResult {
             .append(&self.randomness)
             .append(&self.proof);
     }
+
+    // TODO:
+    // serialized_size
 }
 
 impl Deserializable for SPoWResult {
