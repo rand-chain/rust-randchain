@@ -3,6 +3,7 @@ use crypto::dhash256;
 use hash::H256;
 use hex::FromHex;
 use ser::{deserialize, serialize};
+use spow::SPoWResult;
 use std::fmt;
 
 #[derive(PartialEq, Clone, Serializable, Deserializable)]
@@ -14,6 +15,7 @@ pub struct BlockHeader {
     pub time: u32,
     pub bits: Compact,
     pub nonce: u32,
+    pub spow: SPoWResult,
 }
 
 impl BlockHeader {

@@ -11,6 +11,7 @@ bitcrypto = { path = "../crypto" }
 primitives = { path = "../primitives" }
 serialization = { path = "../serialization" }
 serialization_derive = { path = "../serialization_derive" }
+spow = { path = "../spow" }
 
 [features]
 default = []
