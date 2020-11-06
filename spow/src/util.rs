@@ -3,7 +3,7 @@ use rug::Integer;
 use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
 
-use super::config::MODULUS;
+use super::config;
 
 /// state & target should already be modulo
 pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {
@@ -29,7 +29,7 @@ pub fn h_g(pubkey: &ecvrf::VrfPk, seed: &Integer) -> Integer {
     let result_int = Integer::from_str_radix(&result_hex_str, 16).unwrap();
 
     // invert to get enough security bits
-    match result_int.invert(&MODULUS) {
+    match result_int.invert(&config::MODULUS) {
         Ok(inverse) => inverse,
         Err(unchanged) => unchanged,
     }
@@ -47,7 +47,7 @@ pub fn h_state(pubkey: &ecvrf::VrfPk, state: &Integer) -> Integer {
     let result_int = Integer::from_str_radix(&result_hex_str, 16).unwrap();
 
     // invert to get enough security bits
-    match result_int.invert(&MODULUS) {
+    match result_int.invert(&config::MODULUS) {
         Ok(inverse) => inverse,
         Err(unchanged) => unchanged,
     }
@@ -64,12 +64,15 @@ pub fn hash_to_prime(inputs: &[&Integer]) -> Integer {
     let hashed_int = Integer::from_str_radix(&hashed_hex_str, 16).unwrap();
 
     // invert to get enough security bits
-    let inverse = match hashed_int.invert(&MODULUS) {
+    let inverse = match hashed_int.invert(&config::MODULUS) {
         Ok(inverse) => inverse,
         Err(unchanged) => unchanged,
     };
 
-    inverse.next_prime().div_rem_floor(MODULUS.clone()).1
+    inverse
+        .next_prime()
+        .div_rem_floor(config::MODULUS.clone())
+        .1
 }
 
 /// Fiat–Shamir heuristic non-iterative signature
@@ -84,7 +87,7 @@ pub fn hash_fs(inputs: &[&Integer]) -> Integer {
     let hashed_int = Integer::from_str_radix(&hashed_hex_str, 16).unwrap();
 
     // invert to get enough security bits
-    match hashed_int.invert(&MODULUS) {
+    match hashed_int.invert(&config::MODULUS) {
         Ok(inverse) => inverse,
         Err(unchanged) => unchanged,
     }
