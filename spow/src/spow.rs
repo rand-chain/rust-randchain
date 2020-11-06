@@ -16,13 +16,13 @@ pub struct SPoW<'a> {
     pubkey: &'a VrfPk,
 }
 
+// TODO: serialize & unserialize
 pub type Proof = Vec<Integer>;
 
 #[derive(Debug)]
 pub struct SPoWResult {
     iterations: u64,
     randomness: Integer,
-    // TODO: serialize & unserialize
     proof: Proof,
 }
 
