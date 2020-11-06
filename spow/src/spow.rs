@@ -19,7 +19,7 @@ pub struct SPoW<'a> {
 // TODO: serialize & unserialize
 pub type Proof = Vec<Integer>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SPoWResult {
     iterations: u64,
     randomness: Integer,
