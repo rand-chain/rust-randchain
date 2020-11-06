@@ -1,8 +1,9 @@
 use ecvrf::VrfPk;
 use rug::Integer;
-use ser::{Deserializable, Serializable};
+use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
+use std::io;
 use std::vec::Vec;
 
 use super::config::{MODULUS, STEP};
@@ -27,17 +28,26 @@ pub struct SPoWResult {
 }
 
 impl Serializable for SPoWResult {
-    fn serialize(&self, _: &mut ser::Stream) {
-        todo!()
+    fn serialize(&self, stream: &mut Stream) {
+        stream
+            .append(&self.iterations)
+            .append(&self.randomness)
+            .append(&self.proof);
     }
 }
 
 impl Deserializable for SPoWResult {
-    fn deserialize<T, Self>(_: &mut ser::Reader<T>) -> std::result::Result<Self, ser::Error>
+    fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
     where
-        T: std::io::Read,
+        T: io::Read,
     {
-        todo!()
+        let res = SPoWResult {
+            iterations: reader.read()?,
+            randomness: reader.read()?,
+            proof: reader.read()?,
+        };
+
+        Ok(res)
     }
 }
 
