@@ -3,6 +3,7 @@ use bytes::Bytes;
 use compact::Compact;
 use compact_integer::CompactInteger;
 use hash::{H160, H256, H264, H32, H48, H512, H520, H96};
+use rug::Integer;
 use std::io;
 use {Deserializable, Error, Reader, Serializable, Stream};
 
@@ -277,6 +278,36 @@ impl Deserializable for Compact {
         T: io::Read,
     {
         reader.read::<u32>().map(Compact::new)
+    }
+}
+
+impl Serializable for Integer {
+    fn serialize(&self, _stream: &mut Stream) {
+        todo!();
+    }
+}
+
+impl Deserializable for Integer {
+    fn deserialize<T>(_reader: &mut Reader<T>) -> Result<Self, Error>
+    where
+        T: io::Read,
+    {
+        todo!();
+    }
+}
+
+impl Serializable for Vec<Integer> {
+    fn serialize(&self, stream: &mut Stream) {
+        stream.append_vector(self);
+    }
+}
+
+impl Deserializable for Vec<Integer> {
+    fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, Error>
+    where
+        T: io::Read,
+    {
+        reader.read_vector()
     }
 }
 

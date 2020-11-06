@@ -27,7 +27,6 @@ pub struct SPoWResult {
     proof: Proof,
 }
 
-// TODO: maybe move to serialization/src/impls.rs?
 impl Serializable for SPoWResult {
     fn serialize(&self, stream: &mut Stream) {
         stream
