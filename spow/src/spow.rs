@@ -22,9 +22,9 @@ pub type VDFProof = Vec<Integer>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SPoWResult {
-    iterations: u64,
-    randomness: Integer,
-    proof: VDFProof,
+    pub iterations: u32,
+    pub randomness: Integer,
+    pub proof: VDFProof,
 }
 
 impl Serializable for SPoWResult {
@@ -61,7 +61,7 @@ impl SPoW<'_> {
 
     pub fn mine(&mut self, ini_state: &Integer, target: &Integer) -> SPoWResult {
         let mut cur_state = ini_state.clone();
-        let mut iters: u64 = 0;
+        let mut iters: u32 = 0;
 
         loop {
             iters += STEP;
@@ -104,7 +104,7 @@ impl SPoW<'_> {
 
         let (mut x_i, mut y_i) = (g.clone(), y.clone());
         let mut t = result.iterations;
-        let two: Integer = 2u64.into();
+        let two: Integer = 2u32.into();
         for mu_i in &result.proof {
             let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
@@ -160,12 +160,12 @@ pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {
     (hashed_int.cmp(target) == Ordering::Less) || (hashed_int.cmp(target) == Ordering::Equal)
 }
 
-fn prove(g: &Integer, y: &Integer, iterations: u64) -> VDFProof {
+fn prove(g: &Integer, y: &Integer, iterations: u32) -> VDFProof {
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
     let mut proof = VDFProof::new();
 
     let mut t = iterations;
-    let two: Integer = 2u64.into();
+    let two: Integer = 2u32.into();
     while t >= 2 {
         let two_exp = Integer::from(1) << ((t / 2) as u32); // 2^(t/2)
         let mu_i = x_i.clone().pow_mod(&two_exp, &MODULUS).unwrap();
