@@ -6,9 +6,9 @@ use super::util;
 
 pub type Proof = Vec<Integer>;
 
-pub fn eval(g: &Integer, iterations: u32) -> Integer {
+pub fn eval(g: &Integer, t: u32) -> Integer {
     let mut y = g.clone();
-    for _ in 0..iterations {
+    for _ in 0..t {
         y = y.clone() * y.clone();
         y = y.div_rem_floor(MODULUS.clone()).1;
     }
