@@ -139,12 +139,6 @@ where
             .after_peer_nearly_blocks_verified(peer_index, Box::new(lazy_server_task));
     }
 
-    /// When peer is requesting for memory pool contents
-    pub fn on_mempool(&self, peer_index: PeerIndex, _message: types::MemPool) {
-        trace!(target: "sync", "Got `mempool` message from peer#{}", peer_index);
-        self.server.execute(ServerTask::Mempool(peer_index));
-    }
-
     /// When peer asks us to announce new blocks using headers message
     pub fn on_sendheaders(&self, peer_index: PeerIndex, _message: types::SendHeaders) {
         trace!(target: "sync", "Got `sendheaders` message from peer#{}", peer_index);

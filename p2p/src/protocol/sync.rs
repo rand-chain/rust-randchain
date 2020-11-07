@@ -32,7 +32,6 @@ pub trait InboundSyncConnection: Send + Sync {
     fn on_getheaders(&self, message: types::GetHeaders, id: u32);
     fn on_block(&self, message: types::Block);
     fn on_headers(&self, message: types::Headers);
-    fn on_mempool(&self, message: types::MemPool);
     fn on_sendheaders(&self, message: types::SendHeaders);
     fn on_notfound(&self, message: types::NotFound);
 }
@@ -45,7 +44,6 @@ pub trait OutboundSyncConnection: Send + Sync {
     fn send_block(&self, message: &types::Block);
     fn send_headers(&self, message: &types::Headers);
     fn respond_headers(&self, message: &types::Headers, id: u32);
-    fn send_mempool(&self, message: &types::MemPool);
     fn send_sendheaders(&self, message: &types::SendHeaders);
     fn send_notfound(&self, message: &types::NotFound);
     fn ignored(&self, id: u32);
@@ -89,10 +87,6 @@ impl OutboundSyncConnection for OutboundSync {
 
     fn respond_headers(&self, message: &types::Headers, id: u32) {
         self.context.send_response(message, id, true);
-    }
-
-    fn send_mempool(&self, message: &types::MemPool) {
-        self.context.send_request(message);
     }
 
     fn send_sendheaders(&self, message: &types::SendHeaders) {
@@ -190,13 +184,6 @@ impl Protocol for SyncProtocol {
         } else if command == &types::Block::command() {
             let message: types::Block = deserialize_payload(payload, version)?;
             self.inbound_connection.on_block(message);
-        } else if command == &types::MemPool::command() {
-            if self.state.synchronizing() {
-                return Ok(());
-            }
-
-            let message: types::MemPool = deserialize_payload(payload, version)?;
-            self.inbound_connection.on_mempool(message);
         } else if command == &types::Headers::command() {
             let message: types::Headers = deserialize_payload(payload, version)?;
             self.inbound_connection.on_headers(message);
