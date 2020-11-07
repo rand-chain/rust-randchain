@@ -47,6 +47,7 @@ impl cmp::PartialEq for IndexedBlockHeader {
     }
 }
 
+// TODO: impl Serializable?
 impl Deserializable for IndexedBlockHeader {
     fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
     where
