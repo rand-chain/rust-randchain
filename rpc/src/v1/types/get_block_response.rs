@@ -36,7 +36,8 @@ pub struct VerboseBlock {
     pub version_hex: String,
     /// Randomness result in this block
     // TODO: use Integer/[u8] type?
-    pub randomness: String,
+    #[serde(rename = "randomnessHex")]
+    pub randomness_hex: String,
     /// Block time in seconds since epoch (Jan 1 1970 GMT)
     pub time: u32,
     // TODO: what is mediantime? remove mediantime?
