@@ -6,6 +6,16 @@ use super::util;
 
 pub type Proof = Vec<Integer>;
 
+pub fn eval(g: &Integer, iterations: u64) -> Integer {
+    let mut y = g.clone();
+    for _ in 0..iterations {
+        y = y.clone() * y.clone();
+        y = y.div_rem_floor(MODULUS.clone()).1;
+    }
+
+    y
+}
+
 pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Proof {
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
     let mut proof = Proof::new();

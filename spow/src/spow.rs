@@ -77,12 +77,7 @@ impl SPoW<'_> {
     }
 
     fn solve(&mut self, state: &Integer, target: &Integer) -> (Integer, bool) {
-        let mut y = state.clone();
-        for _ in 0..STEP {
-            y = y.clone() * y.clone();
-            y = y.div_rem_floor(MODULUS.clone()).1;
-        }
-
+        let y = vdf::eval(state, STEP);
         let hstate = self.h_state(&y);
         (y, validate_difficulty(&hstate, target))
     }
