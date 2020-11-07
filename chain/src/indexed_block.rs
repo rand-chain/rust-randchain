@@ -48,11 +48,6 @@ impl IndexedBlock {
         header_size
     }
 
-    pub fn size_with_witness(&self) -> usize {
-        let header_size = self.header.raw.serialized_size();
-        header_size
-    }
-
     // TODO:
     pub fn merkle_root(&self) -> H256 {
         unimplemented!()
