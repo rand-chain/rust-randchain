@@ -10,9 +10,7 @@ pub enum RejectCode {
     Obsolate = 0x11,
     Duplicate = 0x12,
     Nonstandard = 0x40,
-    Dust = 0x41,
-    InsuficientFee = 0x42,
-    Checkpoint = 0x43,
+    Checkpoint = 0x41,
 }
 
 impl From<RejectCode> for u8 {
@@ -29,9 +27,7 @@ impl RejectCode {
             0x11 => RejectCode::Obsolate,
             0x12 => RejectCode::Duplicate,
             0x40 => RejectCode::Nonstandard,
-            0x41 => RejectCode::Dust,
-            0x42 => RejectCode::InsuficientFee,
-            0x43 => RejectCode::Checkpoint,
+            0x41 => RejectCode::Checkpoint,
             _ => return None,
         };
 
