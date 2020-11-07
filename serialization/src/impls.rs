@@ -281,7 +281,6 @@ impl Deserializable for Compact {
     }
 }
 
-// TODO: test
 impl Serializable for Integer {
     fn serialize(&self, stream: &mut Stream) {
         let s = self.to_string_radix(16);
@@ -403,12 +402,20 @@ mod tests {
 
     #[test]
     fn test_integer_serialize_deserialize() {
-        let expected: Bytes = "03346432".into();
-        let i: Integer = Integer::from(1234);
-        let b = serialize(&i);
-        assert_eq!(b, expected.into());
+        let expected1: Bytes = "03346431".into();
+        let i1: Integer = Integer::from(1233);
+        let b1 = serialize(&i1);
+        assert_eq!(b1, expected1.into());
+
+        let expected2: Bytes = "03346432".into();
+        let i2: Integer = Integer::from(1234);
+        let b2 = serialize(&i2);
+        assert_eq!(b2, expected2.into());
         
-        let recover = deserialize::<_, Integer>(b.as_ref()).unwrap();
-        assert_eq!(recover, i);
+        let recover1 = deserialize::<_, Integer>(b1.as_ref()).unwrap();
+        assert_eq!(recover1, i1);
+        
+        let recover2 = deserialize::<_, Integer>(b2.as_ref()).unwrap();
+        assert_eq!(recover2, i2);
     }
 }
