@@ -2,6 +2,7 @@ extern crate bitcrypto as crypto;
 extern crate heapsize;
 extern crate primitives;
 extern crate rayon;
+extern crate rug;
 extern crate rustc_hex as hex;
 extern crate serialization as ser;
 extern crate spow;
