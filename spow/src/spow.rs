@@ -18,13 +18,13 @@ pub struct SPoW<'a> {
     pubkey: &'a VrfPk,
 }
 
-pub type Proof = Vec<Integer>;
+pub type VDFProof = Vec<Integer>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SPoWResult {
     iterations: u64,
     randomness: Integer,
-    proof: Proof,
+    proof: VDFProof,
 }
 
 impl Serializable for SPoWResult {
@@ -95,7 +95,7 @@ impl SPoW<'_> {
         g: &Integer,
         y: &Integer,
         iterations: u64,
-        proof: &Proof,
+        proof: &VDFProof,
         target: &Integer,
     ) -> bool {
         let hstate = self.h_state(y);
@@ -161,9 +161,9 @@ pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {
     (hashed_int.cmp(target) == Ordering::Less) || (hashed_int.cmp(target) == Ordering::Equal)
 }
 
-fn prove(g: &Integer, y: &Integer, iterations: u64) -> Proof {
+fn prove(g: &Integer, y: &Integer, iterations: u64) -> VDFProof {
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
-    let mut proof = Proof::new();
+    let mut proof = VDFProof::new();
 
     let mut t = iterations;
     let two: Integer = 2u64.into();

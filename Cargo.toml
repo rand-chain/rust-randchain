@@ -1,9 +1,9 @@
 [package]
-name = "pbtc"
+name = "randchain"
 version = "0.1.0"
 license = "GPL-3.0"
 authors = ["RandChain https://github.com/rand-chain/"]
-description = "RandChain daemon client."
+description = "RandChain: Decentralised Randomness Beacon from Sequential Proof-of-Work. https://eprint.iacr.org/2020/1033.pdf"
 
 [dependencies]
 log = "0.4"
