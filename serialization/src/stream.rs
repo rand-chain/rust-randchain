@@ -4,9 +4,6 @@ use compact_integer::CompactInteger;
 use std::borrow::Borrow;
 use std::io::{self, Write};
 
-/// Do not serialize transaction witness data.
-pub const SERIALIZE_TRANSACTION_WITNESS: u32 = 0x40000000;
-
 pub fn serialize<T>(t: &T) -> Bytes
 where
     T: Serializable,
@@ -104,11 +101,6 @@ impl Stream {
             buffer: Vec::new(),
             flags: flags,
         }
-    }
-
-    /// Are transactions written to this stream with witness data?
-    pub fn include_transaction_witness(&self) -> bool {
-        (self.flags & SERIALIZE_TRANSACTION_WITNESS) != 0
     }
 
     /// Serializes the struct and appends it to the end of stream.
