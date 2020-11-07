@@ -1,5 +1,5 @@
 [package]
-name = "pbtc"
+name = "randchain"
 version = "0.1.0"
 license = "GPL-3.0"
 authors = ["RandChain https://github.com/rand-chain/"]
