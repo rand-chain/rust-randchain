@@ -94,8 +94,7 @@ impl SPoW<'_> {
         &mut self,
         g: &Integer,
         y: &Integer,
-        iterations: u64,
-        proof: &VDFProof,
+        result: &SPoWResult,
         target: &Integer,
     ) -> bool {
         let hstate = self.h_state(y);
@@ -104,9 +103,9 @@ impl SPoW<'_> {
         }
 
         let (mut x_i, mut y_i) = (g.clone(), y.clone());
-        let mut t = iterations;
+        let mut t = result.iterations;
         let two: Integer = 2u64.into();
-        for mu_i in proof {
+        for mu_i in &result.proof {
             let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
             let xi_ri = x_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
