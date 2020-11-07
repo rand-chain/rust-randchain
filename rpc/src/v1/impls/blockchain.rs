@@ -83,8 +83,7 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                     .and_then(|h| self.storage.block_hash(h + 1).map(|h| h.into())),
                 bits: block.header.raw.bits.into(),
                 hash: block.hash().clone().into(),
-                // TODO: rename this
-                merkleroot: block.header.raw.spow.randomness.clone().into(),
+                randomness: block.header.raw.spow.randomness.to_string_radix(16),
                 nonce: block.header.raw.spow.iterations,
                 time: block.header.raw.time,
                 version: block.header.raw.version,
@@ -135,7 +134,7 @@ where
                     verbose_block.previousblockhash.map(|h| h.reversed());
                 verbose_block.nextblockhash = verbose_block.nextblockhash.map(|h| h.reversed());
                 verbose_block.hash = verbose_block.hash.reversed();
-                verbose_block.merkleroot = verbose_block.merkleroot.reversed();
+                verbose_block.randomness = verbose_block.randomness;
                 Some(GetBlockResponse::Verbose(verbose_block))
             } else {
                 None
