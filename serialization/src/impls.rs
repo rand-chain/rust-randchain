@@ -411,11 +411,30 @@ mod tests {
         let i2: Integer = Integer::from(1234);
         let b2 = serialize(&i2);
         assert_eq!(b2, expected2.into());
-        
+
         let recover1 = deserialize::<_, Integer>(b1.as_ref()).unwrap();
         assert_eq!(recover1, i1);
-        
+
         let recover2 = deserialize::<_, Integer>(b2.as_ref()).unwrap();
         assert_eq!(recover2, i2);
+    }
+
+    #[test]
+    fn test_vec_integer_serialize_deserialize() {
+        let mut v = Vec::<Integer>::new();
+        v.push(Integer::from(1));
+        v.push(Integer::from(2));
+        v.push(Integer::from(99));
+        let mut stream = Stream::default();
+        stream.append_vector(&v);
+        let b = stream.out();
+        let expected: Bytes = "0301310132023633".into();
+        assert_eq!(b, expected.into());
+
+        let mut reader = Reader::new(&b);
+        assert!(!reader.is_finished());
+        let recover: Vec<Integer> = reader.read_vector().unwrap();
+        assert!(reader.is_finished());
+        assert_eq!(recover, v);
     }
 }
