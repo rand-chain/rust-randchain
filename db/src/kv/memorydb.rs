@@ -11,6 +11,7 @@ use std::sync::Arc;
 struct InnerDatabase {
     meta: HashMap<&'static str, KeyState<Bytes>>,
     block_hash: HashMap<u32, KeyState<H256>>,
+    // BlockHeader already contains randomness and other spow info
     block_header: HashMap<H256, KeyState<BlockHeader>>,
     block_number: HashMap<H256, KeyState<u32>>,
     configuration: HashMap<&'static str, KeyState<Bytes>>,

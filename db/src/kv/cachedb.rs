@@ -19,6 +19,7 @@ where
     pub fn new(db: T) -> Self {
         CacheDatabase {
             db: db,
+            // TODO: reconfig this
             // 144 (blocks per day) * 14 (days) + 100 (arbitrary number)
             header: Mutex::new(LruCache::new(2116)),
         }
