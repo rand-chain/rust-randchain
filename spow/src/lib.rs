@@ -8,5 +8,6 @@ pub mod spow;
 
 mod config;
 mod util;
+mod vdf;
 
 pub use spow::SPoWResult;
