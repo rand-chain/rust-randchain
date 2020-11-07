@@ -1165,6 +1165,7 @@ dependencies = [
  "network 0.1.0",
  "p2p 0.1.0",
  "primitives 0.1.0",
+ "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-hex 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",

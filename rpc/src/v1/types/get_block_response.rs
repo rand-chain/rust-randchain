@@ -1,6 +1,7 @@
 use super::block::RawBlock;
 use super::hash::H256;
 use super::uint::U256;
+use rug::Integer;
 use serde::{Serialize, Serializer};
 
 /// Response to getblock RPC request
@@ -34,9 +35,8 @@ pub struct VerboseBlock {
     /// Block version as hex
     #[serde(rename = "versionHex")]
     pub version_hex: String,
-    // TODO:
-    /// Merkle root of this block
-    pub merkleroot: H256,
+    /// Randomness result in this block
+    pub merkleroot: Integer,
     /// Block time in seconds since epoch (Jan 1 1970 GMT)
     pub time: u32,
     // TODO: what is mediantime? remove mediantime?
