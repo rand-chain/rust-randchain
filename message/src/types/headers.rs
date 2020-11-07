@@ -17,24 +17,24 @@ impl Headers {
 }
 
 #[derive(Debug, PartialEq)]
-struct HeaderWithTxnCount {
+struct Header {
     header: BlockHeader,
 }
 
-impl From<HeaderWithTxnCount> for BlockHeader {
-    fn from(header: HeaderWithTxnCount) -> BlockHeader {
+impl From<Header> for BlockHeader {
+    fn from(header: Header) -> BlockHeader {
         header.header
     }
 }
 
 #[derive(Debug, PartialEq)]
-struct HeaderWithTxnCountRef<'a> {
+struct HeaderRef<'a> {
     header: &'a BlockHeader,
 }
 
-impl<'a> From<&'a BlockHeader> for HeaderWithTxnCountRef<'a> {
+impl<'a> From<&'a BlockHeader> for HeaderRef<'a> {
     fn from(header: &'a BlockHeader) -> Self {
-        HeaderWithTxnCountRef { header: header }
+        HeaderRef { header: header }
     }
 }
 
@@ -51,23 +51,22 @@ impl Payload for Headers {
     where
         T: io::Read,
     {
-        let headers_with_txn_count: Vec<HeaderWithTxnCount> = reader.read_list()?;
+        let header_vec: Vec<Header> = reader.read_list()?;
         let headers = Headers {
-            headers: headers_with_txn_count.into_iter().map(Into::into).collect(),
+            headers: header_vec.into_iter().map(Into::into).collect(),
         };
 
         Ok(headers)
     }
 
     fn serialize_payload(&self, stream: &mut Stream, _version: u32) -> MessageResult<()> {
-        let headers_with_txn_count: Vec<HeaderWithTxnCountRef> =
-            self.headers.iter().map(Into::into).collect();
-        stream.append_list(&headers_with_txn_count);
+        let header_vec: Vec<HeaderRef> = self.headers.iter().map(Into::into).collect();
+        stream.append_list(&header_vec);
         Ok(())
     }
 }
 
-impl<'a> Serializable for HeaderWithTxnCountRef<'a> {
+impl<'a> Serializable for HeaderRef<'a> {
     fn serialize(&self, stream: &mut Stream) {
         stream
             .append(self.header)
@@ -75,12 +74,12 @@ impl<'a> Serializable for HeaderWithTxnCountRef<'a> {
     }
 }
 
-impl Deserializable for HeaderWithTxnCount {
+impl Deserializable for Header {
     fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
     where
         T: io::Read,
     {
-        let header = HeaderWithTxnCount {
+        let header = Header {
             header: reader.read()?,
         };
 
