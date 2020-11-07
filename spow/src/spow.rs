@@ -4,10 +4,9 @@ use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
 use std::io;
-use std::vec::Vec;
 
 use super::config::{MODULUS, STEP};
-use super::util;
+use super::vdf;
 
 ///
 /// Sequetial Proof-of-Work
@@ -18,13 +17,11 @@ pub struct SPoW<'a> {
     pubkey: &'a VrfPk,
 }
 
-pub type VDFProof = Vec<Integer>;
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct SPoWResult {
     iterations: u64,
     randomness: Integer,
-    proof: VDFProof,
+    proof: vdf::Proof,
 }
 
 impl Serializable for SPoWResult {
@@ -75,7 +72,7 @@ impl SPoW<'_> {
         SPoWResult {
             iterations: iters,
             randomness: cur_state.clone(),
-            proof: prove(ini_state, &cur_state, iters),
+            proof: vdf::prove(ini_state, &cur_state, iters),
         }
     }
 
@@ -95,7 +92,7 @@ impl SPoW<'_> {
         g: &Integer,
         y: &Integer,
         iterations: u64,
-        proof: &VDFProof,
+        proof: &vdf::Proof,
         target: &Integer,
     ) -> bool {
         let hstate = self.h_state(y);
@@ -103,26 +100,7 @@ impl SPoW<'_> {
             return false;
         }
 
-        let (mut x_i, mut y_i) = (g.clone(), y.clone());
-        let mut t = iterations;
-        let two: Integer = 2u64.into();
-        for mu_i in proof {
-            let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
-
-            let xi_ri = x_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
-            x_i = (xi_ri * mu_i.clone()).div_rem_floor(MODULUS.clone()).1;
-
-            let mui_ri = mu_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
-            y_i = (mui_ri * y_i.clone()).div_rem_floor(MODULUS.clone()).1;
-
-            t = t / 2;
-            if (t % 2 != 0) && (t != 1) {
-                t += 1;
-                y_i = y_i.clone().pow_mod(&two, &MODULUS).unwrap();
-            }
-        }
-
-        y_i == x_i.pow_mod(&two, &MODULUS).unwrap()
+        vdf::verify(g, y, iterations, proof)
     }
 
     /// int(H("pubkey"||pubkey||"state"||state)) mod N
@@ -159,36 +137,6 @@ pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {
     let hash_result_str = format!("{:#x}", hash_result);
     let hashed_int = Integer::from_str_radix(&hash_result_str, 16).unwrap();
     (hashed_int.cmp(target) == Ordering::Less) || (hashed_int.cmp(target) == Ordering::Equal)
-}
-
-fn prove(g: &Integer, y: &Integer, iterations: u64) -> VDFProof {
-    let (mut x_i, mut y_i) = (g.clone(), y.clone());
-    let mut proof = VDFProof::new();
-
-    let mut t = iterations;
-    let two: Integer = 2u64.into();
-    while t >= 2 {
-        let two_exp = Integer::from(1) << ((t / 2) as u32); // 2^(t/2)
-        let mu_i = x_i.clone().pow_mod(&two_exp, &MODULUS).unwrap();
-
-        let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
-
-        let xi_ri = x_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
-        x_i = (xi_ri * mu_i.clone()).div_rem_floor(MODULUS.clone()).1;
-
-        let mui_ri = mu_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
-        y_i = (mui_ri * y_i.clone()).div_rem_floor(MODULUS.clone()).1;
-
-        t = t / 2;
-        if (t % 2 != 0) && (t != 1) {
-            t += 1;
-            y_i = y_i.clone().pow_mod(&two, &MODULUS).unwrap();
-        }
-
-        proof.push(mu_i);
-    }
-
-    proof
 }
 
 /// int(H("pubkey"||pubkey||"residue"||x)) mod N
