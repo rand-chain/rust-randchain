@@ -13,15 +13,6 @@ where
     stream.out()
 }
 
-pub fn serialize_with_flags<T>(t: &T, flags: u32) -> Bytes
-where
-    T: Serializable,
-{
-    let mut stream = Stream::with_flags(flags);
-    stream.append(t);
-    stream.out()
-}
-
 pub fn serialize_list<T, K>(t: &[K]) -> Bytes
 where
     T: Serializable,
@@ -44,18 +35,6 @@ where
             .sum::<usize>()
 }
 
-pub fn serialized_list_size_with_flags<T, K>(t: &[K], flags: u32) -> usize
-where
-    T: Serializable,
-    K: Borrow<T>,
-{
-    CompactInteger::from(t.len()).serialized_size()
-        + t.iter()
-            .map(Borrow::borrow)
-            .map(|i| Serializable::serialized_size_with_flags(i, flags))
-            .sum::<usize>()
-}
-
 pub trait Serializable {
     /// Serialize the struct and appends it to the end of stream.
     fn serialize(&self, s: &mut Stream);
@@ -68,39 +47,18 @@ pub trait Serializable {
         // fallback implementation
         serialize(self).len()
     }
-
-    /// Hint about the size of serialized struct with given flags.
-    fn serialized_size_with_flags(&self, flags: u32) -> usize
-    where
-        Self: Sized,
-    {
-        // fallback implementation
-        serialize_with_flags(self, flags).len()
-    }
 }
 
 /// Stream used for serialization of RandChain structures
 #[derive(Default)]
 pub struct Stream {
     buffer: Vec<u8>,
-    flags: u32,
 }
 
 impl Stream {
     /// New stream
     pub fn new() -> Self {
-        Stream {
-            buffer: Vec::new(),
-            flags: 0,
-        }
-    }
-
-    /// Create stream with given flags,
-    pub fn with_flags(flags: u32) -> Self {
-        Stream {
-            buffer: Vec::new(),
-            flags: flags,
-        }
+        Stream { buffer: Vec::new() }
     }
 
     /// Serializes the struct and appends it to the end of stream.
