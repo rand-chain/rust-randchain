@@ -3,6 +3,7 @@ use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use std::io;
 use {MessageResult, Payload};
 
+// TODO:
 #[derive(Debug, PartialEq)]
 pub enum Addr {
     V0(V0),

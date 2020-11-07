@@ -5,6 +5,7 @@ use {MessageResult, Payload};
 #[derive(Debug, PartialEq)]
 pub struct MemPool;
 
+// TODO:
 impl Payload for MemPool {
     fn version() -> u32 {
         60002
