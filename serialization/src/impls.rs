@@ -316,6 +316,7 @@ impl Deserializable for Integer {
 #[cfg(test)]
 mod tests {
     use bytes::Bytes;
+    use rug::Integer;
     use {deserialize, deserialize_iterator, serialize, Error, Reader, Stream};
 
     #[test]
@@ -324,10 +325,10 @@ mod tests {
 
         let mut reader = Reader::new(&buffer);
         assert!(!reader.is_finished());
-        assert_eq!(1u8, reader.read().unwrap());
-        assert_eq!(2u16, reader.read().unwrap());
-        assert_eq!(3u32, reader.read().unwrap());
-        assert_eq!(4u64, reader.read().unwrap());
+        assert_eq!(1u8, reader.read::<u8>().unwrap());
+        assert_eq!(2u16, reader.read::<u16>().unwrap());
+        assert_eq!(3u32, reader.read::<u32>().unwrap());
+        assert_eq!(4u64, reader.read::<u64>().unwrap());
         assert!(reader.is_finished());
         assert_eq!(Error::UnexpectedEnd, reader.read::<u8>().unwrap_err());
     }
@@ -398,5 +399,16 @@ mod tests {
         let mut stream = Stream::default();
         stream.append_slice(&slice);
         assert_eq!(stream.out(), "64000000".into());
+    }
+
+    #[test]
+    fn test_integer_serialize_deserialize() {
+        let expected: Bytes = "03346432".into();
+        let i: Integer = Integer::from(1234);
+        let b = serialize(&i);
+        assert_eq!(b, expected.into());
+        
+        let recover = deserialize::<_, Integer>(b.as_ref()).unwrap();
+        assert_eq!(recover, i);
     }
 }
