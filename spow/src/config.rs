@@ -4,7 +4,7 @@ use std::str::FromStr;
 ///
 /// evaluation step for each round
 ///
-pub const STEP: u64 = 1024;
+pub const STEP: u32 = 1024;
 
 ///
 /// modulus

@@ -111,6 +111,7 @@ pub struct V0 {
     pub receiver: NetAddress,
 }
 
+// TODO:
 #[derive(Debug, PartialEq, Clone)]
 pub struct V106 {
     pub from: NetAddress,
@@ -119,6 +120,7 @@ pub struct V106 {
     pub start_height: i32,
 }
 
+// TODO:
 #[derive(Debug, PartialEq, Clone)]
 pub struct V70001 {
     pub relay: bool,

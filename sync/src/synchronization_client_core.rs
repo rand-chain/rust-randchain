@@ -1154,7 +1154,6 @@ where
 
         // finally - ask all known peers for their best blocks inventory, in case if some peer
         // has lead us to the fork
-        // + ask all peers for their memory pool
         {
             let block_locator_hashes: Vec<H256> = self.chain.block_locator_hashes();
             for peer in self.peers_tasks.all_peers() {
@@ -1162,7 +1161,6 @@ where
                     *peer,
                     types::GetHeaders::with_block_locator_hashes(block_locator_hashes.clone()),
                 ));
-                self.executor.execute(Task::MemoryPool(*peer));
             }
         }
     }

@@ -7,10 +7,8 @@ pub const COL_COUNT: u32 = 10;
 pub const COL_META: u32 = 0;
 pub const COL_BLOCK_HASHES: u32 = 1;
 pub const COL_BLOCK_HEADERS: u32 = 2;
-// TODO:
-// COL num skipped, because original ones were blockchain txs-related
-pub const COL_BLOCK_NUMBERS: u32 = 6;
-pub const COL_CONFIGURATION: u32 = 7;
+pub const COL_BLOCK_NUMBERS: u32 = 3;
+pub const COL_CONFIGURATION: u32 = 4;
 
 #[derive(Debug)]
 pub enum Operation {
@@ -18,13 +16,12 @@ pub enum Operation {
     Delete(Key),
 }
 
-// TODO:
-// consider update randomness data or metadata
 // and also in the following "Key", "Value"...
 #[derive(Debug)]
 pub enum KeyValue {
     Meta(&'static str, Bytes),
     BlockHash(u32, H256),
+    // BlockHeader already contains randomness and other spow info
     BlockHeader(H256, BlockHeader),
     BlockNumber(H256, u32),
     Configuration(&'static str, Bytes),

@@ -19,9 +19,9 @@ pub struct SPoW<'a> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SPoWResult {
-    iterations: u64,
-    randomness: Integer,
-    proof: vdf::Proof,
+    pub iterations: u32,
+    pub randomness: Integer,
+    pub proof: vdf::Proof,
 }
 
 impl Serializable for SPoWResult {
@@ -58,7 +58,7 @@ impl SPoW<'_> {
 
     pub fn mine(&mut self, ini_state: &Integer, target: &Integer) -> SPoWResult {
         let mut cur_state = ini_state.clone();
-        let mut iters: u64 = 0;
+        let mut iters: u32 = 0;
 
         loop {
             iters += STEP;
@@ -86,8 +86,7 @@ impl SPoW<'_> {
         &mut self,
         g: &Integer,
         y: &Integer,
-        iterations: u64,
-        proof: &vdf::Proof,
+        result: &SPoWResult,
         target: &Integer,
     ) -> bool {
         let hstate = self.h_state(y);
@@ -95,7 +94,7 @@ impl SPoW<'_> {
             return false;
         }
 
-        vdf::verify(g, y, iterations, proof)
+        vdf::verify(g, y, result.iterations, &result.proof)
     }
 
     /// int(H("pubkey"||pubkey||"state"||state)) mod N

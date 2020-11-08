@@ -20,8 +20,6 @@ pub enum Task {
     GetData(PeerIndex, types::GetData),
     /// Get headers
     GetHeaders(PeerIndex, types::GetHeaders),
-    /// Get memory pool
-    MemoryPool(PeerIndex),
     /// Send block
     Block(PeerIndex, IndexedBlock),
     /// Send notfound
@@ -65,14 +63,6 @@ impl LocalSynchronizationTaskExecutor {
                 trace!(target: "sync", "Querying headers starting with {} unknown items from peer#{}", getheaders.block_locator_hashes[0].to_reversed_str(), peer_index);
             }
             connection.send_getheaders(&getheaders);
-        }
-    }
-
-    fn execute_memorypool(&self, peer_index: PeerIndex) {
-        if let Some(connection) = self.peers.connection(peer_index) {
-            trace!(target: "sync", "Querying memory pool contents from peer#{}", peer_index);
-            let mempool = types::MemPool;
-            connection.send_mempool(&mempool);
         }
     }
 
@@ -149,7 +139,6 @@ impl TaskExecutor for LocalSynchronizationTaskExecutor {
             Task::GetHeaders(peer_index, getheaders) => {
                 self.execute_getheaders(peer_index, getheaders)
             }
-            Task::MemoryPool(peer_index) => self.execute_memorypool(peer_index),
             Task::Block(peer_index, block) => self.execute_block(peer_index, block),
             Task::NotFound(peer_index, notfound) => self.execute_notfound(peer_index, notfound),
             Task::Inventory(peer_index, inventory) => self.execute_inventory(peer_index, inventory),

@@ -2,6 +2,7 @@ use block::Block;
 use hash::H256;
 use hex::FromHex;
 use indexed_header::IndexedBlockHeader;
+use rug::Integer;
 use ser::{deserialize, Serializable};
 use std::cmp;
 
@@ -48,26 +49,8 @@ impl IndexedBlock {
         header_size
     }
 
-    pub fn size_with_witness(&self) -> usize {
-        let header_size = self.header.raw.serialized_size();
-        header_size
-    }
-
-    // TODO:
-    pub fn merkle_root(&self) -> H256 {
-        unimplemented!()
-        // merkle_root(
-        //     &self
-        //         .transactions
-        //         .iter()
-        //         .map(|tx| &tx.hash)
-        //         .collect::<Vec<&H256>>(),
-        // )
-    }
-
-    // TODO:
-    pub fn is_final(&self, _height: u32) -> bool {
-        true
+    pub fn randomness(&self) -> &Integer {
+        &self.header.raw.spow.randomness
     }
 }
 

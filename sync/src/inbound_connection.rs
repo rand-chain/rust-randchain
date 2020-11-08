@@ -121,10 +121,6 @@ impl InboundSyncConnection for InboundConnection {
         self.node.on_headers(self.peer_index, headers);
     }
 
-    fn on_mempool(&self, message: types::MemPool) {
-        self.node.on_mempool(self.peer_index, message);
-    }
-
     fn on_sendheaders(&self, message: types::SendHeaders) {
         self.node.on_sendheaders(self.peer_index, message);
     }
