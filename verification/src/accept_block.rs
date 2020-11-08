@@ -7,7 +7,6 @@ use storage::BlockHeaderProvider;
 pub struct BlockAcceptor<'a> {
     pub finality: BlockFinality<'a>,
     pub serialized_size: BlockSerializedSize<'a>,
-    pub witness: BlockWitness<'a>,
 }
 
 impl<'a> BlockAcceptor<'a> {
@@ -21,14 +20,12 @@ impl<'a> BlockAcceptor<'a> {
         BlockAcceptor {
             finality: BlockFinality::new(block, height, headers),
             serialized_size: BlockSerializedSize::new(block, network, height, median_time_past),
-            witness: BlockWitness::new(block),
         }
     }
 
     pub fn check(&self) -> Result<(), Error> {
         self.finality.check()?;
         self.serialized_size.check()?;
-        self.witness.check()?;
         Ok(())
     }
 }
@@ -74,21 +71,6 @@ impl<'a> BlockSerializedSize<'a> {
             height: height,
             median_time_past: median_time_past,
         }
-    }
-
-    // TODO:
-    fn check(&self) -> Result<(), Error> {
-        Ok(())
-    }
-}
-
-pub struct BlockWitness<'a> {
-    block: CanonBlock<'a>,
-}
-
-impl<'a> BlockWitness<'a> {
-    fn new(block: CanonBlock<'a>) -> Self {
-        BlockWitness { block: block }
     }
 
     // TODO:
