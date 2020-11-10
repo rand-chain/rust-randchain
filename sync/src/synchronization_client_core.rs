@@ -2177,7 +2177,7 @@ pub mod tests {
 
         let b11 = test_data::block_builder()
             .header()
-            .nonce(1)
+            .spow_nonce(1)
             .parent(b10.hash())
             .build()
             .build();
@@ -2189,7 +2189,7 @@ pub mod tests {
 
         let b21 = test_data::block_builder()
             .header()
-            .nonce(2)
+            .spow_nonce(2)
             .parent(b10.hash())
             .build()
             .build();
