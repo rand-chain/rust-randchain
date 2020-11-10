@@ -86,29 +86,33 @@ mod tests {
         assert_eq!(stream.out(), expected);
     }
 
-    // #[test]
-    // fn test_block_header_reader() {
-    //     let buffer = vec![
-    //         1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    //         2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    //         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0,
-    //     ];
+    #[test]
+    fn test_block_header_reader() {
+        let buffer = vec![
+            0x01, 0x00, 0x00, 0x00, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+            0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+            0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00,
+            0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x37, 0x02, 0x01, 0x38, 0x01, 0x38,
+        ];
 
-    //     let mut reader = Reader::new(&buffer);
+        let mut reader = Reader::new(&buffer);
 
-    //     let expected = BlockHeader {
-    //         version: 1,
-    //         previous_header_hash: [2; 32].into(),
-    //         merkle_root_hash: [3; 32].into(),
-    //         time: 4,
-    //         bits: 5.into(),
-    //         nonce: 6,
-    //     };
+        let expected = BlockHeader {
+            version: 1,
+            previous_header_hash: [2; 32].into(),
+            time: 4,
+            bits: 5.into(),
+            spow: SPoWResult {
+                iterations: 6,
+                randomness: Integer::from(7),
+                proof: vec![Integer::from(8), Integer::from(8)],
+            },
+        };
 
-    //     assert_eq!(expected, reader.read().unwrap());
-    //     assert_eq!(
-    //         ReaderError::UnexpectedEnd,
-    //         reader.read::<BlockHeader>().unwrap_err()
-    //     );
-    // }
+        assert_eq!(expected, reader.read().unwrap());
+        assert_eq!(
+            ReaderError::UnexpectedEnd,
+            reader.read::<BlockHeader>().unwrap_err()
+        );
+    }
 }
