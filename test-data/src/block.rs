@@ -165,7 +165,7 @@ where
         self
     }
 
-    pub fn nonce(mut self, nonce: u32) -> Self {
+    pub fn spow_nonce(mut self, nonce: u32) -> Self {
         self.spow.iterations = nonce;
         self
     }
@@ -205,7 +205,7 @@ pub fn build_n_empty_blocks_from(
     for i in start_nonce..end_nonce {
         let block = block_builder()
             .header()
-            .nonce(i)
+            .spow_nonce(i)
             .parent(previous_hash)
             .build()
             .build();
@@ -221,7 +221,7 @@ pub fn build_n_empty_blocks_from_genesis(n: u32, start_nonce: u32) -> Vec<chain:
 
 pub fn build_n_empty_blocks(n: u32, start_nonce: u32) -> Vec<chain::Block> {
     assert!(n != 0);
-    let previous = block_builder().header().nonce(start_nonce).build().build();
+    let previous = block_builder().header().spow_nonce(start_nonce).build().build();
     let mut result = vec![previous];
     let children = build_n_empty_blocks_from(n, start_nonce + 1, &result[0].block_header);
     result.extend(children);
