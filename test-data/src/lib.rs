@@ -29,7 +29,6 @@ pub fn genesis() -> Block {
     block_h0()
 }
 
-// TODO: comfort to real genesis?
 pub fn block_h0() -> Block {
     "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b20600000001370201380138".into()
 }
