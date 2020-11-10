@@ -12,7 +12,7 @@ pub struct BlockHeader {
     pub previous_header_hash: H256,
     pub time: u32,
     pub bits: Compact,
-    pub spow: SPoWResult, // TODO: should we separate this?
+    pub spow: SPoWResult,
 }
 
 impl BlockHeader {
