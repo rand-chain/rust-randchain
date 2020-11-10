@@ -5,8 +5,8 @@ use chain;
 use invoke::{Identity, Invoke};
 use primitives::compact::Compact;
 use primitives::hash::H256;
-use spow::SPoWResult;
 use rug::Integer;
+use spow::SPoWResult;
 use std::cell::Cell;
 
 thread_local! {
@@ -175,7 +175,6 @@ where
         self
     }
 
-
     pub fn build(self) -> F::Result {
         self.callback.invoke(chain::BlockHeader {
             time: self.time,
@@ -221,7 +220,11 @@ pub fn build_n_empty_blocks_from_genesis(n: u32, start_nonce: u32) -> Vec<chain:
 
 pub fn build_n_empty_blocks(n: u32, start_nonce: u32) -> Vec<chain::Block> {
     assert!(n != 0);
-    let previous = block_builder().header().spow_nonce(start_nonce).build().build();
+    let previous = block_builder()
+        .header()
+        .spow_nonce(start_nonce)
+        .build()
+        .build();
     let mut result = vec![previous];
     let children = build_n_empty_blocks_from(n, start_nonce + 1, &result[0].block_header);
     result.extend(children);
@@ -246,7 +249,7 @@ fn example5() {
 
     assert_eq!(
         hash,
-        "3e24319d69a77c58e2da8c7331a21729482835c96834dafb3e1793c1253847c7".into()
+        "831ba958f7202633103d66c4ee81a89377002c25dfff290e7c3073468d90cfa0".into()
     );
     assert_eq!(
         block.header().previous_header_hash,
