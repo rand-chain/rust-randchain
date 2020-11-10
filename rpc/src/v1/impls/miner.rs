@@ -51,7 +51,6 @@ where
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use chain;
     use jsonrpc_core::IoHandler;
     use miner;
     use primitives::hash::H256;
@@ -62,17 +61,12 @@ pub mod tests {
 
     impl MinerClientCoreApi for SuccessMinerClientCore {
         fn get_block_template(&self) -> miner::BlockTemplate {
-            let tx: chain::Transaction = "00000000013ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a0000000000000000000101000000000000000000000000".into();
             miner::BlockTemplate {
                 version: 777,
                 previous_header_hash: H256::from(1),
                 time: 33,
                 bits: 44.into(),
                 height: 55,
-                transactions: vec![tx.into()],
-                coinbase_value: 66,
-                size_limit: 77,
-                sigop_limit: 88,
             }
         }
     }
@@ -99,7 +93,7 @@ pub mod tests {
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":{"bits":44,"coinbaseaux":null,"coinbasetxn":null,"coinbasevalue":66,"curtime":33,"height":55,"mintime":null,"mutable":null,"noncerange":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000001","rules":null,"sigoplimit":88,"sizelimit":77,"target":"0000000000000000000000000000000000000000000000000000000000000000","transactions":[{"data":"00000000013ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a0000000000000000000101000000000000000000000000","depends":null,"fee":null,"hash":null,"required":false,"sigops":null,"txid":null,"weight":null}],"vbavailable":null,"vbrequired":null,"version":777,"weightlimit":null},"id":1}"#
+            r#"{"jsonrpc":"2.0","result":{"bits":44,"coinbaseaux":null,"curtime":33,"height":55,"mintime":null,"mutable":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000001","rules":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","vbavailable":null,"vbrequired":null,"version":777,"weightlimit":null},"id":1}"#
         );
     }
 }

@@ -153,20 +153,12 @@ pub mod tests {
     extern crate test_data;
 
     use super::*;
-    use chain::OutPoint;
     use db::BlockChainDatabase;
-    use jsonrpc_core::Error;
     use jsonrpc_core::IoHandler;
-    use network::Network;
     use primitives::bytes::Bytes as GlobalBytes;
     use primitives::hash::H256 as GlobalH256;
     use std::sync::Arc;
-    use v1::helpers::errors::block_not_found;
     use v1::traits::BlockChain;
-    use v1::types::Bytes;
-    use v1::types::ScriptType;
-    use v1::types::H256;
-    use v1::types::{GetTxOutResponse, TransactionOutputScript};
     use v1::types::{RawBlock, VerboseBlock};
 
     #[derive(Default)]
@@ -209,9 +201,7 @@ pub mod tests {
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                merkleroot: "d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9b"
-                    .into(),
-                tx: vec!["d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9b".into()],
+                randomness_hex: "7788".to_owned(),
                 time: 1231469744,
                 mediantime: None,
                 nonce: 1639830024,
@@ -222,26 +212,6 @@ pub mod tests {
                     "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000".into(),
                 ),
                 nextblockhash: None,
-            })
-        }
-
-        fn verbose_transaction_out(&self, _prev_out: OutPoint) -> Result<GetTxOutResponse, Error> {
-            Ok(GetTxOutResponse {
-                bestblock: H256::from(0x56),
-                confirmations: 777,
-                value: 100000.56,
-                script: TransactionOutputScript {
-                    asm: "Hello, world!!!".to_owned(),
-                    hex: Bytes::new(vec![1, 2, 3, 4]),
-                    req_sigs: 777,
-                    script_type: ScriptType::Multisig,
-                    addresses: vec![
-                        "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa".into(),
-                        "1H5m1XzvHsjWX3wwU781ubctznEpNACrNC".into(),
-                    ],
-                },
-                version: 33,
-                coinbase: false,
             })
         }
     }
@@ -270,10 +240,6 @@ pub mod tests {
         fn verbose_block(&self, _hash: GlobalH256) -> Option<VerboseBlock> {
             None
         }
-
-        fn verbose_transaction_out(&self, prev_out: OutPoint) -> Result<GetTxOutResponse, Error> {
-            Err(block_not_found(prev_out.hash))
-        }
     }
 
     #[test]
@@ -294,11 +260,11 @@ pub mod tests {
             )
             .unwrap();
 
-        // direct hash is 6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000
+        // direct hash is ....
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
         );
     }
 
@@ -341,11 +307,11 @@ pub mod tests {
             )
             .unwrap();
 
-        // direct hash is 6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000
+        // direct hash is ...
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
         );
     }
 
@@ -402,7 +368,7 @@ pub mod tests {
             test_data::block_h2().into(),
         ]));
 
-        let core = BlockChainClientCore::new(Network::Mainnet, storage);
+        let core = BlockChainClientCore::new(storage);
 
         // get info on block #1:
         // https://blockexplorer.com/block/00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048
@@ -422,9 +388,7 @@ pub mod tests {
                 height: Some(1),
                 version: 1,
                 version_hex: "1".to_owned(),
-                merkleroot: "982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1cdb606e857233e0e"
-                    .into(),
-                tx: vec!["982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1cdb606e857233e0e".into()],
+                randomness_hex: "7788".to_owned(),
                 time: 1231469665,
                 mediantime: Some(1231006505),
                 nonce: 2573394689,
@@ -458,9 +422,7 @@ pub mod tests {
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                merkleroot: "d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9b"
-                    .into(),
-                tx: vec!["d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9b".into()],
+                randomness_hex: "7788".to_owned(),
                 time: 1231469744,
                 mediantime: Some(1231469665),
                 nonce: 1639830024,
@@ -555,7 +517,7 @@ pub mod tests {
 
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":{"bits":486604799,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd","height":2,"mediantime":null,"merkleroot":"9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5","nextblockhash":null,"nonce":1639830024,"previousblockhash":"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048","size":215,"strippedsize":215,"time":1231469744,"tx":["9b0fc92260312ce44e74ef369f5c66bbb85848f2eddd5a7a1cde251e54ccfdd5"],"version":1,"versionHex":"1","weight":215},"id":1}"#
+            r#"{"jsonrpc":"2.0","result":{"bits":486604799,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd","height":2,"mediantime":null,"nextblockhash":null,"nonce":1639830024,"previousblockhash":"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048","randomnessHex":"7788","size":215,"strippedsize":215,"time":1231469744,"version":1,"versionHex":"1","weight":215},"id":1}"#
         );
     }
 
@@ -580,83 +542,6 @@ pub mod tests {
         assert_eq!(
             &sample,
             r#"{"jsonrpc":"2.0","error":{"code":-32099,"message":"Block with given hash is not found","data":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"},"id":1}"#
-        );
-    }
-
-    #[test]
-    fn verbose_transaction_out_contents() {
-        let storage = Arc::new(BlockChainDatabase::init_test_chain(vec![
-            test_data::genesis().into(),
-        ]));
-        let core = BlockChainClientCore::new(Network::Mainnet, storage);
-
-        // get info on tx from genesis block:
-        // https://blockchain.info/ru/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
-        let verbose_transaction_out = core.verbose_transaction_out(OutPoint {
-            hash: "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a".into(),
-            index: 0,
-        });
-        assert_eq!(verbose_transaction_out, Ok(GetTxOutResponse {
-				bestblock: "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000".into(),
-				confirmations: 1,
-				value: 50.0,
-				script: TransactionOutputScript {
-					asm: "OP_PUSHBYTES_65 0x04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f\nOP_CHECKSIG\n".to_owned(),
-					hex: Bytes::from("4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac"),
-					req_sigs: 1,
-					script_type: ScriptType::PubKey,
-					addresses: vec!["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa".into()]
-				},
-				version: 1,
-				coinbase: true
-			}));
-    }
-
-    #[test]
-    fn transaction_out_success() {
-        let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
-        let mut handler = IoHandler::new();
-        handler.extend_with(client.to_delegate());
-
-        let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "gettxout",
-				"params": ["4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b", 0],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
-
-        assert_eq!(
-            &sample,
-            r#"{"jsonrpc":"2.0","result":{"bestblock":"0000000000000000000000000000000000000000000000000000000000000056","coinbase":false,"confirmations":777,"scriptPubKey":{"addresses":["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa","1H5m1XzvHsjWX3wwU781ubctznEpNACrNC"],"asm":"Hello, world!!!","hex":"01020304","reqSigs":777,"type":"multisig"},"value":100000.56,"version":33},"id":1}"#
-        );
-    }
-
-    #[test]
-    fn transaction_out_failure() {
-        let client = BlockChainClient::new(ErrorBlockChainClientCore::default());
-        let mut handler = IoHandler::new();
-        handler.extend_with(client.to_delegate());
-
-        let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "gettxout",
-				"params": ["4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b", 0],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
-
-        assert_eq!(
-            &sample,
-            r#"{"jsonrpc":"2.0","error":{"code":-32099,"message":"Block with given hash is not found","data":"3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"},"id":1}"#
         );
     }
 }

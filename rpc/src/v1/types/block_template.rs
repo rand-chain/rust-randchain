@@ -28,8 +28,6 @@ pub struct BlockTemplate {
     pub mintime: Option<i64>,
     /// List of ways the block template may be changed, e.g. 'time', 'transactions', 'prevblock'
     pub mutable: Option<Vec<String>>,
-    /// A range of valid nonces (constant 00000000ffffffff)
-    pub noncerange: Option<String>,
     /// Limit of block weight
     pub weightlimit: Option<u32>,
     /// Current timestamp in seconds since epoch (Jan 1 1970 GMT)
@@ -55,71 +53,9 @@ impl From<miner::BlockTemplate> for BlockTemplate {
 
 #[cfg(test)]
 mod tests {
-    use super::super::bytes::Bytes;
     use super::super::hash::H256;
     use super::*;
-    use hex::FromHex;
     use serde_json;
-
-    #[test]
-    fn block_template_transaction_serialize() {
-        assert_eq!(
-            serde_json::to_string(&BlockTemplateTransaction {
-                data: Bytes("00010203".from_hex().unwrap()),
-                txid: None,
-                hash: None,
-                depends: None,
-                fee: None,
-                sigops: None,
-                weight: None,
-                required: false,
-            })
-            .unwrap(),
-            r#"{"data":"00010203","txid":null,"hash":null,"depends":null,"fee":null,"sigops":null,"weight":null,"required":false}"#
-        );
-        assert_eq!(
-            serde_json::to_string(&BlockTemplateTransaction {
-                data: Bytes("00010203".from_hex().unwrap()),
-                txid: Some(H256::from(1)),
-                hash: Some(H256::from(2)),
-                depends: Some(vec![1, 2]),
-                fee: Some(100),
-                sigops: Some(200),
-                weight: Some(300),
-                required: true,
-            })
-            .unwrap(),
-            r#"{"data":"00010203","txid":"0100000000000000000000000000000000000000000000000000000000000000","hash":"0200000000000000000000000000000000000000000000000000000000000000","depends":[1,2],"fee":100,"sigops":200,"weight":300,"required":true}"#
-        );
-    }
-
-    #[test]
-    fn block_template_transaction_deserialize() {
-        assert_eq!(
-			serde_json::from_str::<BlockTemplateTransaction>(r#"{"data":"00010203","txid":null,"hash":null,"depends":null,"fee":null,"sigops":null,"weight":null,"required":false}"#).unwrap(),
-			BlockTemplateTransaction {
-				data: Bytes("00010203".from_hex().unwrap()),
-				txid: None,
-				hash: None,
-				depends: None,
-				fee: None,
-				sigops: None,
-				weight: None,
-				required: false,
-			});
-        assert_eq!(
-			serde_json::from_str::<BlockTemplateTransaction>(r#"{"data":"00010203","txid":"0100000000000000000000000000000000000000000000000000000000000000","hash":"0200000000000000000000000000000000000000000000000000000000000000","depends":[1,2],"fee":100,"sigops":200,"weight":300,"required":true}"#).unwrap(),
-			BlockTemplateTransaction {
-				data: Bytes("00010203".from_hex().unwrap()),
-				txid: Some(H256::from(1)),
-				hash: Some(H256::from(2)),
-				depends: Some(vec![1, 2]),
-				fee: Some(100),
-				sigops: Some(200),
-				weight: Some(300),
-				required: true,
-			});
-    }
 
     #[test]
     fn block_template_serialize() {
@@ -130,23 +66,17 @@ mod tests {
                 vbavailable: None,
                 vbrequired: None,
                 previousblockhash: H256::default(),
-                transactions: vec![],
                 coinbaseaux: None,
-                coinbasevalue: None,
-                coinbasetxn: None,
                 target: H256::default(),
                 mintime: None,
                 mutable: None,
-                noncerange: None,
-                sigoplimit: None,
-                sizelimit: None,
                 weightlimit: None,
                 curtime: 100,
                 bits: 200,
                 height: 300,
             })
             .unwrap(),
-            r#"{"version":0,"rules":null,"vbavailable":null,"vbrequired":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000000","transactions":[],"coinbaseaux":null,"coinbasevalue":null,"coinbasetxn":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","mintime":null,"mutable":null,"noncerange":null,"sigoplimit":null,"sizelimit":null,"weightlimit":null,"curtime":100,"bits":200,"height":300}"#
+            r#"{"version":0,"rules":null,"vbavailable":null,"vbrequired":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000000","coinbaseaux":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","mintime":null,"mutable":null,"weightlimit":null,"curtime":100,"bits":200,"height":300}"#
         );
         assert_eq!(
             serde_json::to_string(&BlockTemplate {
@@ -155,41 +85,17 @@ mod tests {
                 vbavailable: Some(vec![("b".to_owned(), 5)].into_iter().collect()),
                 vbrequired: Some(10),
                 previousblockhash: H256::from(10),
-                transactions: vec![BlockTemplateTransaction {
-                    data: Bytes("00010203".from_hex().unwrap()),
-                    txid: None,
-                    hash: None,
-                    depends: None,
-                    fee: None,
-                    sigops: None,
-                    weight: None,
-                    required: false,
-                }],
                 coinbaseaux: Some(vec![("c".to_owned(), "d".to_owned())].into_iter().collect()),
-                coinbasevalue: Some(30),
-                coinbasetxn: Some(BlockTemplateTransaction {
-                    data: Bytes("555555".from_hex().unwrap()),
-                    txid: Some(H256::from(44)),
-                    hash: Some(H256::from(55)),
-                    depends: Some(vec![1]),
-                    fee: Some(300),
-                    sigops: Some(400),
-                    weight: Some(500),
-                    required: true,
-                }),
                 target: H256::from(100),
                 mintime: Some(7),
                 mutable: Some(vec!["afg".to_owned()]),
-                noncerange: Some("00000000ffffffff".to_owned()),
-                sigoplimit: Some(45),
-                sizelimit: Some(449),
                 weightlimit: Some(523),
                 curtime: 100,
                 bits: 200,
                 height: 300,
             })
             .unwrap(),
-            r#"{"version":0,"rules":["a"],"vbavailable":{"b":5},"vbrequired":10,"previousblockhash":"0a00000000000000000000000000000000000000000000000000000000000000","transactions":[{"data":"00010203","txid":null,"hash":null,"depends":null,"fee":null,"sigops":null,"weight":null,"required":false}],"coinbaseaux":{"c":"d"},"coinbasevalue":30,"coinbasetxn":{"data":"555555","txid":"2c00000000000000000000000000000000000000000000000000000000000000","hash":"3700000000000000000000000000000000000000000000000000000000000000","depends":[1],"fee":300,"sigops":400,"weight":500,"required":true},"target":"6400000000000000000000000000000000000000000000000000000000000000","mintime":7,"mutable":["afg"],"noncerange":"00000000ffffffff","sigoplimit":45,"sizelimit":449,"weightlimit":523,"curtime":100,"bits":200,"height":300}"#
+            r#"{"version":0,"rules":["a"],"vbavailable":{"b":5},"vbrequired":10,"previousblockhash":"0a00000000000000000000000000000000000000000000000000000000000000","coinbaseaux":{"c":"d"},"target":"6400000000000000000000000000000000000000000000000000000000000000","mintime":7,"mutable":["afg"],"weightlimit":523,"curtime":100,"bits":200,"height":300}"#
         );
     }
 
@@ -203,16 +109,10 @@ mod tests {
 				vbavailable: None,
 				vbrequired: None,
 				previousblockhash: H256::default(),
-				transactions: vec![],
 				coinbaseaux: None,
-				coinbasevalue: None,
-				coinbasetxn: None,
 				target: H256::default(),
 				mintime: None,
 				mutable: None,
-				noncerange: None,
-				sigoplimit: None,
-				sizelimit: None,
 				weightlimit: None,
 				curtime: 100,
 				bits: 200,
@@ -226,34 +126,10 @@ mod tests {
 				vbavailable: Some(vec![("b".to_owned(), 5)].into_iter().collect()),
 				vbrequired: Some(10),
 				previousblockhash: H256::from(10),
-				transactions: vec![BlockTemplateTransaction {
-					data: Bytes("00010203".from_hex().unwrap()),
-					txid: None,
-					hash: None,
-					depends: None,
-					fee: None,
-					sigops: None,
-					weight: None,
-					required: false,
-				}],
 				coinbaseaux: Some(vec![("c".to_owned(), "d".to_owned())].into_iter().collect()),
-				coinbasevalue: Some(30),
-				coinbasetxn: Some(BlockTemplateTransaction {
-					data: Bytes("555555".from_hex().unwrap()),
-					txid: Some(H256::from(44)),
-					hash: Some(H256::from(55)),
-					depends: Some(vec![1]),
-					fee: Some(300),
-					sigops: Some(400),
-					weight: Some(500),
-					required: true,
-				}),
 				target: H256::from(100),
 				mintime: Some(7),
 				mutable: Some(vec!["afg".to_owned()]),
-				noncerange: Some("00000000ffffffff".to_owned()),
-				sigoplimit: Some(45),
-				sizelimit: Some(449),
 				weightlimit: Some(523),
 				curtime: 100,
 				bits: 200,
