@@ -20,11 +20,6 @@ pub use block::{
 };
 pub use chain_builder::ChainBuilder;
 
-// TODO:
-pub fn block1() -> Block {
-    "01000000ba8b9cda965dd8e536670f9ddec10e53aab14b20bacad27b9137190000000000190760b278fe7b8565fda3b968b918d5fd997f993b23674c0af3b6fde300b38f33a5914ce6ed5b1b01e32f57".into()
-}
-
 pub fn genesis() -> Block {
     block_h0()
 }
