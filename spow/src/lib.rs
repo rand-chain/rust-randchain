@@ -10,4 +10,4 @@ mod config;
 mod util;
 mod vdf;
 
-pub use spow::SPoWResult;
+pub use crate::spow::SPoWResult;
