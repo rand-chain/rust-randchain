@@ -105,7 +105,7 @@ mod tests {
             spow: SPoWResult {
                 iterations: 6,
                 randomness: Integer::from(7),
-                proof: vec![Integer::from(8), Integer::from(8)],
+                proof: vec![Integer::from(8); 2],
             },
         };
 
