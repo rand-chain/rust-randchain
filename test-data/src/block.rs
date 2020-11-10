@@ -5,6 +5,8 @@ use chain;
 use invoke::{Identity, Invoke};
 use primitives::compact::Compact;
 use primitives::hash::H256;
+use spow::SPoWResult;
+use rug::Integer;
 use std::cell::Cell;
 
 thread_local! {
@@ -119,10 +121,9 @@ pub struct BlockHeaderBuilder<F = Identity> {
     callback: F,
     time: u32,
     parent: H256,
-    nonce: u32,
     bits: Compact,
     version: u32,
-    merkle_root: H256,
+    spow: SPoWResult,
 }
 
 impl<F> BlockHeaderBuilder<F>
@@ -137,12 +138,15 @@ where
                 counter.set(val + 1);
                 val
             }),
-            nonce: 0,
-            merkle_root: 0.into(),
             parent: 0.into(),
             bits: Compact::max_value(),
             // set to 4 to allow creating long test chains
             version: 4,
+            spow: SPoWResult {
+                iterations: 0,
+                randomness: Integer::from(0),
+                proof: vec![],
+            },
         }
     }
 
@@ -156,29 +160,29 @@ where
         self
     }
 
-    pub fn merkle_root(mut self, merkle_root: H256) -> Self {
-        self.merkle_root = merkle_root;
-        self
-    }
-
     pub fn bits(mut self, bits: Compact) -> Self {
         self.bits = bits;
         self
     }
 
     pub fn nonce(mut self, nonce: u32) -> Self {
-        self.nonce = nonce;
+        self.spow.iterations = nonce;
         self
     }
+
+    pub fn spow(mut self, spow: SPoWResult) -> Self {
+        self.spow = spow;
+        self
+    }
+
 
     pub fn build(self) -> F::Result {
         self.callback.invoke(chain::BlockHeader {
             time: self.time,
             previous_header_hash: self.parent,
             bits: self.bits,
-            nonce: self.nonce,
-            merkle_root_hash: self.merkle_root,
             version: self.version,
+            spow: self.spow,
         })
     }
 }

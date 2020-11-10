@@ -1,10 +1,12 @@
 //! Various chain-specific test dummies
 
+extern crate rug;
 extern crate time;
 
 extern crate chain;
 extern crate primitives;
 extern crate serialization as ser;
+extern crate spow;
 
 use chain::Block;
 

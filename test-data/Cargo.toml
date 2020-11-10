@@ -5,7 +5,9 @@ authors = ["Nikolay Volf <nikvolf@gmail.com>"]
 
 [dependencies]
 time = "0.1"
+rug = "1.3.0"
 
 chain = { path = "../chain" , features = ["test-helpers"] }
 primitives = { path = "../primitives" }
 serialization = { path = "../serialization" }
+spow = { path = "../spow" }
