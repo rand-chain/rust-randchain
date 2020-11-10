@@ -35,6 +35,7 @@ impl fmt::Debug for BlockHeader {
             .field("bits", &self.bits)
             .field("nonce", &self.spow.iterations)
             .field("randomness", &self.spow.randomness)
+            .field("vdf_proof", &self.spow.proof)
             .finish()
     }
 }
