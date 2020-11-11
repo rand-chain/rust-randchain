@@ -78,7 +78,7 @@ mod tests {
         let block = VerboseBlock::default();
         assert_eq!(
             serde_json::to_string(&block).unwrap(),
-            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"strippedsize":0,"weight":0,"height":null,"version":0,"versionHex":"","randomnessHex":"","time":0,"mediantime":null,"nonce":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
+            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"height":null,"version":0,"versionHex":"","randomnessHex":"","time":0,"mediantime":null,"nonce":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
         );
 
         let block = VerboseBlock {
@@ -100,7 +100,7 @@ mod tests {
         };
         assert_eq!(
             serde_json::to_string(&block).unwrap(),
-            r#"{"hash":"0100000000000000000000000000000000000000000000000000000000000000","confirmations":-1,"size":500000,"strippedsize":444444,"weight":5236235,"height":3513513,"version":1,"versionHex":"01","randomnessHex":"7788","time":111,"mediantime":100,"nonce":124,"bits":13513,"difficulty":555.555,"chainwork":"3","previousblockhash":"0400000000000000000000000000000000000000000000000000000000000000","nextblockhash":"0500000000000000000000000000000000000000000000000000000000000000"}"#
+            r#"{"hash":"0100000000000000000000000000000000000000000000000000000000000000","confirmations":-1,"size":500000,"height":3513513,"version":1,"versionHex":"01","randomnessHex":"7788","time":111,"mediantime":100,"nonce":124,"bits":13513,"difficulty":555.555,"chainwork":"3","previousblockhash":"0400000000000000000000000000000000000000000000000000000000000000","nextblockhash":"0500000000000000000000000000000000000000000000000000000000000000"}"#
         );
     }
 
@@ -145,7 +145,7 @@ mod tests {
         let verbose_response = GetBlockResponse::Verbose(block);
         assert_eq!(
             serde_json::to_string(&verbose_response).unwrap(),
-            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"strippedsize":0,"weight":0,"height":null,"version":0,"versionHex":"","randomnessHex":"","time":0,"mediantime":null,"nonce":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
+            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"height":null,"version":0,"versionHex":"","randomnessHex":"","time":0,"mediantime":null,"nonce":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
         );
     }
 }
