@@ -40,7 +40,7 @@ pub fn block_h2() -> Block {
 
 // height 3
 pub fn block_h3() -> Block {
-    "01000000bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a0000000044f672226090d85db9a9f2fbfe5f0f9609b387af7be5b7fbb7a1767c831c9e995dbe6649ffff001d05e0ed6d".into()
+    "01000000b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae3ba3edfd7a7b12b20600000001370201380138".into()
 }
 
 // block with the first transaction
