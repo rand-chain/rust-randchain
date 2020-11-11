@@ -1619,7 +1619,7 @@ pub mod tests {
         sync.on_block(2, block.clone().into());
 
         let tasks = executor.take_tasks();
-        assert_eq!(tasks.len(), 6);
+        assert_eq!(tasks.len(), 4);
         // TODO: when saturating, RequestBlocksHeaders is sent twice to the peer who has supplied last block:
         // 1) from on_block_verification_success
         // 2) from switch_to_saturated_state
@@ -1629,9 +1629,6 @@ pub mod tests {
         assert!(tasks
             .iter()
             .any(|t| t == &request_block_headers_genesis_and(2, vec![block.hash()])));
-        // TODO: fixing
-        // assert!(tasks.iter().any(|t| t == &Task::MemoryPool(1)));
-        // assert!(tasks.iter().any(|t| t == &Task::MemoryPool(2)));
         assert!(tasks
             .iter()
             .any(|t| t == &Task::RelayNewBlock(block.clone().into())));
