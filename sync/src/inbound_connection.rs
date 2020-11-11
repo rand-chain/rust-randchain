@@ -197,13 +197,6 @@ pub mod tests {
                 .entry("headers".to_owned())
                 .or_insert(0) += 1;
         }
-        fn send_mempool(&self, _message: &types::MemPool) {
-            *self
-                .messages
-                .lock()
-                .entry("mempool".to_owned())
-                .or_insert(0) += 1;
-        }
         fn send_sendheaders(&self, _message: &types::SendHeaders) {
             *self
                 .messages

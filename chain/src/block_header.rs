@@ -12,7 +12,6 @@ pub struct BlockHeader {
     pub previous_header_hash: H256,
     pub time: u32,
     pub bits: Compact,
-    // TODO: split this?
     pub spow: SPoWResult,
 }
 
@@ -36,6 +35,7 @@ impl fmt::Debug for BlockHeader {
             .field("bits", &self.bits)
             .field("nonce", &self.spow.iterations)
             .field("randomness", &self.spow.randomness)
+            .field("vdf_proof", &self.spow.proof)
             .finish()
     }
 }
@@ -54,26 +54,32 @@ pub(crate) fn block_header_hash(block_header: &BlockHeader) -> H256 {
 #[cfg(test)]
 mod tests {
     use super::BlockHeader;
+    use rug::Integer;
     use ser::{Error as ReaderError, Reader, Stream};
+    use spow::SPoWResult;
 
     #[test]
     fn test_block_header_stream() {
         let block_header = BlockHeader {
             version: 1,
             previous_header_hash: [2; 32].into(),
-            merkle_root_hash: [3; 32].into(),
             time: 4,
             bits: 5.into(),
-            nonce: 6,
+            spow: SPoWResult {
+                iterations: 6,
+                randomness: Integer::from(7),
+                proof: vec![Integer::from(8); 2],
+            },
         };
 
         let mut stream = Stream::default();
         stream.append(&block_header);
 
         let expected = vec![
-            1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0,
+            0x01, 0x00, 0x00, 0x00, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+            0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+            0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00,
+            0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x37, 0x02, 0x01, 0x38, 0x01, 0x38,
         ]
         .into();
 
@@ -83,9 +89,10 @@ mod tests {
     #[test]
     fn test_block_header_reader() {
         let buffer = vec![
-            1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0,
+            0x01, 0x00, 0x00, 0x00, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+            0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+            0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00,
+            0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x37, 0x02, 0x01, 0x38, 0x01, 0x38,
         ];
 
         let mut reader = Reader::new(&buffer);
@@ -93,10 +100,13 @@ mod tests {
         let expected = BlockHeader {
             version: 1,
             previous_header_hash: [2; 32].into(),
-            merkle_root_hash: [3; 32].into(),
             time: 4,
             bits: 5.into(),
-            nonce: 6,
+            spow: SPoWResult {
+                iterations: 6,
+                randomness: Integer::from(7),
+                proof: vec![Integer::from(8); 2],
+            },
         };
 
         assert_eq!(expected, reader.read().unwrap());

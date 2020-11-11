@@ -110,8 +110,8 @@ mod tests {
 
     #[test]
     fn test_inventory_type_conversion() {
-        assert_eq!(0u32, InventoryType::Error.into());
-        assert_eq!(1u32, InventoryType::MessageBlock.into());
+        assert_eq!(0u32, u32::from(InventoryType::Error));
+        assert_eq!(1u32, u32::from(InventoryType::MessageBlock));
 
         assert_eq!(InventoryType::from_u32(0).unwrap(), InventoryType::Error);
         assert_eq!(

@@ -1501,7 +1501,9 @@ version = "0.1.0"
 dependencies = [
  "chain 0.1.0",
  "primitives 0.1.0",
+ "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serialization 0.1.0",
+ "spow 0.1.0",
  "time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
