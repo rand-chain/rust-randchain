@@ -1682,14 +1682,6 @@ pub mod tests {
         sync.on_block(1, b2.clone().into());
 
         let tasks = executor.take_tasks();
-        // TODO: fixing
-        // assert_eq!(
-        //     tasks,
-        //     vec![
-        //         request_block_headers_genesis_and(1, vec![b2.hash(), b1.hash()]),
-        //         Task::MemoryPool(1)
-        //     ]
-        // );
         assert_eq!(
             tasks,
             vec![request_block_headers_genesis_and(
