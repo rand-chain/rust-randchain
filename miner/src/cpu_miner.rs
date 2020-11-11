@@ -109,13 +109,9 @@ pub fn find_solution(block: &BlockTemplate, max_extranonce: U256) -> Option<Solu
 
 #[cfg(test)]
 mod tests {
-    use super::{find_solution, CoinbaseTransactionBuilder};
+    use super::find_solution;
     use block_assembler::BlockTemplate;
-    use chain::{Transaction, TransactionInput, TransactionOutput};
-    use keys::AddressHash;
     use primitives::bigint::{Uint, U256};
-    use primitives::bytes::Bytes;
-    use primitives::hash::H256;
 
     #[test]
     fn test_cpu_miner_low_difficulty() {
