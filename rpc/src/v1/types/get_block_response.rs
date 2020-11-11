@@ -21,11 +21,6 @@ pub struct VerboseBlock {
     pub confirmations: i64,
     /// Block size
     pub size: u32,
-    /// Block size, excluding witness data
-    pub strippedsize: u32,
-    // TODO:
-    /// Block weight
-    pub weight: u32,
     /// Block height
     /// TODO: bitcoind always returns value, but we hold this value for main chain blocks only
     pub height: Option<u32>,
@@ -90,8 +85,6 @@ mod tests {
             hash: H256::from(1),
             confirmations: -1,
             size: 500000,
-            strippedsize: 444444,
-            weight: 5236235,
             height: Some(3513513),
             version: 1,
             version_hex: "01".to_owned(),
@@ -122,8 +115,6 @@ mod tests {
             hash: H256::from(1),
             confirmations: -1,
             size: 500000,
-            strippedsize: 444444,
-            weight: 5236235,
             height: Some(3513513),
             version: 1,
             version_hex: "01".to_owned(),

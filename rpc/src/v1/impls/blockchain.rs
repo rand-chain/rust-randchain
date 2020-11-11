@@ -72,8 +72,6 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
             VerboseBlock {
                 confirmations: confirmations,
                 size: block_size as u32,
-                strippedsize: block_size as u32, // TODO: segwit
-                weight: block_size as u32,       // TODO: segwit
                 height: height,
                 mediantime: Some(median_time),
                 difficulty: block.header.raw.bits.to_f64(),
@@ -196,8 +194,6 @@ pub mod tests {
                 hash: "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000".into(),
                 confirmations: 1, // h2
                 size: 215,
-                strippedsize: 215,
-                weight: 215,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
@@ -382,9 +378,6 @@ pub mod tests {
                 hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
                 confirmations: 2, // h1 + h2
                 size: 55,
-                // TODO:
-                strippedsize: 55,
-                weight: 55,
                 height: Some(1),
                 version: 1,
                 version_hex: "1".to_owned(),
@@ -415,8 +408,6 @@ pub mod tests {
                 hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
                 confirmations: 1, // h2
                 size: 215,
-                strippedsize: 215,
-                weight: 215,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
