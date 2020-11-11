@@ -364,8 +364,6 @@ pub mod tests {
             test_data::block_h2().into(),
         ]));
 
-        println!("{:?}", test_data::block_h1().hash());
-
         let core = BlockChainClientCore::new(storage);
 
         // get info on block #1:
@@ -390,10 +388,10 @@ pub mod tests {
                 difficulty: 1.0,
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000".into()
+                    "0484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa1".into()
                 ),
                 nextblockhash: Some(
-                    "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000".into()
+                    "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into()
                 ),
             })
         );
@@ -419,7 +417,7 @@ pub mod tests {
                 difficulty: 1.0,
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000".into()
+                    "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into()
                 ),
                 nextblockhash: None,
             })
