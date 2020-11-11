@@ -71,7 +71,7 @@ pub struct Solution {
 /// and solution still hasn't been found it returns None.
 /// It's possible to also experiment with time, but I find it pointless
 /// to implement on CPU.
-pub fn find_solution<T>(block: &BlockTemplate, max_extranonce: U256) -> Option<Solution> {
+pub fn find_solution(block: &BlockTemplate, max_extranonce: U256) -> Option<Solution> {
     let mut extranonce = U256::default();
     let mut extranonce_bytes = [0u8; 32];
 
@@ -109,52 +109,9 @@ pub fn find_solution<T>(block: &BlockTemplate, max_extranonce: U256) -> Option<S
 
 #[cfg(test)]
 mod tests {
-    use super::{find_solution, CoinbaseTransactionBuilder};
+    use super::find_solution;
     use block_assembler::BlockTemplate;
-    use chain::{Transaction, TransactionInput, TransactionOutput};
-    use keys::AddressHash;
     use primitives::bigint::{Uint, U256};
-    use primitives::bytes::Bytes;
-    use primitives::hash::H256;
-    use script::Builder;
-
-    pub struct P2shCoinbaseTransactionBuilder {
-        transaction: Transaction,
-    }
-
-    impl P2shCoinbaseTransactionBuilder {
-        pub fn new(hash: &AddressHash, value: u64) -> Self {
-            let script_pubkey = Builder::build_p2sh(hash).into();
-
-            let transaction = Transaction {
-                version: 0,
-                inputs: vec![TransactionInput::coinbase(Bytes::default())],
-                outputs: vec![TransactionOutput {
-                    value: value,
-                    script_pubkey: script_pubkey,
-                }],
-                lock_time: 0,
-            };
-
-            P2shCoinbaseTransactionBuilder {
-                transaction: transaction,
-            }
-        }
-    }
-
-    impl CoinbaseTransactionBuilder for P2shCoinbaseTransactionBuilder {
-        fn set_extranonce(&mut self, extranonce: &[u8]) {
-            self.transaction.inputs[0].script_sig = extranonce.to_vec().into();
-        }
-
-        fn hash(&self) -> H256 {
-            self.transaction.hash()
-        }
-
-        fn finish(self) -> Transaction {
-            self.transaction
-        }
-    }
 
     #[test]
     fn test_cpu_miner_low_difficulty() {
@@ -164,15 +121,9 @@ mod tests {
             time: 0,
             bits: U256::max_value().into(),
             height: 0,
-            transactions: Vec::new(),
-            coinbase_value: 10,
-            size_limit: 1000,
-            sigop_limit: 100,
         };
 
-        let hash = Default::default();
-        let coinbase_builder = P2shCoinbaseTransactionBuilder::new(&hash, 10);
-        let solution = find_solution(&block_template, coinbase_builder, U256::max_value());
+        let solution = find_solution(&block_template, U256::max_value());
         assert!(solution.is_some());
     }
 }
