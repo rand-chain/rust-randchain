@@ -61,7 +61,7 @@ impl SPoW<'_> {
         let mut iters: u32 = 0;
 
         loop {
-            iters += STEP;
+            iters += 1;
             let (new_state, diff_valid) = self.solve(&cur_state, target);
             cur_state = new_state;
             if diff_valid {
@@ -72,7 +72,7 @@ impl SPoW<'_> {
         SPoWResult {
             iterations: iters,
             randomness: cur_state.clone(),
-            proof: vdf::prove(ini_state, &cur_state, iters),
+            proof: vdf::prove(ini_state, &cur_state, u64::from(iters) * STEP),
         }
     }
 
@@ -94,7 +94,7 @@ impl SPoW<'_> {
             return false;
         }
 
-        vdf::verify(g, y, result.iterations, &result.proof)
+        vdf::verify(g, y, u64::from(result.iterations) * STEP, &result.proof)
     }
 
     /// int(H("pubkey"||pubkey||"state"||state)) mod N
