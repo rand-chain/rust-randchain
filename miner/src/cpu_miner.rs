@@ -1,5 +1,3 @@
-// TODO: merkle_root_hash seems useless
-// TODO: implement randomness miner
 use block_assembler::BlockTemplate;
 use byteorder::{LittleEndian, WriteBytesExt};
 use crypto::dhash256;
