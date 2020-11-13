@@ -19,6 +19,7 @@ mod indexed_header;
 mod read_and_hash;
 
 pub use ecvrf::VrfPk;
+
 pub use primitives::{bigint, bytes, compact, hash};
 
 pub use block::Block;
@@ -27,5 +28,3 @@ pub use block_header::BlockHeader;
 pub use indexed_block::IndexedBlock;
 pub use indexed_header::IndexedBlockHeader;
 pub use read_and_hash::{HashedData, ReadAndHash};
-
-pub type ShortTransactionID = hash::H48;
