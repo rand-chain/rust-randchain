@@ -50,7 +50,24 @@ impl Deserializable for BlockHeader {
     where
         T: io::Read,
     {
-        todo!();
+        let res = BlockHeader {
+            version: reader.read()?,
+            previous_header_hash: reader.read()?,
+            time: reader.read()?,
+            bits: reader.read()?,
+            pubkey: {
+                let pk_bytes = reader.read::<Bytes>()?;
+                match VrfPk::from_byte_slice(pk_bytes.as_ref()) {
+                    Err(_) => return Err(ReaderError::MalformedData),
+                    Ok(pk) => pk,
+                }
+            },
+            nonce: reader.read()?,
+            randomness: reader.read()?,
+            proof: reader.read_vector()?,
+        };
+
+        Ok(res)
     }
 }
 

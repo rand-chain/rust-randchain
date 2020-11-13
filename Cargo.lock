@@ -189,7 +189,7 @@ name = "chain"
 version = "0.1.0"
 dependencies = [
  "bitcrypto 0.1.0",
- "ecvrf 0.4.0 (git+https://github.com/rand-chain/ECVRF?rev=b6f35af)",
+ "ecvrf 0.4.0 (git+https://github.com/rand-chain/ECVRF?rev=b0d8bca)",
  "heapsize 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "primitives 0.1.0",
  "rayon 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -352,7 +352,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "ecvrf"
 version = "0.4.0"
-source = "git+https://github.com/rand-chain/ECVRF?rev=b6f35af#b6f35afab58411ede8f0592f9fbd7129a1aab02e"
+source = "git+https://github.com/rand-chain/ECVRF?rev=b0d8bca#b0d8bca2ddb0d027eb26156f956de6ed770e4336"
 dependencies = [
  "curve25519-dalek 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1372,7 +1372,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "spow"
 version = "0.1.0"
 dependencies = [
- "ecvrf 0.4.0 (git+https://github.com/rand-chain/ECVRF?rev=b6f35af)",
+ "ecvrf 0.4.0 (git+https://github.com/rand-chain/ECVRF?rev=b0d8bca)",
  "elapsed 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1765,7 +1765,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum display_derive 0.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4bba5dcd6d2855639fcf65a9af7bbad0bfb6dbf6fe68fba70bab39a6eb973ef4"
 "checksum domain 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "c1850bf2c3c3349e1dba2aa214d86cf9edaa057a09ce46b1a02d5c07d5da5e65"
 "checksum dtoa 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "09c3753c3db574d215cba4ea76018483895d7bff25a31b49ba45db21c48e50ab"
-"checksum ecvrf 0.4.0 (git+https://github.com/rand-chain/ECVRF?rev=b6f35af)" = "<none>"
+"checksum ecvrf 0.4.0 (git+https://github.com/rand-chain/ECVRF?rev=b0d8bca)" = "<none>"
 "checksum either 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "740178ddf48b1a9e878e6d6509a1442a2d42fd2928aae8e7a6f8a36fb01981b3"
 "checksum elapsed 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6f4e5af126dafd0741c2ad62d47f68b28602550102e5f0dd45c8a97fc8b49c29"
 "checksum elastic-array 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "058dc1040bbf28853bc48ec5f59190bac41b246c43c30064f0d318e6d1362fd6"
