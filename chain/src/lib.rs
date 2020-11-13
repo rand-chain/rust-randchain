@@ -18,7 +18,7 @@ mod indexed_header;
 /// `IndexedBlock` extension
 mod read_and_hash;
 
-pub use ecvrf::VrfPk;
+use ecvrf::VrfPk;
 
 pub use primitives::{bigint, bytes, compact, hash};
 

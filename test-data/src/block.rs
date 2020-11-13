@@ -6,7 +6,9 @@ use invoke::{Identity, Invoke};
 use primitives::compact::Compact;
 use primitives::hash::H256;
 use rug::Integer;
+use spow::vdf;
 use std::cell::Cell;
+use VrfPk;
 
 thread_local! {
     pub static TIMESTAMP_COUNTER: Cell<u32> = Cell::new(0);
@@ -122,8 +124,10 @@ pub struct BlockHeaderBuilder<F = Identity> {
     parent: H256,
     bits: Compact,
     version: u32,
+    pubkey: VrfPk,
     nonce: u32,
-    // TODO:
+    randomness: Integer,
+    proof: vdf::Proof,
 }
 
 impl<F> BlockHeaderBuilder<F>
@@ -142,8 +146,10 @@ where
             bits: Compact::max_value(),
             // set to 4 to allow creating long test chains
             version: 4,
-            // TODO:
-            nonce: 0,
+            pubkey: VrfPk::from_bytes(&[0; 32]).unwrap(),
+            nonce: 0u32,
+            randomness: Integer::from(0),
+            proof: vec![],
         }
     }
 
@@ -215,11 +221,7 @@ pub fn build_n_empty_blocks_from_genesis(n: u32, start_nonce: u32) -> Vec<chain:
 
 pub fn build_n_empty_blocks(n: u32, start_nonce: u32) -> Vec<chain::Block> {
     assert!(n != 0);
-    let previous = block_builder()
-        .header()
-        .nonce(start_nonce)
-        .build()
-        .build();
+    let previous = block_builder().header().nonce(start_nonce).build().build();
     let mut result = vec![previous];
     let children = build_n_empty_blocks_from(n, start_nonce + 1, &result[0].block_header);
     result.extend(children);
@@ -244,7 +246,7 @@ fn example5() {
 
     assert_eq!(
         hash,
-        "831ba958f7202633103d66c4ee81a89377002c25dfff290e7c3073468d90cfa0".into()
+        "cdad13c50f352946307fda1ec0614625bf1fb7263a2e66cad160eff552c35f19".into()
     );
     assert_eq!(
         block.header().previous_header_hash,
