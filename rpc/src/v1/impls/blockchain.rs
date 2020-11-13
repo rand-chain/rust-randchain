@@ -81,8 +81,10 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                     .and_then(|h| self.storage.block_hash(h + 1).map(|h| h.into())),
                 bits: block.header.raw.bits.into(),
                 hash: block.hash().clone().into(),
-                randomness_hex: block.header.raw.spow.randomness.to_string_radix(16),
-                nonce: block.header.raw.spow.iterations,
+                // TODO:
+                // pubkey: block.header.raw.pubkey,
+                randomness_hex: block.header.raw.randomness.to_string_radix(16),
+                nonce: block.header.raw.nonce,
                 time: block.header.raw.time,
                 version: block.header.raw.version,
                 version_hex: format!("{:x}", &block.header.raw.version),
