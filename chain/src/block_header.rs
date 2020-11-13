@@ -1,9 +1,11 @@
 use compact::Compact;
+use bytes::Bytes;
 use crypto::dhash256;
 use hash::H256;
 use hex::FromHex;
+use rug::Integer;
 use ser::{deserialize, serialize};
-use spow::SPoWResult;
+use spow;
 use std::fmt;
 
 #[derive(PartialEq, Clone, Serializable, Deserializable)]
@@ -12,7 +14,10 @@ pub struct BlockHeader {
     pub previous_header_hash: H256,
     pub time: u32,
     pub bits: Compact,
-    pub spow: SPoWResult,
+    pub pubkey: Bytes,
+    pub nonce: u32,
+    pub randomness: Integer,
+    pub proof: spow::vdf::Proof,
 }
 
 impl BlockHeader {
