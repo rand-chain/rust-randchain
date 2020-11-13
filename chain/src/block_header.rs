@@ -9,6 +9,7 @@ use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use spow::vdf;
 use std::fmt;
 use std::io;
+use VrfPk;
 
 #[derive(PartialEq, Clone)]
 pub struct BlockHeader {
@@ -16,7 +17,7 @@ pub struct BlockHeader {
     pub previous_header_hash: H256,
     pub time: u32,
     pub bits: Compact,
-    pub pubkey: Bytes,
+    pub pubkey: VrfPk,
     pub nonce: u32,
     pub randomness: Integer,
     pub proof: vdf::Proof,
@@ -37,7 +38,7 @@ impl Serializable for BlockHeader {
             .append(&self.previous_header_hash)
             .append(&self.time)
             .append(&self.bits)
-            .append(&self.pubkey)
+            .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
             .append(&self.nonce)
             .append(&self.randomness)
             .append_vector(&self.proof);
