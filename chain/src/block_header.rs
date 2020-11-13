@@ -57,7 +57,12 @@ impl Deserializable for BlockHeader {
             bits: reader.read()?,
             pubkey: {
                 let pk_bytes = reader.read::<Bytes>()?;
-                match VrfPk::from_byte_slice(pk_bytes.as_ref()) {
+                if pk_bytes.len() != 32 {
+                    return Err(ReaderError::MalformedData);
+                }
+                let mut temp: [u8; 32] = [0; 32];
+                temp.copy_from_slice(pk_bytes.as_ref());
+                match VrfPk::from_bytes(&temp) {
                     Err(_) => return Err(ReaderError::MalformedData),
                     Ok(pk) => pk,
                 }
