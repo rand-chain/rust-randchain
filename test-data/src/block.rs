@@ -6,7 +6,6 @@ use invoke::{Identity, Invoke};
 use primitives::compact::Compact;
 use primitives::hash::H256;
 use rug::Integer;
-use spow::SPoWResult;
 use std::cell::Cell;
 
 thread_local! {
@@ -123,7 +122,8 @@ pub struct BlockHeaderBuilder<F = Identity> {
     parent: H256,
     bits: Compact,
     version: u32,
-    spow: SPoWResult,
+    nonce: u32,
+    // TODO:
 }
 
 impl<F> BlockHeaderBuilder<F>
@@ -142,11 +142,8 @@ where
             bits: Compact::max_value(),
             // set to 4 to allow creating long test chains
             version: 4,
-            spow: SPoWResult {
-                iterations: 0,
-                randomness: Integer::from(0),
-                proof: vec![],
-            },
+            // TODO:
+            nonce: 0,
         }
     }
 
@@ -165,13 +162,8 @@ where
         self
     }
 
-    pub fn spow_nonce(mut self, nonce: u32) -> Self {
-        self.spow.iterations = nonce;
-        self
-    }
-
-    pub fn spow(mut self, spow: SPoWResult) -> Self {
-        self.spow = spow;
+    pub fn nonce(mut self, nonce: u32) -> Self {
+        self.nonce = nonce;
         self
     }
 
@@ -181,7 +173,10 @@ where
             previous_header_hash: self.parent,
             bits: self.bits,
             version: self.version,
-            spow: self.spow,
+            pubkey: self.pubkey,
+            nonce: self.nonce,
+            randomness: self.randomness,
+            proof: self.proof,
         })
     }
 }
@@ -204,7 +199,7 @@ pub fn build_n_empty_blocks_from(
     for i in start_nonce..end_nonce {
         let block = block_builder()
             .header()
-            .spow_nonce(i)
+            .nonce(i)
             .parent(previous_hash)
             .build()
             .build();
@@ -222,7 +217,7 @@ pub fn build_n_empty_blocks(n: u32, start_nonce: u32) -> Vec<chain::Block> {
     assert!(n != 0);
     let previous = block_builder()
         .header()
-        .spow_nonce(start_nonce)
+        .nonce(start_nonce)
         .build()
         .build();
     let mut result = vec![previous];
