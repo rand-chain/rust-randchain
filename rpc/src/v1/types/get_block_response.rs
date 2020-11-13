@@ -1,5 +1,4 @@
 use super::block::RawBlock;
-use super::bytes::Bytes;
 use super::hash::H256;
 use super::uint::U256;
 use serde::{Serialize, Serializer};
@@ -30,9 +29,10 @@ pub struct VerboseBlock {
     /// Block version as hex
     #[serde(rename = "versionHex")]
     pub version_hex: String,
-    /// Randomness result in this block
-    pub pubkey: Bytes,
-    // TODO: use Integer/[u8] type?
+    /// Pubkey as hex
+    #[serde(rename = "pubkeyHex")]
+    pub pubkey_hex: String,
+    /// Randomness as hex
     #[serde(rename = "randomnessHex")]
     pub randomness_hex: String,
     /// Block time in seconds since epoch (Jan 1 1970 GMT)
