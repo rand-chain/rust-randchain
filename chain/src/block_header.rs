@@ -1,4 +1,3 @@
-// TODO:?
 use bytes::Bytes;
 use compact::Compact;
 use crypto::dhash256;
@@ -33,7 +32,15 @@ impl BlockHeader {
 
 impl Serializable for BlockHeader {
     fn serialize(&self, stream: &mut Stream) {
-        todo!();
+        stream
+            .append(&self.version)
+            .append(&self.previous_header_hash)
+            .append(&self.time)
+            .append(&self.bits)
+            .append(&self.pubkey)
+            .append(&self.nonce)
+            .append(&self.randomness)
+            .append_vector(&self.proof);
     }
 }
 
@@ -56,9 +63,10 @@ impl fmt::Debug for BlockHeader {
             )
             .field("time", &self.time)
             .field("bits", &self.bits)
-            .field("nonce", &self.spow.iterations)
-            .field("randomness", &self.spow.randomness)
-            .field("vdf_proof", &self.spow.proof)
+            .field("pubkey", &self.pubkey)
+            .field("nonce", &self.nonce)
+            .field("randomness", &self.randomness)
+            .field("proof", &self.proof)
             .finish()
     }
 }
