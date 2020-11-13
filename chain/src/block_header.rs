@@ -1,3 +1,4 @@
+// TODO:?
 use bytes::Bytes;
 use compact::Compact;
 use crypto::dhash256;
@@ -5,10 +6,12 @@ use hash::H256;
 use hex::FromHex;
 use rug::Integer;
 use ser::{deserialize, serialize};
+use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use spow::vdf;
 use std::fmt;
+use std::io;
 
-#[derive(PartialEq, Clone, Serializable, Deserializable)]
+#[derive(PartialEq, Clone)]
 pub struct BlockHeader {
     pub version: u32,
     pub previous_header_hash: H256,
@@ -25,6 +28,21 @@ impl BlockHeader {
     #[cfg(any(test, feature = "test-helpers"))]
     pub fn hash(&self) -> H256 {
         block_header_hash(self)
+    }
+}
+
+impl Serializable for BlockHeader {
+    fn serialize(&self, stream: &mut Stream) {
+        todo!();
+    }
+}
+
+impl Deserializable for BlockHeader {
+    fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
+    where
+        T: io::Read,
+    {
+        todo!();
     }
 }
 
