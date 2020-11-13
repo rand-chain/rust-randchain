@@ -1,3 +1,4 @@
+use hex::ToHex;
 use jsonrpc_core::Error;
 use jsonrpc_macros::Trailing;
 use primitives::hash::H256 as GlobalH256;
@@ -82,7 +83,7 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                 bits: block.header.raw.bits.into(),
                 hash: block.hash().clone().into(),
                 // TODO:
-                // pubkey: block.header.raw.pubkey,
+                pubkey_hex: block.header.raw.pubkey.to_bytes().to_hex(),
                 randomness_hex: block.header.raw.randomness.to_string_radix(16),
                 nonce: block.header.raw.nonce,
                 time: block.header.raw.time,
