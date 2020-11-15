@@ -6,6 +6,7 @@ authors = ["Nikolay Volf <nikvolf@gmail.com>"]
 [dependencies]
 time = "0.1"
 rug = "1.3.0"
+ecvrf = { git = "https://github.com/rand-chain/ECVRF" , rev = "2a85c3d" }
 
 chain = { path = "../chain" , features = ["test-helpers"] }
 primitives = { path = "../primitives" }

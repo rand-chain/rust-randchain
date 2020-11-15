@@ -5,9 +5,9 @@ extern crate serialization_derive;
 extern crate lazy_static;
 
 pub mod spow;
+pub mod vdf;
 
 mod config;
 mod util;
-mod vdf;
 
 pub use crate::spow::SPoWResult;

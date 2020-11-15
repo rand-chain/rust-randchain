@@ -22,7 +22,6 @@ pub fn fetch(benchmark: &mut Benchmark) {
     for x in 0..BLOCKS {
         let next_block = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
@@ -65,7 +64,6 @@ pub fn write(benchmark: &mut Benchmark) {
     for x in 0..BLOCKS {
         let next_block = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
@@ -103,7 +101,6 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
 
         let next_block = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32 * 4)
@@ -114,7 +111,6 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
 
         let next_block_side = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(base)
             .nonce(x as u32 * 4 + 2)
@@ -125,7 +121,6 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
 
         let next_block_side_continue = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(next_base)
             .nonce(x as u32 * 4 + 3)
@@ -135,7 +130,6 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
 
         let next_block_continue = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32 * 4 + 1)
@@ -189,7 +183,6 @@ pub fn write_heavy(benchmark: &mut Benchmark) {
     // params
     const BLOCKS_INITIAL: usize = 12000;
     const BLOCKS: usize = 100;
-    const TRANSACTIONS: usize = 100;
 
     benchmark.samples(BLOCKS);
 
@@ -204,7 +197,6 @@ pub fn write_heavy(benchmark: &mut Benchmark) {
     for x in 0..BLOCKS_INITIAL {
         let next_block = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
@@ -215,8 +207,8 @@ pub fn write_heavy(benchmark: &mut Benchmark) {
         hashes.push(rolling_hash.clone());
     }
 
-    for b in 0..BLOCKS {
-        let mut builder = test_data::block_builder().build();
+    for _ in 0..BLOCKS {
+        let builder = test_data::block_builder();
 
         // TODO:
         let next_block = builder.header().parent(rolling_hash).build().build();

@@ -36,7 +36,6 @@ pub fn main(benchmark: &mut Benchmark) {
         LittleEndian::write_u64(&mut coinbase_nonce[..], x as u64);
         let next_block = test_data::block_builder()
             // TODO:
-            .build()
             .header()
             .parent(rolling_hash.clone())
             .nonce(x as u32)
@@ -59,7 +58,7 @@ pub fn main(benchmark: &mut Benchmark) {
     for b in 0..BLOCKS {
         let mut coinbase_nonce = [0u8; 8];
         LittleEndian::write_u64(&mut coinbase_nonce[..], (b + BLOCKS_INITIAL) as u64);
-        let mut builder = test_data::block_builder().build();
+        let builder = test_data::block_builder();
 
         verification_blocks.push(
             builder

@@ -29,8 +29,10 @@ pub struct VerboseBlock {
     /// Block version as hex
     #[serde(rename = "versionHex")]
     pub version_hex: String,
-    /// Randomness result in this block
-    // TODO: use Integer/[u8] type?
+    /// Pubkey as hex
+    #[serde(rename = "pubkeyHex")]
+    pub pubkey_hex: String,
+    /// Randomness as hex
     #[serde(rename = "randomnessHex")]
     pub randomness_hex: String,
     /// Block time in seconds since epoch (Jan 1 1970 GMT)
@@ -88,6 +90,8 @@ mod tests {
             height: Some(3513513),
             version: 1,
             version_hex: "01".to_owned(),
+            pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                .to_owned(),
             randomness_hex: "7788".to_owned(),
             time: 111,
             mediantime: Some(100),
@@ -118,6 +122,8 @@ mod tests {
             height: Some(3513513),
             version: 1,
             version_hex: "01".to_owned(),
+            pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                .to_owned(),
             randomness_hex: "7788".to_owned(),
             time: 111,
             mediantime: Some(100),

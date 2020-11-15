@@ -1,3 +1,4 @@
+use hex::ToHex;
 use jsonrpc_core::Error;
 use jsonrpc_macros::Trailing;
 use primitives::hash::H256 as GlobalH256;
@@ -81,8 +82,9 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                     .and_then(|h| self.storage.block_hash(h + 1).map(|h| h.into())),
                 bits: block.header.raw.bits.into(),
                 hash: block.hash().clone().into(),
-                randomness_hex: block.header.raw.spow.randomness.to_string_radix(16),
-                nonce: block.header.raw.spow.iterations,
+                pubkey_hex: block.header.raw.pubkey.to_bytes().to_hex(),
+                randomness_hex: block.header.raw.randomness.to_string_radix(16),
+                nonce: block.header.raw.nonce,
                 time: block.header.raw.time,
                 version: block.header.raw.version,
                 version_hex: format!("{:x}", &block.header.raw.version),
@@ -197,6 +199,8 @@ pub mod tests {
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
+                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                    .to_owned(),
                 randomness_hex: "7788".to_owned(),
                 time: 1231469744,
                 mediantime: None,
@@ -380,7 +384,9 @@ pub mod tests {
                 version: 1,
                 version_hex: "1".to_owned(),
                 // TODO:
-                randomness_hex: "7".to_owned(),
+                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                    .to_owned(),
+                randomness_hex: "7788".to_owned(),
                 time: 1231469665,
                 mediantime: Some(1231006505),
                 nonce: 2573394689,
@@ -409,6 +415,8 @@ pub mod tests {
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
+                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                    .to_owned(),
                 randomness_hex: "7788".to_owned(),
                 time: 1231469744,
                 mediantime: Some(1231469665),

@@ -1,18 +1,26 @@
+use bytes::Bytes;
 use compact::Compact;
 use crypto::dhash256;
 use hash::H256;
 use hex::FromHex;
+use rug::Integer;
 use ser::{deserialize, serialize};
-use spow::SPoWResult;
+use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
+use spow::vdf;
 use std::fmt;
+use std::io;
+use VrfPk;
 
-#[derive(PartialEq, Clone, Serializable, Deserializable)]
+#[derive(PartialEq, Clone)]
 pub struct BlockHeader {
     pub version: u32,
     pub previous_header_hash: H256,
     pub time: u32,
     pub bits: Compact,
-    pub spow: SPoWResult,
+    pub pubkey: VrfPk,
+    pub nonce: u32,
+    pub randomness: Integer,
+    pub proof: vdf::Proof,
 }
 
 impl BlockHeader {
@@ -20,6 +28,51 @@ impl BlockHeader {
     #[cfg(any(test, feature = "test-helpers"))]
     pub fn hash(&self) -> H256 {
         block_header_hash(self)
+    }
+}
+
+impl Serializable for BlockHeader {
+    fn serialize(&self, stream: &mut Stream) {
+        stream
+            .append(&self.version)
+            .append(&self.previous_header_hash)
+            .append(&self.time)
+            .append(&self.bits)
+            .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
+            .append(&self.nonce)
+            .append(&self.randomness)
+            .append_vector(&self.proof);
+    }
+}
+
+impl Deserializable for BlockHeader {
+    fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
+    where
+        T: io::Read,
+    {
+        let res = BlockHeader {
+            version: reader.read()?,
+            previous_header_hash: reader.read()?,
+            time: reader.read()?,
+            bits: reader.read()?,
+            pubkey: {
+                let pk_bytes = reader.read::<Bytes>()?;
+                if pk_bytes.len() != 32 {
+                    return Err(ReaderError::MalformedData);
+                }
+                let mut temp: [u8; 32] = [0; 32];
+                temp.copy_from_slice(pk_bytes.as_ref());
+                match VrfPk::from_bytes(&temp) {
+                    Err(_) => return Err(ReaderError::MalformedData),
+                    Ok(pk) => pk,
+                }
+            },
+            nonce: reader.read()?,
+            randomness: reader.read()?,
+            proof: reader.read_vector()?,
+        };
+
+        Ok(res)
     }
 }
 
@@ -33,9 +86,10 @@ impl fmt::Debug for BlockHeader {
             )
             .field("time", &self.time)
             .field("bits", &self.bits)
-            .field("nonce", &self.spow.iterations)
-            .field("randomness", &self.spow.randomness)
-            .field("vdf_proof", &self.spow.proof)
+            .field("pubkey", &self.pubkey)
+            .field("nonce", &self.nonce)
+            .field("randomness", &self.randomness)
+            .field("proof", &self.proof)
             .finish()
     }
 }
@@ -56,7 +110,7 @@ mod tests {
     use super::BlockHeader;
     use rug::Integer;
     use ser::{Error as ReaderError, Reader, Stream};
-    use spow::SPoWResult;
+    use VrfPk;
 
     #[test]
     fn test_block_header_stream() {
@@ -65,11 +119,10 @@ mod tests {
             previous_header_hash: [2; 32].into(),
             time: 4,
             bits: 5.into(),
-            spow: SPoWResult {
-                iterations: 6,
-                randomness: Integer::from(7),
-                proof: vec![Integer::from(8); 2],
-            },
+            pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
+            nonce: 7,
+            randomness: Integer::from(8),
+            proof: vec![Integer::from(9); 2],
         };
 
         let mut stream = Stream::default();
@@ -79,7 +132,10 @@ mod tests {
             0x01, 0x00, 0x00, 0x00, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00,
-            0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x37, 0x02, 0x01, 0x38, 0x01, 0x38,
+            0x00, 0x00, 0x20, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x00, 0x00, 0x00, 0x01, 0x38, 0x02,
+            0x01, 0x39, 0x01, 0x39,
         ]
         .into();
 
@@ -92,7 +148,10 @@ mod tests {
             0x01, 0x00, 0x00, 0x00, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00,
-            0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x37, 0x02, 0x01, 0x38, 0x01, 0x38,
+            0x00, 0x00, 0x20, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x00, 0x00, 0x00, 0x01, 0x38, 0x02,
+            0x01, 0x39, 0x01, 0x39,
         ];
 
         let mut reader = Reader::new(&buffer);
@@ -102,11 +161,10 @@ mod tests {
             previous_header_hash: [2; 32].into(),
             time: 4,
             bits: 5.into(),
-            spow: SPoWResult {
-                iterations: 6,
-                randomness: Integer::from(7),
-                proof: vec![Integer::from(8); 2],
-            },
+            pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
+            nonce: 7,
+            randomness: Integer::from(8),
+            proof: vec![Integer::from(9); 2],
         };
 
         assert_eq!(expected, reader.read().unwrap());
