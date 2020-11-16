@@ -8,48 +8,78 @@ use primitives::hash::H256;
 use ser::Stream;
 use verification::is_valid_proof_of_work_hash;
 
-/// Instead of serializing `BlockHeader` from scratch over and over again,
-/// let's keep it serialized in memory and replace needed bytes
-struct BlockHeaderBytes {
-    data: Bytes,
+/// Same sequence as chain/block_header for hashing
+struct Mining {
+    version: u32,
+    previous_header_hash: H256,
+    time: u32,
+    bits: Compact,
+    pubkey: VrfPk,
+    // nonce: Compact,
+    // randomness: Integer,
+    // proof: vdf::Proof,
 }
 
-impl BlockHeaderBytes {
-    /// Creates new instance of block header bytes.
-    fn new(version: u32, previous_header_hash: H256, bits: Compact) -> Self {
-        let merkle_root_hash = H256::default();
-        let time = 0u32;
-        let nonce = 0u32;
+impl Mining {
+    fn new_draft() {}
 
+    fn fill_and_hash(&self) {
         let mut stream = Stream::default();
         stream
-            .append(&version)
-            .append(&previous_header_hash)
-            .append(&merkle_root_hash)
-            .append(&time)
-            .append(&bits)
-            .append(&nonce);
+            .append(self.version)
+            .append(self.previous_header_hash)
+            .append(self.time)
+            .append(self.bits)
+            .append(self.pubkey);
+        // ,,,
+        let data = stream.out();
 
-        BlockHeaderBytes { data: stream.out() }
-    }
-
-    /// Set block header time
-    fn set_time(&mut self, time: u32) {
-        let mut time_bytes: &mut [u8] = &mut self.data[4 + 32 + 32..];
-        time_bytes.write_u32::<LittleEndian>(time).unwrap();
-    }
-
-    /// Set block header nonce
-    fn set_nonce(&mut self, nonce: u32) {
-        let mut nonce_bytes: &mut [u8] = &mut self.data[4 + 32 + 32 + 4 + 4..];
-        nonce_bytes.write_u32::<LittleEndian>(nonce).unwrap();
-    }
-
-    /// Returns block header hash
-    fn hash(&self) -> H256 {
-        dhash256(&self.data)
+        let hash = dhash256(data);
     }
 }
+
+// /// Instead of serializing `BlockHeader` from scratch over and over again,
+// /// let's keep it serialized in memory and replace needed bytes
+// struct BlockHeaderBytes {
+//     data: Bytes,
+// }
+
+// impl BlockHeaderBytes {
+//     /// Creates new instance of block header bytes.
+//     fn new(version: u32, previous_header_hash: H256, bits: Compact) -> Self {
+//         let merkle_root_hash = H256::default();
+//         let time = 0u32;
+//         let nonce = 0u32;
+
+//         let mut stream = Stream::default();
+//         stream
+//             .append(&version)
+//             .append(&previous_header_hash)
+//             .append(&merkle_root_hash)
+//             .append(&time)
+//             .append(&bits)
+//             .append(&nonce);
+
+//         BlockHeaderBytes { data: stream.out() }
+//     }
+
+//     /// Set block header time
+//     fn set_time(&mut self, time: u32) {
+//         let mut time_bytes: &mut [u8] = &mut self.data[4 + 32 + 32..];
+//         time_bytes.write_u32::<LittleEndian>(time).unwrap();
+//     }
+
+//     /// Set block header nonce
+//     fn set_nonce(&mut self, nonce: u32) {
+//         let mut nonce_bytes: &mut [u8] = &mut self.data[4 + 32 + 32 + 4 + 4..];
+//         nonce_bytes.write_u32::<LittleEndian>(nonce).unwrap();
+//     }
+
+//     /// Returns block header hash
+//     fn hash(&self) -> H256 {
+//         dhash256(&self.data)
+//     }
+// }
 
 /// Cpu miner solution.
 pub struct Solution {
