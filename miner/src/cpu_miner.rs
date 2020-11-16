@@ -14,7 +14,7 @@ struct BlockHeaderDraft {
     previous_header_hash: H256,
     time: u32,
     bits: Compact,
-    pubkey: VrfPk,
+    // pubkey: VrfPk,
     // nonce: Compact,
     // randomness: Integer,
     // proof: vdf::Proof,
@@ -27,18 +27,18 @@ impl BlockHeaderDraft {
             previous_header_hash: previous_header_hash,
             time: time,
             bits: bits,
-            pubkey: pubkey,
+            // pubkey: pubkey,
         }
     }
 
-    fn fill_and_hash(&self, nonce: u32, randomness: Integer, proof: vdf::Proof) H256{
+    fn fill_and_hash(&self, pubkey: VrfPk,nonce: u32, randomness: Integer, proof: vdf::Proof) H256{
         let mut stream = Stream::default();
         stream
             .append(self.version)
             .append(self.previous_header_hash)
             .append(self.time)
             .append(self.bits)
-            .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
+            .append(&Bytes::from(pubkey.to_bytes().to_vec()))
             .append(nonce)
             .append(randomness)
             .append_vector(proof);
@@ -47,49 +47,7 @@ impl BlockHeaderDraft {
     }
 }
 
-// /// Instead of serializing `BlockHeader` from scratch over and over again,
-// /// let's keep it serialized in memory and replace needed bytes
-// struct BlockHeaderBytes {
-//     data: Bytes,
-// }
-
-// impl BlockHeaderBytes {
-//     /// Creates new instance of block header bytes.
-//     fn new(version: u32, previous_header_hash: H256, bits: Compact) -> Self {
-//         let merkle_root_hash = H256::default();
-//         let time = 0u32;
-//         let nonce = 0u32;
-
-//         let mut stream = Stream::default();
-//         stream
-//             .append(&version)
-//             .append(&previous_header_hash)
-//             .append(&merkle_root_hash)
-//             .append(&time)
-//             .append(&bits)
-//             .append(&nonce);
-
-//         BlockHeaderBytes { data: stream.out() }
-//     }
-
-//     /// Set block header time
-//     fn set_time(&mut self, time: u32) {
-//         let mut time_bytes: &mut [u8] = &mut self.data[4 + 32 + 32..];
-//         time_bytes.write_u32::<LittleEndian>(time).unwrap();
-//     }
-
-//     /// Set block header nonce
-//     fn set_nonce(&mut self, nonce: u32) {
-//         let mut nonce_bytes: &mut [u8] = &mut self.data[4 + 32 + 32 + 4 + 4..];
-//         nonce_bytes.write_u32::<LittleEndian>(nonce).unwrap();
-//     }
-
-//     /// Returns block header hash
-//     fn hash(&self) -> H256 {
-//         dhash256(&self.data)
-//     }
-// }
-
+// TODO:
 /// Cpu miner solution.
 pub struct Solution {
     /// Block header nonce.
