@@ -31,7 +31,7 @@ impl BlockHeaderFields {
         }
     }
 
-    fn fill_and_hash(&self) {
+    fn fill_and_hash(&self, nonce: u32, randomness: Integer, proof: vdf::Proof) {
         let mut stream = Stream::default();
         stream
             .append(self.version)
