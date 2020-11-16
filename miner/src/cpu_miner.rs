@@ -9,7 +9,7 @@ use ser::Stream;
 use verification::is_valid_proof_of_work_hash;
 
 /// Same sequence as chain/block_header for hashing
-struct BlockHeaderFields {
+struct BlockHeaderDraft {
     version: u32,
     previous_header_hash: H256,
     time: u32,
@@ -20,9 +20,9 @@ struct BlockHeaderFields {
     // proof: vdf::Proof,
 }
 
-impl BlockHeaderFields {
-    fn new_draft(version: u32, previous_header_hash: H256, time: u32, bits: Compact) {
-        BlockHeaderFields {
+impl BlockHeaderDraft {
+    fn new(version: u32, previous_header_hash: H256, time: u32, bits: Compact) {
+        BlockHeaderDraft {
             version: version,
             previous_header_hash: previous_header_hash,
             time: time,
@@ -31,18 +31,19 @@ impl BlockHeaderFields {
         }
     }
 
-    fn fill_and_hash(&self, nonce: u32, randomness: Integer, proof: vdf::Proof) {
+    fn fill_and_hash(&self, nonce: u32, randomness: Integer, proof: vdf::Proof) H256{
         let mut stream = Stream::default();
         stream
             .append(self.version)
             .append(self.previous_header_hash)
             .append(self.time)
             .append(self.bits)
-            .append(self.pubkey);
-        // ,,,
+            .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
+            .append(nonce)
+            .append(randomness)
+            .append_vector(proof);
         let data = stream.out();
-
-        let hash = dhash256(data);
+        dhash256(data)
     }
 }
 
