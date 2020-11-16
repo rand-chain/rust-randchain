@@ -66,6 +66,7 @@ pub struct Solution {
 /// and solution still hasn't been found it returns None.
 /// It's possible to also experiment with time, but I find it pointless
 /// to implement on CPU.
+// TODO: load key
 pub fn find_solution(block: &BlockTemplate, max_extranonce: U256) -> Option<Solution> {
     let mut extranonce = U256::default();
     let mut extranonce_bytes = [0u8; 32];
