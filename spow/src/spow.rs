@@ -24,33 +24,6 @@ pub struct SPoWResult {
     pub proof: vdf::Proof,
 }
 
-impl Serializable for SPoWResult {
-    fn serialize(&self, stream: &mut Stream) {
-        stream
-            .append(&self.iterations)
-            .append(&self.randomness)
-            .append_vector(&self.proof);
-    }
-
-    // TODO:
-    // fn serialized_size(&self) -> usize
-}
-
-impl Deserializable for SPoWResult {
-    fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
-    where
-        T: io::Read,
-    {
-        let res = SPoWResult {
-            iterations: reader.read()?,
-            randomness: reader.read()?,
-            proof: reader.read_vector()?,
-        };
-
-        Ok(res)
-    }
-}
-
 impl SPoW<'_> {
     pub fn new(pubkey: &'static VrfPk) -> Self {
         SPoW { pubkey: pubkey }
