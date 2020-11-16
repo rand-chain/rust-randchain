@@ -9,7 +9,7 @@ use ser::Stream;
 use verification::is_valid_proof_of_work_hash;
 
 /// Same sequence as chain/block_header for hashing
-struct Mining {
+struct BlockHeaderFields {
     version: u32,
     previous_header_hash: H256,
     time: u32,
@@ -20,8 +20,16 @@ struct Mining {
     // proof: vdf::Proof,
 }
 
-impl Mining {
-    fn new_draft() {}
+impl BlockHeaderFields {
+    fn new_draft(version: u32, previous_header_hash: H256, time: u32, bits: Compact) {
+        BlockHeaderFields {
+            version: version,
+            previous_header_hash: previous_header_hash,
+            time: time,
+            bits: bits,
+            pubkey: pubkey,
+        }
+    }
 
     fn fill_and_hash(&self) {
         let mut stream = Stream::default();
@@ -103,13 +111,12 @@ pub fn find_solution(block: &BlockTemplate, max_extranonce: U256) -> Option<Solu
     let mut extranonce = U256::default();
     let mut extranonce_bytes = [0u8; 32];
 
-    let mut header_bytes = BlockHeaderBytes::new(
+    let mut header_bytes = BlockHeaderFields::new(
         block.version,
         block.previous_header_hash.clone(),
+        block.time,
         block.bits,
     );
-    // update header with time
-    header_bytes.set_time(block.time);
 
     while extranonce < max_extranonce {
         extranonce.to_little_endian(&mut extranonce_bytes);
