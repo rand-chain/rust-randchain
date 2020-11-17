@@ -1,4 +1,3 @@
-use bigint::U256;
 use block_assembler::BlockTemplate;
 use crypto::dhash256;
 use ecvrf::VrfPk;
@@ -7,7 +6,7 @@ use rug::Integer;
 use ser::Stream;
 use verification::is_valid_proof_of_work_hash;
 
-const STEP: u64 = 1024;
+const STEP: u32 = 1024;
 
 fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
     let mut stream = Stream::default();
@@ -39,13 +38,19 @@ pub struct Solution {
 pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
     let g = h_g(block, pubkey);
     let mut cur_y = g.clone();
-    for nonce in 1..u32::max_value() {
+    let mut nonce = 1u64;
+    loop {
+        nonce += nonce * (STEP as u64);
+        if nonce > (u32::max_value() as u64) {
+            return None;
+        }
+
         let new_y = vdf::eval(&cur_y, STEP);
         if is_valid_proof_of_work_hash(block.bits, &dhash256(new_y.to_string_radix(16).as_ref())) {
             let solution = Solution {
                 nonce: nonce as u32,
                 randomness: new_y.clone(),
-                proof: vdf::prove(&g, &new_y, u64::from(nonce) * STEP),
+                proof: vdf::prove(&g, &new_y, nonce as u32),
             };
 
             return Some(solution);
@@ -53,8 +58,6 @@ pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
 
         cur_y = new_y;
     }
-
-    None
 }
 
 #[cfg(test)]

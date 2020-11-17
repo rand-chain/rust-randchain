@@ -6,7 +6,7 @@ use super::util;
 
 pub type Proof = Vec<Integer>;
 
-pub fn eval(g: &Integer, t: u64) -> Integer {
+pub fn eval(g: &Integer, t: u32) -> Integer {
     let mut y = g.clone();
     for _ in 0..t {
         y = y.clone() * y.clone();
@@ -16,14 +16,14 @@ pub fn eval(g: &Integer, t: u64) -> Integer {
     y
 }
 
-pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Proof {
+pub fn prove(g: &Integer, y: &Integer, iterations: u32) -> Proof {
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
     let mut proof = Proof::new();
 
     let mut t = iterations;
-    let two: Integer = 2u64.into();
+    let two: Integer = 2.into();
     while t >= 2 {
-        let two_exp = Integer::from(1) << ((t / 2) as u32); // 2^(t/2)
+        let two_exp = Integer::from(1) << (t / 2); // 2^(t/2)
         let mu_i = x_i.clone().pow_mod(&two_exp, &MODULUS).unwrap();
 
         let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
@@ -46,10 +46,10 @@ pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Proof {
     proof
 }
 
-pub fn verify(g: &Integer, y: &Integer, iterations: u64, proof: &Proof) -> bool {
+pub fn verify(g: &Integer, y: &Integer, iterations: u32, proof: &Proof) -> bool {
     let (mut x_i, mut y_i) = (g.clone(), y.clone());
     let mut t = iterations;
-    let two: Integer = 2u64.into();
+    let two: Integer = 2.into();
     for mu_i in proof {
         let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
 
