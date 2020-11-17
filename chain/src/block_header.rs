@@ -29,6 +29,10 @@ impl BlockHeader {
     pub fn hash(&self) -> H256 {
         block_header_hash(self)
     }
+
+    pub fn randomness_hash(&self) -> H256 {
+        dhash256(self.randomness.to_string_radix(16).as_ref())
+    }
 }
 
 impl Serializable for BlockHeader {

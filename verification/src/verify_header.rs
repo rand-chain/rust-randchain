@@ -1,5 +1,6 @@
 use chain::IndexedBlockHeader;
 use constants::BLOCK_MAX_FUTURE;
+use crypto::dhash256;
 use error::Error;
 use network::Network;
 use primitives::compact::Compact;
@@ -39,7 +40,11 @@ impl<'a> HeaderProofOfWork<'a> {
     }
 
     fn check(&self) -> Result<(), Error> {
-        if is_valid_proof_of_work(self.max_work_bits, self.header.raw.bits, &self.header.hash) {
+        if is_valid_proof_of_work(
+            self.max_work_bits,
+            self.header.raw.bits,
+            &self.header.raw.randomness_hash(),
+        ) {
             Ok(())
         } else {
             Err(Error::Pow)
