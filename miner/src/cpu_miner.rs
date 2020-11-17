@@ -1,7 +1,6 @@
 use block_assembler::BlockTemplate;
 use crypto::dhash256;
 use ecvrf::VrfPk;
-// use primitives::bigint::{Uint, U256};
 use primitives::bytes::Bytes;
 use primitives::compact::Compact;
 // use primitives::hash::H256;
@@ -23,8 +22,10 @@ fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
         .append(&Bytes::from(pubkey.to_bytes().to_vec()));
     let data = stream.out();
     let h = dhash256(&data);
-    let value = U256::from(&*h.reversed() as &[u8]);
-    Integer::from(value)
+    // TODO:
+    let s = U256::from(&*h.reversed() as &[u8]).to_string();
+    Integer::from_str_radix(&s, 10).unwrap()
+    // TODO: inverse
 }
 
 /// Cpu miner solution.
