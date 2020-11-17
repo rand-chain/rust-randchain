@@ -12,46 +12,18 @@ use verification::is_valid_proof_of_work_hash;
 
 const STEP: u64 = 1024;
 
-/// Same sequence as chain/block_header for hashing
-struct BlockHeaderDraft {
-    version: u32,
-    previous_header_hash: H256,
-    time: u32,
-    bits: Compact,
-}
+fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
+    let mut stream = Stream::default();
+    stream
+        .append(&block.version)
+        .append(&block.previous_header_hash)
+        .append(&block.time)
+        .append(&block.bits)
+        .append(&Bytes::from(pubkey.to_bytes().to_vec()));
+    let data = stream.out();
+    dhash256(&data);
 
-impl BlockHeaderDraft {
-    fn new(version: u32, previous_header_hash: H256, time: u32, bits: Compact) -> BlockHeaderDraft {
-        BlockHeaderDraft {
-            version: version,
-            previous_header_hash: previous_header_hash,
-            time: time,
-            bits: bits,
-        }
-    }
-
-    // Same sequence as chain/block_header for hashing
-    fn fill_and_hash(
-        &self,
-        pubkey: VrfPk,
-        nonce: u32,
-        randomness: Integer,
-        proof: vdf::Proof,
-    ) -> H256 {
-        let mut stream = Stream::default();
-        stream
-            .append(&self.version)
-            .append(&self.previous_header_hash)
-            .append(&self.time)
-            .append(&self.bits)
-            .append(&Bytes::from(pubkey.to_bytes().to_vec()))
-            .append(&nonce)
-            .append(&randomness)
-            .append_vector(&proof);
-
-        let data = stream.out();
-        dhash256(&data)
-    }
+    todo!()
 }
 
 /// Cpu miner solution.
@@ -63,34 +35,22 @@ pub struct Solution {
 
 /// Simple randchain cpu miner.
 pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
-    let header_bytes = BlockHeaderDraft::new(
-        block.version,
-        block.previous_header_hash.clone(),
-        block.time,
-        block.bits,
-    );
-
-    let ini_state = Integer::from(0);
-    let mut cur_state = ini_state;
-
+    let g = h_g(block, pubkey);
+    let mut cur_y = g.clone();
     for nonce in 0..u32::max_value() {
-        let y = vdf::eval(cur_state, STEP);
-
-        let proof = vdf::prove(&ini_state, &y, u64::from(nonce) * STEP);
-
-        let hash = header_bytes.fill_and_hash(pubkey.clone(), nonce, y.clone(), proof.clone());
-
-        if is_valid_proof_of_work_hash(block.bits, &hash) {
+        let new_y = vdf::eval(&cur_y, STEP);
+        if is_valid_proof_of_work_hash(block.bits, &dhash256(new_y.to_string_radix(16).as_ref())) {
             let solution = Solution {
                 nonce: nonce as u32,
-                randomness: y,
-                proof: proof,
+                randomness: new_y.clone(),
+                // TODO: handle overflow
+                proof: vdf::prove(&g, &new_y, u64::from(nonce + 1) * STEP),
             };
 
             return Some(solution);
         }
 
-        cur_state = y;
+        cur_y = new_y;
     }
 
     None
