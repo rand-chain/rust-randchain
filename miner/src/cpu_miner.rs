@@ -76,17 +76,24 @@ pub fn find_solution(
 
     for nonce in 0..(u32::max_value() as u64 + 1) {
         // update §
-        // header_bytes.set_nonce(nonce as u32);
-        let hash = header_bytes.fill_and_hash(pubkey, nonce, Integer::from(0), vec![]);
+
+        // let y = vdf::eval(state, STEP);
+        let y = Integer::from(0);
+        let proof = vec![];
+
+        let hash = header_bytes.fill_and_hash(pubkey, nonce, y, proof);
+
         if is_valid_proof_of_work_hash(block.bits, &hash) {
             let solution = Solution {
                 nonce: nonce as u32,
-                randomness: randomness,
+                randomness: y,
                 proof: proof,
             };
 
             return Some(solution);
         }
+
+        state = y;
     }
 
     None
