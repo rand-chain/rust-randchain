@@ -30,6 +30,7 @@ impl BlockHeaderDraft {
         }
     }
 
+    // Same sequence as chain/block_header for hashing
     fn fill_and_hash(
         &self,
         pubkey: VrfPk,
