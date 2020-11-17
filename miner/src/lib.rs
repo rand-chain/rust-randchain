@@ -1,6 +1,7 @@
 extern crate byteorder;
 extern crate ecvrf;
 extern crate heapsize;
+extern crate rug;
 
 extern crate bitcrypto as crypto;
 extern crate chain;
@@ -8,6 +9,7 @@ extern crate db;
 extern crate network;
 extern crate primitives;
 extern crate serialization as ser;
+extern crate spow;
 extern crate storage;
 extern crate verification;
 

@@ -1,5 +1,7 @@
 use block_assembler::BlockTemplate;
 use ecvrf::VrfPk;
+use rug::Integer;
+use spow::vdf;
 // use byteorder::{LittleEndian, WriteBytesExt};
 use crypto::dhash256;
 use primitives::bigint::{Uint, U256};
@@ -47,10 +49,11 @@ impl BlockHeaderDraft {
             .append(&self.bits)
             .append(&Bytes::from(pubkey.to_bytes().to_vec()))
             .append(&nonce)
-            .append(randomness)
-            .append_vector(proof);
+            .append(&randomness)
+            .append_vector(&proof);
+
         let data = stream.out();
-        dhash256(data)
+        dhash256(&data)
     }
 }
 
@@ -94,7 +97,7 @@ pub fn find_solution(
 
         for nonce in 0..(u32::max_value() as u64 + 1) {
             // update §
-            header_bytes.set_nonce(nonce as u32);
+            // header_bytes.set_nonce(nonce as u32);
             let hash = header_bytes.fill_and_hash();
             if is_valid_proof_of_work_hash(block.bits, &hash) {
                 let solution = Solution {
