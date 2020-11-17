@@ -1,7 +1,7 @@
 use block_assembler::BlockTemplate;
 use crypto::dhash256;
 use ecvrf::VrfPk;
-use primitives::bigint::{Uint, U256};
+// use primitives::bigint::{Uint, U256};
 use primitives::bytes::Bytes;
 use primitives::compact::Compact;
 use primitives::hash::H256;
@@ -9,6 +9,8 @@ use rug::Integer;
 use ser::Stream;
 use spow::vdf;
 use verification::is_valid_proof_of_work_hash;
+
+const STEP: u64 = 1024;
 
 /// Same sequence as chain/block_header for hashing
 struct BlockHeaderDraft {
@@ -59,15 +61,8 @@ pub struct Solution {
 }
 
 /// Simple randchain cpu miner.
-pub fn find_solution(
-    block: &BlockTemplate,
-    pubkey: VrfPk,
-    max_extranonce: U256,
-) -> Option<Solution> {
-    let mut extranonce = U256::default();
-    let mut extranonce_bytes = [0u8; 32];
-
-    let mut header_bytes = BlockHeaderDraft::new(
+pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
+    let header_bytes = BlockHeaderDraft::new(
         block.version,
         block.previous_header_hash.clone(),
         block.time,
@@ -75,16 +70,20 @@ pub fn find_solution(
     );
 
     let mut y = Integer::from(0);
+    let ini_state = Integer::from(0);
+
+    let mut cur_state = Integer::from(0);
 
     for nonce in 0..u32::max_value() {
         // update §
 
         // let y = vdf::eval(state, STEP);
+
         y = Integer::from(0);
 
-        let proof = vec![];
+        let proof = vdf::prove(&ini_state, &cur_state, u64::from(nonce) * STEP);
 
-        let hash = header_bytes.fill_and_hash(pubkey, nonce, y, proof);
+        let hash = header_bytes.fill_and_hash(pubkey.clone(), nonce, y.clone(), proof.clone());
 
         if is_valid_proof_of_work_hash(block.bits, &hash) {
             let solution = Solution {
@@ -96,7 +95,7 @@ pub fn find_solution(
             return Some(solution);
         }
 
-        state = y;
+        cur_state = y;
     }
 
     None
@@ -121,7 +120,7 @@ mod tests {
 
         // generate or load key
         let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
-        let solution = find_solution(&block_template, pubkey, U256::max_value());
+        let solution = find_solution(&block_template, pubkey);
         assert!(solution.is_some());
     }
 }
