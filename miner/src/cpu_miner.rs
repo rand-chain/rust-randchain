@@ -4,7 +4,8 @@ use ecvrf::VrfPk;
 // use primitives::bigint::{Uint, U256};
 use primitives::bytes::Bytes;
 use primitives::compact::Compact;
-use primitives::hash::H256;
+// use primitives::hash::H256;
+use bigint::U256;
 use rug::Integer;
 use ser::Stream;
 use spow::vdf;
@@ -21,9 +22,9 @@ fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
         .append(&block.bits)
         .append(&Bytes::from(pubkey.to_bytes().to_vec()));
     let data = stream.out();
-    dhash256(&data);
-
-    todo!()
+    let h = dhash256(&data);
+    let value = U256::from(&*h.reversed() as &[u8]);
+    Integer::from(value)
 }
 
 /// Cpu miner solution.

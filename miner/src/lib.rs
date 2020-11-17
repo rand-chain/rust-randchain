@@ -1,3 +1,4 @@
+extern crate bigint;
 extern crate byteorder;
 extern crate ecvrf;
 extern crate heapsize;
