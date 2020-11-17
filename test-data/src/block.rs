@@ -6,7 +6,6 @@ use invoke::{Identity, Invoke};
 use primitives::compact::Compact;
 use primitives::hash::H256;
 use rug::Integer;
-use spow::vdf;
 use std::cell::Cell;
 use VrfPk;
 

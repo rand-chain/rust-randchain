@@ -6,7 +6,6 @@ use hex::FromHex;
 use rug::Integer;
 use ser::{deserialize, serialize};
 use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
-use spow::vdf;
 use std::fmt;
 use std::io;
 use VrfPk;

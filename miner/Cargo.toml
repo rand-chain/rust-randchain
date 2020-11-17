@@ -14,7 +14,7 @@ chain = { path = "../chain" }
 storage = { path = "../storage" }
 db = { path = "../db" }
 network = { path = "../network" }
-spow = { path = "../spow" }
+vdf = { path = "../vdf" }
 primitives = { path = "../primitives" }
 serialization = { path = "../serialization" }
 verification = { path = "../verification" }

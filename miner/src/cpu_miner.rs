@@ -5,8 +5,6 @@ use ecvrf::VrfPk;
 use primitives::bytes::Bytes;
 use rug::Integer;
 use ser::Stream;
-use spow::vdf;
-use spow::MODULUS;
 use verification::is_valid_proof_of_work_hash;
 
 const STEP: u64 = 1024;
@@ -24,7 +22,7 @@ fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
     let result = Integer::from_str_radix(&h.to_string(), 16).unwrap();
 
     // invert to get enough security bits
-    match result.invert(&MODULUS) {
+    match result.invert(&vdf::MODULUS) {
         Ok(inverse) => inverse,
         Err(unchanged) => unchanged,
     }

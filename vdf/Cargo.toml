@@ -1,9 +1,9 @@
 [package]
-name = "spow"
+name = "vdf"
 version = "0.1.0"
 edition = "2018"
 authors = ["RandChain https://github.com/rand-chain/"]
-description = "Sequetial Proof-of-Work using Pie19 VDF (https://eprint.iacr.org/2018/627.pdf)."
+description = "Pie19 VDF (https://eprint.iacr.org/2018/627.pdf)."
 
 [dependencies]
 rug = "1.3.0"

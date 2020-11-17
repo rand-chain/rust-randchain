@@ -197,7 +197,7 @@ dependencies = [
  "rustc-hex 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serialization 0.1.0",
  "serialization_derive 0.1.0",
- "spow 0.1.0",
+ "vdf 0.1.0",
 ]
 
 [[package]]
@@ -758,9 +758,9 @@ dependencies = [
  "primitives 0.1.0",
  "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serialization 0.1.0",
- "spow 0.1.0",
  "storage 0.1.0",
  "test-data 0.1.0",
+ "vdf 0.1.0",
  "verification 0.1.0",
 ]
 
@@ -1373,19 +1373,6 @@ version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "spow"
-version = "0.1.0"
-dependencies = [
- "ecvrf 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "elapsed 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "serialization 0.1.0",
- "serialization_derive 0.1.0",
- "sha2 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "stable_deref_trait"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1509,8 +1496,8 @@ dependencies = [
  "primitives 0.1.0",
  "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serialization 0.1.0",
- "spow 0.1.0",
  "time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
+ "vdf 0.1.0",
 ]
 
 [[package]]
@@ -1626,6 +1613,19 @@ dependencies = [
 name = "utf8-ranges"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "vdf"
+version = "0.1.0"
+dependencies = [
+ "ecvrf 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "elapsed 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serialization 0.1.0",
+ "serialization_derive 0.1.0",
+ "sha2 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "vec_map"
