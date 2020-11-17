@@ -57,15 +57,11 @@ impl BlockHeaderDraft {
     }
 }
 
-// TODO:
 /// Cpu miner solution.
 pub struct Solution {
-    /// Block header nonce.
     pub nonce: u32,
-    /// Coinbase transaction extra nonce (modyfiable by miner).
-    pub extranonce: U256,
-    /// Block header time.
-    pub time: u32,
+    pub randomness: Integer,
+    pub proof: vdf::Proof,
 }
 
 /// Simple randchain cpu miner.
@@ -102,8 +98,8 @@ pub fn find_solution(
             if is_valid_proof_of_work_hash(block.bits, &hash) {
                 let solution = Solution {
                     nonce: nonce as u32,
-                    extranonce: extranonce,
-                    time: block.time,
+                    randomness: randomness,
+                    proof: proof,
                 };
 
                 return Some(solution);
