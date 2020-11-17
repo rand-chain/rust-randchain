@@ -74,11 +74,14 @@ pub fn find_solution(
         block.bits,
     );
 
-    for nonce in 0..(u32::max_value() as u64 + 1) {
+    let mut y = Integer::from(0);
+
+    for nonce in 0..u32::max_value() {
         // update §
 
         // let y = vdf::eval(state, STEP);
-        let y = Integer::from(0);
+        y = Integer::from(0);
+
         let proof = vec![];
 
         let hash = header_bytes.fill_and_hash(pubkey, nonce, y, proof);
