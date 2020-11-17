@@ -1,13 +1,12 @@
+use bigint::U256;
 use block_assembler::BlockTemplate;
 use crypto::dhash256;
 use ecvrf::VrfPk;
 use primitives::bytes::Bytes;
-use primitives::compact::Compact;
-// use primitives::hash::H256;
-use bigint::U256;
 use rug::Integer;
 use ser::Stream;
 use spow::vdf;
+use spow::MODULUS;
 use verification::is_valid_proof_of_work_hash;
 
 const STEP: u64 = 1024;
@@ -22,10 +21,13 @@ fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
         .append(&Bytes::from(pubkey.to_bytes().to_vec()));
     let data = stream.out();
     let h = dhash256(&data);
-    // TODO:
-    let s = U256::from(&*h.reversed() as &[u8]).to_string();
-    Integer::from_str_radix(&s, 10).unwrap()
-    // TODO: inverse
+    let result = Integer::from_str_radix(&h.to_string(), 16).unwrap();
+
+    // invert to get enough security bits
+    match result.invert(&MODULUS) {
+        Ok(inverse) => inverse,
+        Err(unchanged) => unchanged,
+    }
 }
 
 /// Cpu miner solution.
