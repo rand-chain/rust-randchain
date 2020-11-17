@@ -1,6 +1,5 @@
 use chain::IndexedBlockHeader;
 use constants::BLOCK_MAX_FUTURE;
-use crypto::dhash256;
 use error::Error;
 use network::Network;
 use primitives::compact::Compact;
