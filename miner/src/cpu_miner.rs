@@ -61,13 +61,6 @@ pub struct Solution {
 }
 
 /// Simple randchain cpu miner.
-///
-/// First it tries to find solution by changing block header nonce.
-/// Once all nonce values have been tried, it increases extranonce.
-/// Once all of them have been tried (quite unlikely on cpu ;),
-/// and solution still hasn't been found it returns None.
-/// It's possible to also experiment with time, but I find it pointless
-/// to implement on CPU.
 pub fn find_solution(
     block: &BlockTemplate,
     pubkey: VrfPk,
