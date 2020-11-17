@@ -93,12 +93,12 @@ pub fn find_solution(
     );
 
     while extranonce < max_extranonce {
-        extranonce.to_little_endian(&mut extranonce_bytes);
+        // extranonce.to_little_endian(&mut extranonce_bytes);
 
         for nonce in 0..(u32::max_value() as u64 + 1) {
             // update §
             // header_bytes.set_nonce(nonce as u32);
-            let hash = header_bytes.fill_and_hash();
+            let hash = header_bytes.fill_and_hash(pubkey, nonce, Integer::from(0), vec![]);
             if is_valid_proof_of_work_hash(block.bits, &hash) {
                 let solution = Solution {
                     nonce: nonce as u32,
