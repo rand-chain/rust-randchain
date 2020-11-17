@@ -70,19 +70,13 @@ pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
         block.bits,
     );
 
-    let mut y = Integer::from(0);
     let ini_state = Integer::from(0);
-
-    let mut cur_state = Integer::from(0);
+    let mut cur_state = ini_state;
 
     for nonce in 0..u32::max_value() {
-        // update §
+        let y = vdf::eval(cur_state, STEP);
 
-        // let y = vdf::eval(state, STEP);
-
-        y = Integer::from(0);
-
-        let proof = vdf::prove(&ini_state, &cur_state, u64::from(nonce) * STEP);
+        let proof = vdf::prove(&ini_state, &y, u64::from(nonce) * STEP);
 
         let hash = header_bytes.fill_and_hash(pubkey.clone(), nonce, y.clone(), proof.clone());
 
