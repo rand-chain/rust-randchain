@@ -1,13 +1,13 @@
 use block_assembler::BlockTemplate;
-use ecvrf::VrfPk;
-use rug::Integer;
-use spow::vdf;
 use crypto::dhash256;
+use ecvrf::VrfPk;
 use primitives::bigint::{Uint, U256};
 use primitives::bytes::Bytes;
 use primitives::compact::Compact;
 use primitives::hash::H256;
+use rug::Integer;
 use ser::Stream;
+use spow::vdf;
 use verification::is_valid_proof_of_work_hash;
 
 /// Same sequence as chain/block_header for hashing
@@ -16,34 +16,32 @@ struct BlockHeaderDraft {
     previous_header_hash: H256,
     time: u32,
     bits: Compact,
-    pubkey: VrfPk,
 }
 
 impl BlockHeaderDraft {
-    fn new(
-        version: u32,
-        previous_header_hash: H256,
-        time: u32,
-        bits: Compact,
-        pubkey: VrfPk,
-    ) -> BlockHeaderDraft {
+    fn new(version: u32, previous_header_hash: H256, time: u32, bits: Compact) -> BlockHeaderDraft {
         BlockHeaderDraft {
             version: version,
             previous_header_hash: previous_header_hash,
             time: time,
             bits: bits,
-            pubkey: pubkey,
         }
     }
 
-    fn fill_and_hash(&self, nonce: u32, randomness: Integer, proof: vdf::Proof) -> H256 {
+    fn fill_and_hash(
+        &self,
+        pubkey: VrfPk,
+        nonce: u32,
+        randomness: Integer,
+        proof: vdf::Proof,
+    ) -> H256 {
         let mut stream = Stream::default();
         stream
             .append(&self.version)
             .append(&self.previous_header_hash)
             .append(&self.time)
             .append(&self.bits)
-            .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
+            .append(&Bytes::from(pubkey.to_bytes().to_vec()))
             .append(&nonce)
             .append(&randomness)
             .append_vector(&proof);
@@ -74,7 +72,6 @@ pub fn find_solution(
         block.previous_header_hash.clone(),
         block.time,
         block.bits,
-        pubkey,
     );
 
     while extranonce < max_extranonce {
@@ -83,7 +80,7 @@ pub fn find_solution(
         for nonce in 0..(u32::max_value() as u64 + 1) {
             // update §
             // header_bytes.set_nonce(nonce as u32);
-            let hash = header_bytes.fill_and_hash(nonce, Integer::from(0), vec![]);
+            let hash = header_bytes.fill_and_hash(pubkey, nonce, Integer::from(0), vec![]);
             if is_valid_proof_of_work_hash(block.bits, &hash) {
                 let solution = Solution {
                     nonce: nonce as u32,
