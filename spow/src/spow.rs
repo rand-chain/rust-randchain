@@ -1,6 +1,5 @@
 use ecvrf::VrfPk;
 use rug::Integer;
-use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
 use std::io;

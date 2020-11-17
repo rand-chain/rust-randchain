@@ -1,4 +1,5 @@
 extern crate byteorder;
+extern crate ecvrf;
 extern crate heapsize;
 
 extern crate bitcrypto as crypto;
