@@ -7,7 +7,6 @@ use error::Error;
 use hash::H256;
 use network::Network;
 use storage::{BlockHeaderProvider, BlockOrigin, SharedStore};
-use timestamp::median_timestamp_inclusive;
 use verify_chain::ChainVerifier;
 use verify_header::HeaderVerifier;
 use {VerificationLevel, Verify};
@@ -52,10 +51,6 @@ impl BackwardsCompatibleChainVerifier {
             block_origin,
         );
 
-        let median_time_past = median_timestamp_inclusive(
-            block.header.raw.previous_header_hash.clone(),
-            self.store.as_block_header_provider(),
-        );
         let canon_block = CanonBlock::new(block);
         match block_origin {
             BlockOrigin::KnownBlock => {
@@ -65,39 +60,24 @@ impl BackwardsCompatibleChainVerifier {
             // TODO:
             BlockOrigin::CanonChain { block_number } => {
                 let header_provider = self.store.as_store().as_block_header_provider();
-                let chain_acceptor = ChainAcceptor::new(
-                    header_provider,
-                    &self.network,
-                    canon_block,
-                    block_number,
-                    median_time_past,
-                );
+                let chain_acceptor =
+                    ChainAcceptor::new(header_provider, &self.network, canon_block, block_number);
                 chain_acceptor.check()?;
             }
             BlockOrigin::SideChain(origin) => {
                 let block_number = origin.block_number;
                 let fork = self.store.fork(origin)?;
                 let header_provider = fork.store().as_block_header_provider();
-                let chain_acceptor = ChainAcceptor::new(
-                    header_provider,
-                    &self.network,
-                    canon_block,
-                    block_number,
-                    median_time_past,
-                );
+                let chain_acceptor =
+                    ChainAcceptor::new(header_provider, &self.network, canon_block, block_number);
                 chain_acceptor.check()?;
             }
             BlockOrigin::SideChainBecomingCanonChain(origin) => {
                 let block_number = origin.block_number;
                 let fork = self.store.fork(origin)?;
                 let header_provider = fork.store().as_block_header_provider();
-                let chain_acceptor = ChainAcceptor::new(
-                    header_provider,
-                    &self.network,
-                    canon_block,
-                    block_number,
-                    median_time_past,
-                );
+                let chain_acceptor =
+                    ChainAcceptor::new(header_provider, &self.network, canon_block, block_number);
                 chain_acceptor.check()?;
             }
         };

@@ -16,12 +16,11 @@ impl<'a> ChainAcceptor<'a> {
         network: &'a Network,
         block: CanonBlock<'a>,
         height: u32,
-        median_time_past: u32,
     ) -> Self {
         trace!(target: "verification", "Block verification {}", block.hash().to_reversed_str());
 
         ChainAcceptor {
-            block: BlockAcceptor::new(network, block, height, median_time_past, header_provider),
+            block: BlockAcceptor::new(block, height, header_provider),
             header: HeaderAcceptor::new(header_provider, network, block.header(), height),
         }
     }

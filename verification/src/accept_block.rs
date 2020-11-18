@@ -1,6 +1,5 @@
 use canon::CanonBlock;
 use error::Error;
-use network::Network;
 use storage::BlockHeaderProvider;
 
 /// Flexible verification of ordered block
@@ -9,13 +8,7 @@ pub struct BlockAcceptor<'a> {
 }
 
 impl<'a> BlockAcceptor<'a> {
-    pub fn new(
-        network: &'a Network,
-        block: CanonBlock<'a>,
-        height: u32,
-        median_time_past: u32,
-        headers: &'a dyn BlockHeaderProvider,
-    ) -> Self {
+    pub fn new(block: CanonBlock<'a>, height: u32, headers: &'a dyn BlockHeaderProvider) -> Self {
         BlockAcceptor {
             finality: BlockFinality::new(block, height, headers),
         }
