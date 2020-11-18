@@ -105,7 +105,6 @@ impl SPoW<'_> {
         hasher.update("state".as_bytes());
         hasher.update(state.to_string_radix(16).as_bytes());
         let result_hex = hasher.finalize();
-        // TODO: to_digits from_digits
         let result_hex_str = format!("{:#x}", result_hex);
         let result_int = Integer::from_str_radix(&result_hex_str, 16).unwrap();
 
@@ -129,7 +128,6 @@ pub fn validate_difficulty(state: &Integer, target: &Integer) -> bool {
     // only hash state for demo purpose, in real-world case, we may need to add other block metadata
     hasher.update(hash_input.as_bytes());
     let hash_result = hasher.finalize();
-    // TODO: to_digits from_digits
     let hash_result_str = format!("{:#x}", hash_result);
     let hashed_int = Integer::from_str_radix(&hash_result_str, 16).unwrap();
     (hashed_int.cmp(target) == Ordering::Less) || (hashed_int.cmp(target) == Ordering::Equal)
@@ -143,7 +141,6 @@ pub fn h_g(pubkey: &VrfPk, seed: &Integer) -> Integer {
     hasher.update("residue".as_bytes());
     hasher.update(seed.to_string_radix(16).as_bytes());
     let result_hex = hasher.finalize();
-    // TODO: to_digits from_digits
     let result_hex_str = format!("{:#x}", result_hex);
     let result_int = Integer::from_str_radix(&result_hex_str, 16).unwrap();
 
@@ -151,26 +148,5 @@ pub fn h_g(pubkey: &VrfPk, seed: &Integer) -> Integer {
     match result_int.invert(&MODULUS) {
         Ok(inverse) => inverse,
         Err(unchanged) => unchanged,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use rug::{integer::Order, Integer};
-
-    #[test]
-    fn test_vec_integer_serialize_deserialize() {
-        let i = Integer::from(0x0000_0001_0000_0002u64);
-        let digits1 = i.to_digits::<u32>(Order::MsfLe);
-        let digits2 = i.to_digits::<u32>(Order::MsfBe);
-
-        println!("{:?}", digits1);
-        println!("{:?}", digits2);
-        // assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
-
-        let zero = Integer::new();
-        let digits_zero = zero.to_digits::<u32>(Order::MsfBe);
-        println!("{:?}", digits_zero);
-        assert!(digits_zero.is_empty());
     }
 }

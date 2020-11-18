@@ -10,7 +10,6 @@ pub fn hash_to_prime(inputs: &[&Integer]) -> Integer {
         hasher.update("\n".as_bytes());
     }
     let hashed_hex = hasher.finalize();
-    // TODO: to_digits from_digits
     let hashed_hex_str = format!("{:#x}", hashed_hex);
     let hashed_int = Integer::from_str_radix(&hashed_hex_str, 16).unwrap();
 
@@ -31,7 +30,6 @@ pub fn hash_fs(inputs: &[&Integer]) -> Integer {
         hasher.update("\n".as_bytes());
     }
     let hashed_hex = hasher.finalize();
-    // TODO: to_digits from_digits
     let hashed_hex_str = format!("{:#x}", hashed_hex);
     let hashed_int = Integer::from_str_radix(&hashed_hex_str, 16).unwrap();
 
