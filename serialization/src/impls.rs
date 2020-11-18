@@ -283,7 +283,7 @@ impl Deserializable for Compact {
 
 impl Serializable for Integer {
     fn serialize(&self, stream: &mut Stream) {
-        let digits = self.to_digits::<u8>(Order::MsfLe);
+        let digits = self.to_digits::<u8>(Order::Msf);
         stream
             .append(&CompactInteger::from(digits.len()))
             .append_slice(&digits);
@@ -291,7 +291,7 @@ impl Serializable for Integer {
 
     #[inline]
     fn serialized_size(&self) -> usize {
-        let digits = self.to_digits::<u8>(Order::MsfLe);
+        let digits = self.to_digits::<u8>(Order::Msf);
         CompactInteger::from(digits.len()).serialized_size() + digits.len()
     }
 }
@@ -396,13 +396,13 @@ mod tests {
 
     #[test]
     fn test_integer_serialize_deserialize() {
-        let expected1: Bytes = "03346431".into();
-        let i1: Integer = Integer::from(1233);
+        let expected1: Bytes = "041234abff".into();
+        let i1: Integer = Integer::from(0x12_34_ab_ff);
         let b1 = serialize(&i1);
         assert_eq!(b1, expected1.into());
 
-        let expected2: Bytes = "03346432".into();
-        let i2: Integer = Integer::from(1234);
+        let expected2: Bytes = "047f781234".into();
+        let i2: Integer = Integer::from(0x7f_78_12_34);
         let b2 = serialize(&i2);
         assert_eq!(b2, expected2.into());
 
@@ -416,13 +416,13 @@ mod tests {
     #[test]
     fn test_vec_integer_serialize_deserialize() {
         let mut v = Vec::<Integer>::new();
-        v.push(Integer::from(1));
-        v.push(Integer::from(2));
-        v.push(Integer::from(99));
+        v.push(Integer::from(0x1));
+        v.push(Integer::from(0x2));
+        v.push(Integer::from(0x99));
         let mut stream = Stream::default();
         stream.append_vector(&v);
         let b = stream.out();
-        let expected: Bytes = "0301310132023633".into();
+        let expected: Bytes = "03010101020199".into();
         assert_eq!(b, expected.into());
 
         let mut reader = Reader::new(&b);
