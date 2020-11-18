@@ -160,9 +160,13 @@ mod tests {
 
     #[test]
     fn test_vec_integer_serialize_deserialize() {
-        let i = Integer::from(0x1234_5678_9abc_def0u64);
-        let digits = i.to_digits::<u32>(Order::MsfBe);
-        assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
+        let i = Integer::from(0x0000_0001_0000_0002u64);
+        let digits1 = i.to_digits::<u32>(Order::MsfLe);
+        let digits2 = i.to_digits::<u32>(Order::MsfBe);
+
+        println!("{:?}", digits1);
+        println!("{:?}", digits2);
+        // assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
 
         let zero = Integer::new();
         let digits_zero = zero.to_digits::<u32>(Order::MsfBe);
