@@ -3,7 +3,7 @@ use bytes::Bytes;
 use compact::Compact;
 use compact_integer::CompactInteger;
 use hash::{H160, H256, H264, H32, H48, H512, H520, H96};
-use rug::Integer;
+use rug::{integer::Order, Integer};
 use std::io;
 use {Deserializable, Error, Reader, Serializable, Stream};
 
@@ -283,18 +283,16 @@ impl Deserializable for Compact {
 
 impl Serializable for Integer {
     fn serialize(&self, stream: &mut Stream) {
-        let s = self.to_string_radix(16);
-        let bytes: &[u8] = s.as_ref();
+        let digits = self.to_digits::<u8>(Order::Msf);
         stream
-            .append(&CompactInteger::from(bytes.len()))
-            .append_slice(bytes);
+            .append(&CompactInteger::from(digits.len()))
+            .append_slice(&digits);
     }
 
     #[inline]
     fn serialized_size(&self) -> usize {
-        let s = self.to_string_radix(16);
-        let bytes: &[u8] = s.as_ref();
-        CompactInteger::from(bytes.len()).serialized_size() + bytes.len()
+        let digits = self.to_digits::<u8>(Order::Msf);
+        CompactInteger::from(digits.len()).serialized_size() + digits.len()
     }
 }
 
@@ -303,12 +301,8 @@ impl Deserializable for Integer {
     where
         T: io::Read,
     {
-        let bytes: Bytes = reader.read()?;
-        let s = String::from_utf8_lossy(&bytes);
-        match Integer::from_str_radix(&s, 16) {
-            Ok(i) => Ok(i),
-            Err(_) => Err(Error::MalformedData),
-        }
+        let digits: Bytes = reader.read()?;
+        Ok(Integer::from_digits(&digits, Order::Msf))
     }
 }
 
@@ -402,13 +396,13 @@ mod tests {
 
     #[test]
     fn test_integer_serialize_deserialize() {
-        let expected1: Bytes = "03346431".into();
-        let i1: Integer = Integer::from(1233);
+        let expected1: Bytes = "041234abff".into();
+        let i1: Integer = Integer::from(0x12_34_ab_ff);
         let b1 = serialize(&i1);
         assert_eq!(b1, expected1.into());
 
-        let expected2: Bytes = "03346432".into();
-        let i2: Integer = Integer::from(1234);
+        let expected2: Bytes = "047f781234".into();
+        let i2: Integer = Integer::from(0x7f_78_12_34);
         let b2 = serialize(&i2);
         assert_eq!(b2, expected2.into());
 
@@ -422,13 +416,13 @@ mod tests {
     #[test]
     fn test_vec_integer_serialize_deserialize() {
         let mut v = Vec::<Integer>::new();
-        v.push(Integer::from(1));
-        v.push(Integer::from(2));
-        v.push(Integer::from(99));
+        v.push(Integer::from(0x1));
+        v.push(Integer::from(0x2));
+        v.push(Integer::from(0x99));
         let mut stream = Stream::default();
         stream.append_vector(&v);
         let b = stream.out();
-        let expected: Bytes = "0301310132023633".into();
+        let expected: Bytes = "03010101020199".into();
         assert_eq!(b, expected.into());
 
         let mut reader = Reader::new(&b);
