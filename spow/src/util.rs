@@ -1,4 +1,4 @@
-use rug::Integer;
+use rug::{integer::Order, Integer};
 use sha2::{Digest, Sha256};
 
 use super::config::MODULUS;
