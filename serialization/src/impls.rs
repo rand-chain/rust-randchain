@@ -3,7 +3,7 @@ use bytes::Bytes;
 use compact::Compact;
 use compact_integer::CompactInteger;
 use hash::{H160, H256, H264, H32, H48, H512, H520, H96};
-use rug::Integer;
+use rug::{integer::Order, Integer};
 use std::io;
 use {Deserializable, Error, Reader, Serializable, Stream};
 
@@ -283,18 +283,16 @@ impl Deserializable for Compact {
 
 impl Serializable for Integer {
     fn serialize(&self, stream: &mut Stream) {
-        let s = self.to_string_radix(16);
-        let bytes: &[u8] = s.as_ref();
+        let digits = self.to_digits::<u8>(Order::MsfLe);
         stream
-            .append(&CompactInteger::from(bytes.len()))
-            .append_slice(bytes);
+            .append(&CompactInteger::from(digits.len()))
+            .append_slice(&digits);
     }
 
     #[inline]
     fn serialized_size(&self) -> usize {
-        let s = self.to_string_radix(16);
-        let bytes: &[u8] = s.as_ref();
-        CompactInteger::from(bytes.len()).serialized_size() + bytes.len()
+        let digits = self.to_digits::<u8>(Order::MsfLe);
+        CompactInteger::from(digits.len()).serialized_size() + digits.len()
     }
 }
 
@@ -303,12 +301,8 @@ impl Deserializable for Integer {
     where
         T: io::Read,
     {
-        let bytes: Bytes = reader.read()?;
-        let s = String::from_utf8_lossy(&bytes);
-        match Integer::from_str_radix(&s, 16) {
-            Ok(i) => Ok(i),
-            Err(_) => Err(Error::MalformedData),
-        }
+        let digits: Bytes = reader.read()?;
+        Ok(Integer::from_digits(&digits, Order::Msf))
     }
 }
 
