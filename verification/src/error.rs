@@ -8,6 +8,8 @@ pub enum Error {
     Duplicate,
     /// Invalid proof-of-work (Block hash does not satisfy nBits)
     Pow,
+    /// Invalid vdf proof
+    Vdf,
     /// Futuristic timestamp
     FuturisticTimestamp,
     /// Invalid timestamp

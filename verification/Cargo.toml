@@ -7,6 +7,7 @@ authors = ["Nikolay Volf <nikvolf@gmail.com>"]
 time = "0.1"
 lazy_static = "1.0"
 log = "0.4"
+rug = "1.3.0"
 rayon = "1.0"
 parking_lot = "0.4"
 primitives = { path = "../primitives" }
@@ -15,6 +16,7 @@ serialization = { path = "../serialization" }
 network = { path = "../network" }
 storage = { path = "../storage" }
 bitcrypto = { path = "../crypto" }
+vdf = { path = "../vdf" }
 
 [dev-dependencies]
 test-data = { path = "../test-data" }
