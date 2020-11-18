@@ -418,11 +418,11 @@ mod tests {
         let mut v = Vec::<Integer>::new();
         v.push(Integer::from(0x1));
         v.push(Integer::from(0x2));
-        v.push(Integer::from(0x99));
+        v.push(Integer::from(0x10_24));
         let mut stream = Stream::default();
         stream.append_vector(&v);
         let b = stream.out();
-        let expected: Bytes = "03010101020199".into();
+        let expected: Bytes = "0301010102021024".into();
         assert_eq!(b, expected.into());
 
         let mut reader = Reader::new(&b);
