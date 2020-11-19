@@ -38,9 +38,9 @@ pub struct Solution {
 pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
     let g = h_g(block, pubkey);
     let mut cur_y = g.clone();
-    let mut nonce = 1u64;
+    let mut nonce = 0u64;
     loop {
-        nonce += nonce * (STEP as u64);
+        nonce += STEP;
         if nonce > (u32::max_value() as u64) {
             return None;
         }
