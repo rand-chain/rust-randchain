@@ -17,6 +17,8 @@ pub enum GetBlockResponse {
 pub struct VerboseBlock {
     /// Block hash
     pub hash: H256,
+    #[serde(rename = "randomnessHash")]
+    pub randomness_hash: H256,
     /// Number of confirmations. -1 if block is on the side chain
     pub confirmations: i64,
     /// Block size
@@ -85,6 +87,7 @@ mod tests {
 
         let block = VerboseBlock {
             hash: H256::from(1),
+            randomness_hash: H256::from(1),
             confirmations: -1,
             size: 500000,
             height: Some(3513513),
@@ -117,6 +120,7 @@ mod tests {
 
         let block = VerboseBlock {
             hash: H256::from(1),
+            randomness_hash: H256::from(1),
             confirmations: -1,
             size: 500000,
             height: Some(3513513),
