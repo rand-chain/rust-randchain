@@ -40,7 +40,7 @@ pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
     let mut cur_y = g.clone();
     let mut nonce = 0u64;
     loop {
-        nonce += STEP;
+        nonce += STEP as u64;
         if nonce > (u32::max_value() as u64) {
             return None;
         }
