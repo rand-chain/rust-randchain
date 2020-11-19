@@ -29,7 +29,7 @@ fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
 
 /// Cpu miner solution.
 pub struct Solution {
-    pub nonce: u32,
+    pub iterations: u32,
     pub randomness: Integer,
     pub proof: vdf::Proof,
 }
@@ -38,19 +38,19 @@ pub struct Solution {
 pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
     let g = h_g(block, pubkey);
     let mut cur_y = g.clone();
-    let mut nonce = 0u64;
+    let mut iterations = 0u64;
     loop {
-        nonce += STEP as u64;
-        if nonce > (u32::max_value() as u64) {
+        iterations += STEP as u64;
+        if iterations > (u32::max_value() as u64) {
             return None;
         }
 
         let new_y = vdf::eval(&cur_y, STEP);
         if is_valid_proof_of_work_hash(block.bits, &dhash256(new_y.to_string_radix(16).as_ref())) {
             let solution = Solution {
-                nonce: nonce as u32,
+                iterations: iterations as u32,
                 randomness: new_y.clone(),
-                proof: vdf::prove(&g, &new_y, nonce as u32),
+                proof: vdf::prove(&g, &new_y, iterations as u32),
             };
 
             return Some(solution);

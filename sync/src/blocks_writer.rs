@@ -239,13 +239,13 @@ mod tests {
         let b0 = test_data::block_builder().header().build().build();
         let b1 = test_data::block_builder()
             .header()
-            .nonce(1)
+            .iterations(1)
             .parent(b0.hash())
             .build()
             .build();
         let b2 = test_data::block_builder()
             .header()
-            .nonce(2)
+            .iterations(2)
             .parent(b0.hash())
             .build()
             .build();

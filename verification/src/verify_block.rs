@@ -39,7 +39,7 @@ impl<'a> BlockVerifier<'a> {
         match vdf::verify(
             &g,
             &self.block.header.raw.randomness,
-            self.block.header.raw.nonce,
+            self.block.header.raw.iterations,
             &self.block.header.raw.proof,
         ) {
             true => Ok(()),

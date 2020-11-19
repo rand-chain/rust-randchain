@@ -84,7 +84,7 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                 hash: block.hash().clone().into(),
                 pubkey_hex: block.header.raw.pubkey.to_bytes().to_hex(),
                 randomness_hex: block.header.raw.randomness.to_string_radix(16),
-                nonce: block.header.raw.nonce,
+                iterations: block.header.raw.iterations,
                 time: block.header.raw.time,
                 version: block.header.raw.version,
                 version_hex: format!("{:x}", &block.header.raw.version),
@@ -204,7 +204,7 @@ pub mod tests {
                 randomness_hex: "7788".to_owned(),
                 time: 1231469744,
                 mediantime: None,
-                nonce: 1639830024,
+                iterations: 1639830024,
                 bits: 486604799,
                 difficulty: 1.0,
                 chainwork: 0.into(),
@@ -389,7 +389,7 @@ pub mod tests {
                 randomness_hex: "7788".to_owned(),
                 time: 1231469665,
                 mediantime: Some(1231006505),
-                nonce: 2573394689,
+                iterations: 2573394689,
                 bits: 486604799,
                 difficulty: 1.0,
                 chainwork: 0.into(),
@@ -420,7 +420,7 @@ pub mod tests {
                 randomness_hex: "7788".to_owned(),
                 time: 1231469744,
                 mediantime: Some(1231469665),
-                nonce: 1639830024,
+                iterations: 1639830024,
                 bits: 486604799,
                 difficulty: 1.0,
                 chainwork: 0.into(),
@@ -512,7 +512,7 @@ pub mod tests {
 
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":{"bits":486604799,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd","height":2,"mediantime":null,"nextblockhash":null,"nonce":1639830024,"previousblockhash":"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048","randomnessHex":"7788","size":215,"time":1231469744,"version":1,"versionHex":"1"},"id":1}"#
+            r#"{"jsonrpc":"2.0","result":{"bits":486604799,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd","height":2,"mediantime":null,"nextblockhash":null,"iterations":1639830024,"previousblockhash":"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048","randomnessHex":"7788","size":215,"time":1231469744,"version":1,"versionHex":"1"},"id":1}"#
         );
     }
 

@@ -17,7 +17,7 @@ pub struct BlockHeader {
     pub time: u32,
     pub bits: Compact,
     pub pubkey: VrfPk,
-    pub nonce: u32,
+    pub iterations: u32,
     pub randomness: Integer,
     pub proof: vdf::Proof,
 }
@@ -42,7 +42,7 @@ impl Serializable for BlockHeader {
             .append(&self.time)
             .append(&self.bits)
             .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
-            .append(&self.nonce)
+            .append(&self.iterations)
             .append(&self.randomness)
             .append_vector(&self.proof);
     }
@@ -70,7 +70,7 @@ impl Deserializable for BlockHeader {
                     Ok(pk) => pk,
                 }
             },
-            nonce: reader.read()?,
+            iterations: reader.read()?,
             randomness: reader.read()?,
             proof: reader.read_vector()?,
         };
@@ -90,7 +90,7 @@ impl fmt::Debug for BlockHeader {
             .field("time", &self.time)
             .field("bits", &self.bits)
             .field("pubkey", &self.pubkey)
-            .field("nonce", &self.nonce)
+            .field("iterations", &self.iterations)
             .field("randomness", &self.randomness)
             .field("proof", &self.proof)
             .finish()
@@ -123,7 +123,7 @@ mod tests {
             time: 4,
             bits: 5.into(),
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
-            nonce: 7,
+            iterations: 7,
             randomness: Integer::from(8),
             proof: vec![Integer::from(9); 2],
         };
@@ -165,7 +165,7 @@ mod tests {
             time: 4,
             bits: 5.into(),
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
-            nonce: 7,
+            iterations: 7,
             randomness: Integer::from(8),
             proof: vec![Integer::from(9); 2],
         };
