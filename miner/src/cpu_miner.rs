@@ -1,6 +1,7 @@
 use block_assembler::BlockTemplate;
 use crypto::dhash256;
 use ecvrf::VrfPk;
+use hash::H256;
 use primitives::bytes::Bytes;
 use rug::Integer;
 use ser::Stream;
@@ -8,7 +9,8 @@ use verification::is_valid_proof_of_work_hash;
 
 const STEP: u32 = 1024;
 
-fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
+// consistent with verification/src/verify_block.rs
+fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
     let mut stream = Stream::default();
     stream
         .append(&block.version)
@@ -27,6 +29,16 @@ fn h_g(block: &BlockTemplate, pubkey: VrfPk) -> Integer {
     }
 }
 
+// consistent with chain/src/block_header.rs
+fn randomness_hash(pubkey: &VrfPk, randomness: &Integer) -> H256 {
+    let mut stream = Stream::default();
+    stream
+        .append(&Bytes::from(pubkey.to_bytes().to_vec()))
+        .append(randomness);
+    let data = stream.out();
+    dhash256(&data)
+}
+
 /// Cpu miner solution.
 pub struct Solution {
     pub iterations: u32,
@@ -35,7 +47,7 @@ pub struct Solution {
 }
 
 /// Simple randchain cpu miner.
-pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
+pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> {
     let g = h_g(block, pubkey);
     let mut cur_y = g.clone();
     let mut iterations = 0u64;
@@ -46,7 +58,7 @@ pub fn find_solution(block: &BlockTemplate, pubkey: VrfPk) -> Option<Solution> {
         }
 
         let new_y = vdf::eval(&cur_y, STEP);
-        if is_valid_proof_of_work_hash(block.bits, &dhash256(new_y.to_string_radix(16).as_ref())) {
+        if is_valid_proof_of_work_hash(block.bits, &randomness_hash(pubkey, &new_y)) {
             let solution = Solution {
                 iterations: iterations as u32,
                 randomness: new_y.clone(),
@@ -79,7 +91,7 @@ mod tests {
 
         // generate or load key
         let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
-        let solution = find_solution(&block_template, pubkey);
+        let solution = find_solution(&block_template, &pubkey);
         assert!(solution.is_some());
     }
 }
