@@ -2,8 +2,9 @@ use chain::IndexedBlock;
 use crypto::dhash256;
 use error::Error;
 use primitives::bytes::Bytes;
-use rug::Integer;
+use rug::{integer::Order, Integer};
 use ser::Stream;
+use sha2::{Digest, Sha256};
 
 fn h_g(block: &IndexedBlock) -> Integer {
     let mut stream = Stream::default();
@@ -15,13 +16,20 @@ fn h_g(block: &IndexedBlock) -> Integer {
         .append(&Bytes::from(block.header.raw.pubkey.to_bytes().to_vec()));
     let data = stream.out();
     let h = dhash256(&data);
-    let result = Integer::from_str_radix(&h.to_string(), 16).unwrap();
-
-    // invert to get enough security bits
-    match result.invert(&vdf::MODULUS) {
-        Ok(inverse) => inverse,
-        Err(unchanged) => unchanged,
-    }
+    let prefix = "fs_part_".as_bytes();
+    // concat 8 sha256 to a sha2048
+    let all_2048: Vec<u8> = (0..((2048 / 256) as u8))
+        .map(|index| {
+            let mut hasher = Sha256::new();
+            hasher.update(prefix);
+            hasher.update(vec![index]);
+            hasher.update(<[u8; 32]>::from(h));
+            hasher.finalize()
+        })
+        .flatten()
+        .collect();
+    let result = Integer::from_digits(&all_2048, Order::Lsf);
+    result.div_rem_floor(vdf::MODULUS.clone()).1
 }
 
 pub struct BlockVerifier<'a> {

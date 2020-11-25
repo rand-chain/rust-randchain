@@ -59,6 +59,7 @@ extern crate log;
 extern crate parking_lot;
 extern crate rayon;
 extern crate rug;
+extern crate sha2;
 
 extern crate bitcrypto as crypto;
 extern crate chain;
