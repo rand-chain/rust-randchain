@@ -10,11 +10,19 @@ pub fn hash_fs(inputs: &[&Integer]) -> Integer {
         hasher.update(input.to_digits::<u8>(Order::Lsf));
         hasher.update("\n".as_bytes());
     }
-    let hashed = Integer::from_digits(&hasher.finalize(), Order::Lsf);
-
-    // invert to get enough security bits
-    match hashed.invert(&MODULUS) {
-        Ok(inverse) => inverse,
-        Err(unchanged) => unchanged,
-    }
+    let seed = hasher.finalize();
+    let prefix = "fs_part_".as_bytes();
+    // concat 8 sha256 to a sha2048
+    let all_2048: Vec<u8> = (0..((2048 / 256) as u8))
+        .map(|index| {
+            let mut hasher = Sha256::new();
+            hasher.update(prefix);
+            hasher.update(vec![index]);
+            hasher.update(seed.clone());
+            hasher.finalize()
+        })
+        .flatten()
+        .collect();
+    let result = Integer::from_digits(&all_2048, Order::Lsf);
+    result.div_rem_floor(MODULUS.clone()).1
 }
