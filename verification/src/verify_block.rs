@@ -15,15 +15,15 @@ fn h_g(block: &IndexedBlock) -> Integer {
         .append(&block.header.raw.bits)
         .append(&Bytes::from(block.header.raw.pubkey.to_bytes().to_vec()));
     let data = stream.out();
-    let h = dhash256(&data);
-    let prefix = "fs_part_".as_bytes();
+    let seed = dhash256(&data);
+    let prefix = "residue_part_".as_bytes();
     // concat 8 sha256 to a sha2048
     let all_2048: Vec<u8> = (0..((2048 / 256) as u8))
         .map(|index| {
             let mut hasher = Sha256::new();
             hasher.update(prefix);
             hasher.update(vec![index]);
-            hasher.update(<[u8; 32]>::from(h));
+            hasher.update(<[u8; 32]>::from(seed));
             hasher.finalize()
         })
         .flatten()

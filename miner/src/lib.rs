@@ -3,6 +3,7 @@ extern crate byteorder;
 extern crate ecvrf;
 extern crate heapsize;
 extern crate rug;
+extern crate sha2;
 
 extern crate bitcrypto as crypto;
 extern crate chain;
