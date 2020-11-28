@@ -67,6 +67,7 @@ impl IndexedBlock {
         Block::new(self.header.raw, self.proof)
     }
 
+    // TODO: fix size for all
     pub fn size(&self) -> usize {
         let header_size = self.header.raw.serialized_size();
         header_size
