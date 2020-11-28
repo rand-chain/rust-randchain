@@ -15,7 +15,7 @@ pub struct Block {
 
 impl Serializable for Block {
     fn serialize(&self, stream: &mut Stream) {
-        stream.append(&self.block_header).append_vector(&self.proof);
+        stream.append(&self.block_header).append_list(&self.proof);
     }
 }
 
@@ -26,7 +26,7 @@ impl Deserializable for Block {
     {
         let res = Block {
             block_header: reader.read()?,
-            proof: reader.read_vector()?,
+            proof: reader.read_list()?,
         };
 
         Ok(res)

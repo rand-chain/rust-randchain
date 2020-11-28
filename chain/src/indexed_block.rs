@@ -3,7 +3,7 @@ use hash::H256;
 use hex::FromHex;
 use indexed_header::IndexedBlockHeader;
 use rug::Integer;
-use ser::deserialize;
+use ser::{deserialize, serialized_list_size};
 use ser::{Deserializable, Error as ReaderError, Reader, Serializable};
 use std::cmp;
 use std::io;
@@ -21,7 +21,7 @@ impl Deserializable for IndexedBlock {
     {
         let res = IndexedBlock {
             header: reader.read()?,
-            proof: reader.read_vector()?,
+            proof: reader.read_list()?,
         };
 
         Ok(res)
@@ -70,7 +70,7 @@ impl IndexedBlock {
     // TODO: fix size for all
     pub fn size(&self) -> usize {
         let header_size = self.header.raw.serialized_size();
-        let proof_size = self.proof.serialized_size();
+        let proof_size = serialized_list_size(&self.proof);
         header_size + proof_size
     }
 
