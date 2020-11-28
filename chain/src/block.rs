@@ -8,6 +8,7 @@ use hash::H256;
 #[derive(Debug, PartialEq, Clone, Serializable, Deserializable)]
 pub struct Block {
     pub block_header: BlockHeader,
+    pub proof: vdf::Proof,
 }
 
 impl From<&'static str> for Block {
@@ -17,9 +18,10 @@ impl From<&'static str> for Block {
 }
 
 impl Block {
-    pub fn new(header: BlockHeader) -> Self {
+    pub fn new(header: BlockHeader, proof: vdf::Proof) -> Self {
         Block {
             block_header: header,
+            proof: proof,
         }
     }
 
