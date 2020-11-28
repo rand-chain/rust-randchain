@@ -167,20 +167,6 @@ where
         Ok(result)
     }
 
-    pub fn read_vector<T>(&mut self) -> Result<Vec<T>, Error>
-    where
-        T: Deserializable,
-    {
-        let len: usize = self.read::<CompactInteger>()?.into();
-        let mut result = Vec::<T>::with_capacity(len);
-
-        for _ in 0..len {
-            result.push(self.read()?);
-        }
-
-        Ok(result)
-    }
-
     #[cfg_attr(feature = "cargo-clippy", allow(wrong_self_convention))]
     pub fn is_finished(&mut self) -> bool {
         if self.peeked.is_some() {

@@ -90,19 +90,6 @@ impl Stream {
         self
     }
 
-    /// Appends a vector of serializable structs to the end of the stream.
-    pub fn append_vector<T, K>(&mut self, t: &Vec<K>) -> &mut Self
-    where
-        T: Serializable,
-        K: Borrow<T>,
-    {
-        CompactInteger::from(t.len()).serialize(self);
-        for i in t {
-            i.borrow().serialize(self);
-        }
-        self
-    }
-
     /// Full stream.
     pub fn out(self) -> Bytes {
         self.buffer.into()
