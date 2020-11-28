@@ -28,15 +28,6 @@ impl BlockHeader {
     pub fn hash(&self) -> H256 {
         block_header_hash(self)
     }
-
-    pub fn randomness_hash(&self) -> H256 {
-        let mut stream = Stream::default();
-        stream
-            .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
-            .append(&self.randomness);
-        let data = stream.out();
-        dhash256(&data)
-    }
 }
 
 impl Serializable for BlockHeader {
