@@ -41,7 +41,7 @@ impl Serializable for BlockHeader {
             .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
             .append(&self.nonce)
             .append(&self.randomness)
-            .append_vector(&self.proof);
+            .append_list(&self.proof);
     }
 }
 
@@ -69,7 +69,7 @@ impl Deserializable for BlockHeader {
             },
             nonce: reader.read()?,
             randomness: reader.read()?,
-            proof: reader.read_vector()?,
+            proof: reader.read_list()?,
         };
 
         Ok(res)
