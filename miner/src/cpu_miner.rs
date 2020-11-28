@@ -37,16 +37,6 @@ fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
     result.div_rem_floor(vdf::MODULUS.clone()).1
 }
 
-// consistent with chain/src/block_header.rs
-fn randomness_hash(pubkey: &VrfPk, randomness: &Integer) -> H256 {
-    let mut stream = Stream::default();
-    stream
-        .append(&Bytes::from(pubkey.to_bytes().to_vec()))
-        .append(randomness);
-    let data = stream.out();
-    dhash256(&data)
-}
-
 /// Cpu miner solution.
 pub struct Solution {
     pub iterations: u32,
@@ -66,6 +56,7 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> 
         }
 
         let new_y = vdf::eval(&cur_y, STEP);
+        // TODO: randomness_hash -> block_header_hash
         if is_valid_proof_of_work_hash(block.bits, &randomness_hash(pubkey, &new_y)) {
             let solution = Solution {
                 iterations: iterations as u32,

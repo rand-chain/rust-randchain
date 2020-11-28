@@ -70,7 +70,8 @@ impl IndexedBlock {
     // TODO: fix size for all
     pub fn size(&self) -> usize {
         let header_size = self.header.raw.serialized_size();
-        header_size
+        let proof_size = self.proof.serialized_size();
+        header_size + proof_size
     }
 
     pub fn randomness(&self) -> &Integer {
