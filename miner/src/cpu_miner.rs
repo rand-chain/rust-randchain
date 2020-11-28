@@ -22,7 +22,7 @@ fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
     let data = stream.out();
     let seed = dhash256(&data);
     let prefix = "residue_part_".as_bytes();
-    // concat 8 sha256 to a sha2048
+    // concat 8 sha256 to a 2048-bit hash
     let all_2048: Vec<u8> = (0..((2048 / 256) as u8))
         .map(|index| {
             let mut hasher = Sha256::new();
