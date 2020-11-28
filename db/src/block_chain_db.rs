@@ -415,7 +415,8 @@ where
     fn block(&self, block_ref: BlockRef) -> Option<IndexedBlock> {
         self.resolve_hash(block_ref).and_then(|block_hash| {
             self.block_header(block_hash.clone().into())
-                .map(|header| IndexedBlock::new(header))
+                // TODO:
+                .map(|header| IndexedBlock::new(header, vec![]))
         })
     }
 
