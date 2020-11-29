@@ -33,15 +33,31 @@ fn h_g(block: &IndexedBlock) -> Integer {
 }
 
 pub struct BlockVerifier<'a> {
-    pub block: &'a IndexedBlock,
+    pub vdf: BlockVDF<'a>,
 }
 
 impl<'a> BlockVerifier<'a> {
     pub fn new(block: &'a IndexedBlock) -> Self {
-        BlockVerifier { block: block }
+        BlockVerifier {
+            vdf: BlockVDF::new(block),
+        }
     }
 
     pub fn check(&self) -> Result<(), Error> {
+        self.vdf.check()
+    }
+}
+
+pub struct BlockVDF<'a> {
+    block: &'a IndexedBlock,
+}
+
+impl<'a> BlockVDF<'a> {
+    fn new(block: &'a IndexedBlock) -> Self {
+        BlockVDF { block: block }
+    }
+
+    fn check(&self) -> Result<(), Error> {
         let g = h_g(self.block);
 
         match vdf::verify(
