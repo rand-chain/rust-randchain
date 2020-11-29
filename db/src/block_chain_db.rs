@@ -220,6 +220,7 @@ where
         Err(Error::AncientFork)
     }
 
+    // TODO:
     pub fn insert(&self, block: IndexedBlock) -> Result<(), Error> {
         if self.contains_block(block.hash().clone().into()) {
             return Ok(());
