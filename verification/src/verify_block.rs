@@ -66,8 +66,8 @@ impl<'a> BlockVDF<'a> {
             self.block.header.raw.iterations,
             &self.block.proof,
         ) {
-            true => Ok(()),
             false => Err(Error::Vdf),
+            true => Ok(()),
         }
     }
 }
