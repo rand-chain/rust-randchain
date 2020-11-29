@@ -56,6 +56,7 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> 
         }
 
         let new_y = vdf::eval(&cur_y, STEP);
+        // consistent with chain/src/block_header.rs
         let block_header_hash = dhash256(&serialize(&BlockHeader {
             version: block.version,
             previous_header_hash: block.previous_header_hash,
