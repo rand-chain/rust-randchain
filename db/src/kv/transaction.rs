@@ -1,12 +1,12 @@
 use bytes::Bytes;
-use chain::BlockHeader;
+use chain::Block;
 use hash::H256;
 use ser::{deserialize, serialize};
 
 pub const COL_COUNT: u32 = 10;
 pub const COL_META: u32 = 0;
 pub const COL_BLOCK_HASHES: u32 = 1;
-pub const COL_BLOCK_HEADERS: u32 = 2;
+pub const COL_BLOCKS: u32 = 2;
 pub const COL_BLOCK_NUMBERS: u32 = 3;
 pub const COL_CONFIGURATION: u32 = 4;
 
@@ -21,8 +21,7 @@ pub enum Operation {
 pub enum KeyValue {
     Meta(&'static str, Bytes),
     BlockHash(u32, H256),
-    // BlockHeader already contains randomness and other spow info
-    BlockHeader(H256, BlockHeader),
+    Block(H256, Block),
     BlockNumber(H256, u32),
     Configuration(&'static str, Bytes),
 }
@@ -31,7 +30,7 @@ pub enum KeyValue {
 pub enum Key {
     Meta(&'static str),
     BlockHash(u32),
-    BlockHeader(H256),
+    Block(H256),
     BlockNumber(H256),
     Configuration(&'static str),
 }
@@ -40,7 +39,7 @@ pub enum Key {
 pub enum Value {
     Meta(Bytes),
     BlockHash(H256),
-    BlockHeader(BlockHeader),
+    Block(Block),
     BlockNumber(u32),
     Configuration(Bytes),
 }
@@ -50,7 +49,7 @@ impl Value {
         match *key {
             Key::Meta(_) => deserialize(bytes).map(Value::Meta),
             Key::BlockHash(_) => deserialize(bytes).map(Value::BlockHash),
-            Key::BlockHeader(_) => deserialize(bytes).map(Value::BlockHeader),
+            Key::Block(_) => deserialize(bytes).map(Value::Block),
             Key::BlockNumber(_) => deserialize(bytes).map(Value::BlockNumber),
             Key::Configuration(_) => deserialize(bytes).map(Value::Configuration),
         }
@@ -71,9 +70,9 @@ impl Value {
         }
     }
 
-    pub fn as_block_header(self) -> Option<BlockHeader> {
+    pub fn as_block(self) -> Option<Block> {
         match self {
-            Value::BlockHeader(block_header) => Some(block_header),
+            Value::Block(block) => Some(block),
             _ => None,
         }
     }
@@ -196,8 +195,8 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
             KeyValue::BlockHash(ref key, ref value) => {
                 (COL_BLOCK_HASHES, serialize(key), serialize(value))
             }
-            KeyValue::BlockHeader(ref key, ref value) => {
-                (COL_BLOCK_HEADERS, serialize(key), serialize(value))
+            KeyValue::Block(ref key, ref value) => {
+                (COL_BLOCKS, serialize(key), serialize(value))
             }
             KeyValue::BlockNumber(ref key, ref value) => {
                 (COL_BLOCK_NUMBERS, serialize(key), serialize(value))
@@ -237,7 +236,7 @@ impl<'a> From<&'a Key> for RawKey {
         let (location, key) = match *d {
             Key::Meta(ref key) => (COL_META, serialize(key)),
             Key::BlockHash(ref key) => (COL_BLOCK_HASHES, serialize(key)),
-            Key::BlockHeader(ref key) => (COL_BLOCK_HEADERS, serialize(key)),
+            Key::Block(ref key) => (COL_BLOCKS, serialize(key)),
             Key::BlockNumber(ref key) => (COL_BLOCK_NUMBERS, serialize(key)),
             Key::Configuration(ref key) => (COL_CONFIGURATION, serialize(key)),
         };
