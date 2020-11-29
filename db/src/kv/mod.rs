@@ -12,6 +12,6 @@ pub use self::memorydb::{MemoryDatabase, SharedMemoryDatabase};
 pub use self::overlaydb::{AutoFlushingOverlayDatabase, OverlayDatabase};
 pub use self::transaction::{
     Key, KeyState, KeyValue, Location, Operation, RawKey, RawKeyValue, RawOperation,
-    RawTransaction, Transaction, Value, COL_BLOCK_HASHES, COL_BLOCK_HEADERS, COL_BLOCK_NUMBERS,
-    COL_COUNT, COL_META,
+    RawTransaction, Transaction, Value, COL_BLOCKS, COL_BLOCK_HASHES, COL_BLOCK_NUMBERS, COL_COUNT,
+    COL_META,
 };

@@ -48,7 +48,7 @@ impl<'a> BlockVerifier<'a> {
             &g,
             &self.block.header.raw.randomness,
             self.block.header.raw.iterations,
-            &self.block.header.raw.proof,
+            &self.block.proof,
         ) {
             true => Ok(()),
             false => Err(Error::Vdf),

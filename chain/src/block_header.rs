@@ -19,7 +19,6 @@ pub struct BlockHeader {
     pub pubkey: VrfPk,
     pub iterations: u32,
     pub randomness: Integer,
-    pub proof: vdf::Proof,
 }
 
 impl BlockHeader {
@@ -27,15 +26,6 @@ impl BlockHeader {
     #[cfg(any(test, feature = "test-helpers"))]
     pub fn hash(&self) -> H256 {
         block_header_hash(self)
-    }
-
-    pub fn randomness_hash(&self) -> H256 {
-        let mut stream = Stream::default();
-        stream
-            .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
-            .append(&self.randomness);
-        let data = stream.out();
-        dhash256(&data)
     }
 }
 
@@ -48,8 +38,7 @@ impl Serializable for BlockHeader {
             .append(&self.bits)
             .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
             .append(&self.iterations)
-            .append(&self.randomness)
-            .append_list(&self.proof);
+            .append(&self.randomness);
     }
 }
 
@@ -77,7 +66,6 @@ impl Deserializable for BlockHeader {
             },
             iterations: reader.read()?,
             randomness: reader.read()?,
-            proof: reader.read_list()?,
         };
 
         Ok(res)
@@ -97,7 +85,6 @@ impl fmt::Debug for BlockHeader {
             .field("pubkey", &self.pubkey)
             .field("iterations", &self.iterations)
             .field("randomness", &self.randomness)
-            .field("proof", &self.proof)
             .finish()
     }
 }
@@ -130,7 +117,6 @@ mod tests {
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,
             randomness: Integer::from(8),
-            proof: vec![Integer::from(9); 2],
         };
 
         let mut stream = Stream::default();
@@ -142,8 +128,7 @@ mod tests {
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00,
             0x00, 0x00, 0x20, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
             0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
-            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02,
-            0x01, 0x09, 0x01, 0x09,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x00, 0x00, 0x00, 0x01, 0x08,
         ]
         .into();
 
@@ -158,8 +143,7 @@ mod tests {
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00,
             0x00, 0x00, 0x20, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
             0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
-            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02,
-            0x01, 0x09, 0x01, 0x09,
+            0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x00, 0x00, 0x00, 0x01, 0x08,
         ];
 
         let mut reader = Reader::new(&buffer);
@@ -172,7 +156,6 @@ mod tests {
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,
             randomness: Integer::from(8),
-            proof: vec![Integer::from(9); 2],
         };
 
         assert_eq!(expected, reader.read().unwrap());

@@ -3,12 +3,29 @@ use hash::H256;
 use hex::FromHex;
 use indexed_header::IndexedBlockHeader;
 use rug::Integer;
-use ser::{deserialize, Serializable};
+use ser::{deserialize, serialized_list_size};
+use ser::{Deserializable, Error as ReaderError, Reader, Serializable};
 use std::cmp;
+use std::io;
 
-#[derive(Debug, Clone, Deserializable)]
+#[derive(Debug, Clone)]
 pub struct IndexedBlock {
     pub header: IndexedBlockHeader,
+    pub proof: vdf::Proof,
+}
+
+impl Deserializable for IndexedBlock {
+    fn deserialize<T>(reader: &mut Reader<T>) -> Result<Self, ReaderError>
+    where
+        T: io::Read,
+    {
+        let res = IndexedBlock {
+            header: reader.read()?,
+            proof: reader.read_list()?,
+        };
+
+        Ok(res)
+    }
 }
 
 #[cfg(feature = "test-helpers")]
@@ -24,16 +41,22 @@ impl cmp::PartialEq for IndexedBlock {
 }
 
 impl IndexedBlock {
-    pub fn new(header: IndexedBlockHeader) -> Self {
-        IndexedBlock { header: header }
+    pub fn new(header: IndexedBlockHeader, proof: vdf::Proof) -> Self {
+        IndexedBlock {
+            header: header,
+            proof: proof,
+        }
     }
 
     /// Explicit conversion of the raw Block into IndexedBlock.
     ///
     /// Hashes block header + transactions.
     pub fn from_raw(block: Block) -> Self {
-        let Block { block_header } = block;
-        Self::new(IndexedBlockHeader::from_raw(block_header))
+        let Block {
+            block_header,
+            proof,
+        } = block;
+        Self::new(IndexedBlockHeader::from_raw(block_header), proof)
     }
 
     pub fn hash(&self) -> &H256 {
@@ -41,12 +64,13 @@ impl IndexedBlock {
     }
 
     pub fn to_raw_block(self) -> Block {
-        Block::new(self.header.raw)
+        Block::new(self.header.raw, self.proof)
     }
 
     pub fn size(&self) -> usize {
         let header_size = self.header.raw.serialized_size();
-        header_size
+        let proof_size = serialized_list_size(&self.proof);
+        header_size + proof_size
     }
 
     pub fn randomness(&self) -> &Integer {

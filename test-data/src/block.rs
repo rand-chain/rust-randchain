@@ -220,7 +220,11 @@ pub fn build_n_empty_blocks_from_genesis(n: u32, start_iterations: u32) -> Vec<c
 
 pub fn build_n_empty_blocks(n: u32, start_iterations: u32) -> Vec<chain::Block> {
     assert!(n != 0);
-    let previous = block_builder().header().iterations(start_iterations).build().build();
+    let previous = block_builder()
+        .header()
+        .iterations(start_iterations)
+        .build()
+        .build();
     let mut result = vec![previous];
     let children = build_n_empty_blocks_from(n, start_iterations + 1, &result[0].block_header);
     result.extend(children);

@@ -17,8 +17,6 @@ pub enum GetBlockResponse {
 pub struct VerboseBlock {
     /// Block hash
     pub hash: H256,
-    #[serde(rename = "randomnessHash")]
-    pub randomness_hash: H256,
     /// Number of confirmations. -1 if block is on the side chain
     pub confirmations: i64,
     /// Block size

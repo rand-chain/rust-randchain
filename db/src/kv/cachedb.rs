@@ -1,4 +1,4 @@
-use chain::BlockHeader;
+use chain::Block;
 use hash::H256;
 use kv::{Key, KeyState, KeyValue, KeyValueDatabase, Operation, Transaction, Value};
 use lru_cache::LruCache;
@@ -9,7 +9,7 @@ where
     T: KeyValueDatabase,
 {
     db: T,
-    header: Mutex<LruCache<H256, KeyState<BlockHeader>>>,
+    block: Mutex<LruCache<H256, KeyState<Block>>>,
 }
 
 impl<T> CacheDatabase<T>
@@ -21,7 +21,7 @@ where
             db: db,
             // TODO: reconfig this
             // 144 (blocks per day) * 14 (days) + 100 (arbitrary number)
-            header: Mutex::new(LruCache::new(2116)),
+            block: Mutex::new(LruCache::new(2116)),
         }
     }
 }
@@ -33,13 +33,13 @@ where
     fn write(&self, tx: Transaction) -> Result<(), String> {
         for op in &tx.operations {
             match *op {
-                Operation::Insert(KeyValue::BlockHeader(ref hash, ref header)) => {
-                    self.header
+                Operation::Insert(KeyValue::Block(ref hash, ref block)) => {
+                    self.block
                         .lock()
-                        .insert(hash.clone(), KeyState::Insert(header.clone()));
+                        .insert(hash.clone(), KeyState::Insert(block.clone()));
                 }
-                Operation::Delete(Key::BlockHeader(ref hash)) => {
-                    self.header.lock().insert(hash.clone(), KeyState::Delete);
+                Operation::Delete(Key::Block(ref hash)) => {
+                    self.block.lock().insert(hash.clone(), KeyState::Delete);
                 }
                 _ => (),
             }
@@ -48,10 +48,10 @@ where
     }
 
     fn get(&self, key: &Key) -> Result<KeyState<Value>, String> {
-        if let Key::BlockHeader(ref hash) = *key {
-            let mut header = self.header.lock();
-            if let Some(state) = header.get_mut(hash) {
-                return Ok(state.clone().map(Value::BlockHeader));
+        if let Key::Block(ref hash) = *key {
+            let mut block = self.block.lock();
+            if let Some(state) = block.get_mut(hash) {
+                return Ok(state.clone().map(Value::Block));
             }
         }
         self.db.get(key)

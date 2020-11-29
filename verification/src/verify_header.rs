@@ -39,11 +39,7 @@ impl<'a> HeaderProofOfWork<'a> {
     }
 
     fn check(&self) -> Result<(), Error> {
-        if is_valid_proof_of_work(
-            self.max_work_bits,
-            self.header.raw.bits,
-            &self.header.raw.randomness_hash(),
-        ) {
+        if is_valid_proof_of_work(self.max_work_bits, self.header.raw.bits, &self.header.hash) {
             Ok(())
         } else {
             Err(Error::Pow)

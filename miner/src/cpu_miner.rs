@@ -1,10 +1,11 @@
 use block_assembler::BlockTemplate;
+use chain::BlockHeader;
 use crypto::dhash256;
 use ecvrf::VrfPk;
 use hash::H256;
 use primitives::bytes::Bytes;
 use rug::{integer::Order, Integer};
-use ser::Stream;
+use ser::{serialize, Stream};
 use sha2::{Digest, Sha256};
 use verification::is_valid_proof_of_work_hash;
 
@@ -37,16 +38,6 @@ fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
     result.div_rem_floor(vdf::MODULUS.clone()).1
 }
 
-// consistent with chain/src/block_header.rs
-fn randomness_hash(pubkey: &VrfPk, randomness: &Integer) -> H256 {
-    let mut stream = Stream::default();
-    stream
-        .append(&Bytes::from(pubkey.to_bytes().to_vec()))
-        .append(randomness);
-    let data = stream.out();
-    dhash256(&data)
-}
-
 /// Cpu miner solution.
 pub struct Solution {
     pub iterations: u32,
@@ -66,7 +57,16 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> 
         }
 
         let new_y = vdf::eval(&cur_y, STEP);
-        if is_valid_proof_of_work_hash(block.bits, &randomness_hash(pubkey, &new_y)) {
+        let block_header_hash = dhash256(&serialize(&BlockHeader {
+            version: block.version,
+            previous_header_hash: block.previous_header_hash,
+            time: block.time,
+            bits: block.bits,
+            pubkey: pubkey.clone(),
+            iterations: iterations as u32,
+            randomness: new_y.clone(),
+        }));
+        if is_valid_proof_of_work_hash(block.bits, &block_header_hash) {
             let solution = Solution {
                 iterations: iterations as u32,
                 randomness: new_y.clone(),
