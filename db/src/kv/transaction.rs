@@ -195,9 +195,7 @@ impl<'a> From<&'a KeyValue> for RawKeyValue {
             KeyValue::BlockHash(ref key, ref value) => {
                 (COL_BLOCK_HASHES, serialize(key), serialize(value))
             }
-            KeyValue::Block(ref key, ref value) => {
-                (COL_BLOCKS, serialize(key), serialize(value))
-            }
+            KeyValue::Block(ref key, ref value) => (COL_BLOCKS, serialize(key), serialize(value)),
             KeyValue::BlockNumber(ref key, ref value) => {
                 (COL_BLOCK_NUMBERS, serialize(key), serialize(value))
             }
