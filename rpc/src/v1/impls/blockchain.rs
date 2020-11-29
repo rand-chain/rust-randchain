@@ -194,8 +194,6 @@ pub mod tests {
             // https://webbtc.com/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd.json
             Some(VerboseBlock {
                 hash: "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000".into(),
-                randomness_hash: "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000"
-                    .into(),
                 confirmations: 1, // h2
                 size: 215,
                 height: Some(2),
@@ -380,8 +378,6 @@ pub mod tests {
             verbose_block,
             Some(VerboseBlock {
                 hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
-                randomness_hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277"
-                    .into(),
                 confirmations: 2, // h1 + h2
                 size: 55,
                 height: Some(1),
@@ -414,8 +410,6 @@ pub mod tests {
             verbose_block,
             Some(VerboseBlock {
                 hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
-                randomness_hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae"
-                    .into(),
                 confirmations: 1, // h2
                 size: 215,
                 height: Some(2),
