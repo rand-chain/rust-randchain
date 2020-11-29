@@ -2,7 +2,6 @@ use block_assembler::BlockTemplate;
 use chain::BlockHeader;
 use crypto::dhash256;
 use ecvrf::VrfPk;
-use hash::H256;
 use primitives::bytes::Bytes;
 use rug::{integer::Order, Integer};
 use ser::{serialize, Stream};
