@@ -1,114 +1,90 @@
 use block_assembler::BlockTemplate;
-use byteorder::{LittleEndian, WriteBytesExt};
+use chain::BlockHeader;
 use crypto::dhash256;
-use primitives::bigint::{Uint, U256};
+use ecvrf::VrfPk;
 use primitives::bytes::Bytes;
-use primitives::compact::Compact;
-use primitives::hash::H256;
-use ser::Stream;
+use rug::{integer::Order, Integer};
+use ser::{serialize, Stream};
+use sha2::{Digest, Sha256};
 use verification::is_valid_proof_of_work_hash;
 
-/// Instead of serializing `BlockHeader` from scratch over and over again,
-/// let's keep it serialized in memory and replace needed bytes
-struct BlockHeaderBytes {
-    data: Bytes,
-}
+const STEP: u32 = 1024;
 
-impl BlockHeaderBytes {
-    /// Creates new instance of block header bytes.
-    fn new(version: u32, previous_header_hash: H256, bits: Compact) -> Self {
-        let merkle_root_hash = H256::default();
-        let time = 0u32;
-        let nonce = 0u32;
-
-        let mut stream = Stream::default();
-        stream
-            .append(&version)
-            .append(&previous_header_hash)
-            .append(&merkle_root_hash)
-            .append(&time)
-            .append(&bits)
-            .append(&nonce);
-
-        BlockHeaderBytes { data: stream.out() }
-    }
-
-    /// Set block header time
-    fn set_time(&mut self, time: u32) {
-        let mut time_bytes: &mut [u8] = &mut self.data[4 + 32 + 32..];
-        time_bytes.write_u32::<LittleEndian>(time).unwrap();
-    }
-
-    /// Set block header nonce
-    fn set_nonce(&mut self, nonce: u32) {
-        let mut nonce_bytes: &mut [u8] = &mut self.data[4 + 32 + 32 + 4 + 4..];
-        nonce_bytes.write_u32::<LittleEndian>(nonce).unwrap();
-    }
-
-    /// Returns block header hash
-    fn hash(&self) -> H256 {
-        dhash256(&self.data)
-    }
+// consistent with verification/src/verify_block.rs
+fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
+    let mut stream = Stream::default();
+    stream
+        .append(&block.version)
+        .append(&block.previous_header_hash)
+        .append(&block.time)
+        .append(&block.bits)
+        .append(&Bytes::from(pubkey.to_bytes().to_vec()));
+    let data = stream.out();
+    let seed = dhash256(&data);
+    let prefix = "residue_part_".as_bytes();
+    // concat 8 sha256 to a 2048-bit hash
+    let all_2048: Vec<u8> = (0..((2048 / 256) as u8))
+        .map(|index| {
+            let mut hasher = Sha256::new();
+            hasher.update(prefix);
+            hasher.update(vec![index]);
+            hasher.update(<[u8; 32]>::from(seed));
+            hasher.finalize()
+        })
+        .flatten()
+        .collect();
+    let result = Integer::from_digits(&all_2048, Order::Lsf);
+    result.div_rem_floor(vdf::MODULUS.clone()).1
 }
 
 /// Cpu miner solution.
 pub struct Solution {
-    /// Block header nonce.
-    pub nonce: u32,
-    /// Coinbase transaction extra nonce (modyfiable by miner).
-    pub extranonce: U256,
-    /// Block header time.
-    pub time: u32,
+    pub iterations: u32,
+    pub randomness: Integer,
+    pub proof: vdf::Proof,
 }
 
 /// Simple randchain cpu miner.
-///
-/// First it tries to find solution by changing block header nonce.
-/// Once all nonce values have been tried, it increases extranonce.
-/// Once all of them have been tried (quite unlikely on cpu ;),
-/// and solution still hasn't been found it returns None.
-/// It's possible to also experiment with time, but I find it pointless
-/// to implement on CPU.
-pub fn find_solution(block: &BlockTemplate, max_extranonce: U256) -> Option<Solution> {
-    let mut extranonce = U256::default();
-    let mut extranonce_bytes = [0u8; 32];
-
-    let mut header_bytes = BlockHeaderBytes::new(
-        block.version,
-        block.previous_header_hash.clone(),
-        block.bits,
-    );
-    // update header with time
-    header_bytes.set_time(block.time);
-
-    while extranonce < max_extranonce {
-        extranonce.to_little_endian(&mut extranonce_bytes);
-
-        for nonce in 0..(u32::max_value() as u64 + 1) {
-            // update §
-            header_bytes.set_nonce(nonce as u32);
-            let hash = header_bytes.hash();
-            if is_valid_proof_of_work_hash(block.bits, &hash) {
-                let solution = Solution {
-                    nonce: nonce as u32,
-                    extranonce: extranonce,
-                    time: block.time,
-                };
-
-                return Some(solution);
-            }
+pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> {
+    let g = h_g(block, pubkey);
+    let mut cur_y = g.clone();
+    let mut iterations = 0u64;
+    loop {
+        iterations += STEP as u64;
+        if iterations > (u32::max_value() as u64) {
+            return None;
         }
 
-        extranonce = extranonce + 1.into();
-    }
+        let new_y = vdf::eval(&cur_y, STEP);
+        // consistent with chain/src/block_header.rs
+        let block_header_hash = dhash256(&serialize(&BlockHeader {
+            version: block.version,
+            previous_header_hash: block.previous_header_hash,
+            time: block.time,
+            bits: block.bits,
+            pubkey: pubkey.clone(),
+            iterations: iterations as u32,
+            randomness: new_y.clone(),
+        }));
+        if is_valid_proof_of_work_hash(block.bits, &block_header_hash) {
+            let solution = Solution {
+                iterations: iterations as u32,
+                randomness: new_y.clone(),
+                proof: vdf::prove(&g, &new_y, iterations as u32),
+            };
 
-    None
+            return Some(solution);
+        }
+
+        cur_y = new_y;
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::find_solution;
     use block_assembler::BlockTemplate;
+    use ecvrf::VrfPk;
     use primitives::bigint::{Uint, U256};
 
     #[test]
@@ -121,7 +97,9 @@ mod tests {
             height: 0,
         };
 
-        let solution = find_solution(&block_template, U256::max_value());
+        // generate or load key
+        let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
+        let solution = find_solution(&block_template, &pubkey);
         assert!(solution.is_some());
     }
 }

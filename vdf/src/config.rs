@@ -1,15 +1,6 @@
 use rug::Integer;
 use std::str::FromStr;
 
-///
-/// evaluation step for each round
-///
-pub const STEP: u64 = 1024;
-
-///
-/// modulus
-///
-
 /// RSA-2048 modulus, taken from [Wikipedia](https://en.wikipedia.org/wiki/RSA_numbers#RSA-2048).
 const RSA2048_MODULUS_DECIMAL: &str =
   "251959084756578934940271832400483985714292821262040320277771378360436620207075955562640185258807\

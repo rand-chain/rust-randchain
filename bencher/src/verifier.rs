@@ -32,13 +32,13 @@ pub fn main(benchmark: &mut Benchmark) {
     let mut blocks: Vec<IndexedBlock> = Vec::new();
 
     for x in 0..BLOCKS_INITIAL {
-        let mut coinbase_nonce = [0u8; 8];
-        LittleEndian::write_u64(&mut coinbase_nonce[..], x as u64);
+        let mut iterations = [0u8; 8];
+        LittleEndian::write_u64(&mut iterations[..], x as u64);
         let next_block = test_data::block_builder()
             // TODO:
             .header()
             .parent(rolling_hash.clone())
-            .nonce(x as u32)
+            .iterations(x as u32)
             .build()
             .build();
         rolling_hash = next_block.hash();
@@ -56,8 +56,8 @@ pub fn main(benchmark: &mut Benchmark) {
 
     let mut verification_blocks: Vec<IndexedBlock> = Vec::new();
     for b in 0..BLOCKS {
-        let mut coinbase_nonce = [0u8; 8];
-        LittleEndian::write_u64(&mut coinbase_nonce[..], (b + BLOCKS_INITIAL) as u64);
+        let mut iterations = [0u8; 8];
+        LittleEndian::write_u64(&mut iterations[..], (b + BLOCKS_INITIAL) as u64);
         let builder = test_data::block_builder();
 
         verification_blocks.push(

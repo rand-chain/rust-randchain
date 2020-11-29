@@ -24,7 +24,7 @@ pub fn fetch(benchmark: &mut Benchmark) {
             // TODO:
             .header()
             .parent(rolling_hash.clone())
-            .nonce(x as u32)
+            .iterations(x as u32)
             .build()
             .build();
         rolling_hash = next_block.hash();
@@ -66,7 +66,7 @@ pub fn write(benchmark: &mut Benchmark) {
             // TODO:
             .header()
             .parent(rolling_hash.clone())
-            .nonce(x as u32)
+            .iterations(x as u32)
             .build()
             .build();
         rolling_hash = next_block.hash();
@@ -103,7 +103,7 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
             // TODO:
             .header()
             .parent(rolling_hash.clone())
-            .nonce(x as u32 * 4)
+            .iterations(x as u32 * 4)
             .build()
             .build();
         rolling_hash = next_block.hash();
@@ -113,7 +113,7 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
             // TODO:
             .header()
             .parent(base)
-            .nonce(x as u32 * 4 + 2)
+            .iterations(x as u32 * 4 + 2)
             .build()
             .build();
         let next_base = next_block_side.hash();
@@ -123,7 +123,7 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
             // TODO:
             .header()
             .parent(next_base)
-            .nonce(x as u32 * 4 + 3)
+            .iterations(x as u32 * 4 + 3)
             .build()
             .build();
         blocks.push(next_block_side_continue);
@@ -132,7 +132,7 @@ pub fn reorg_short(benchmark: &mut Benchmark) {
             // TODO:
             .header()
             .parent(rolling_hash.clone())
-            .nonce(x as u32 * 4 + 1)
+            .iterations(x as u32 * 4 + 1)
             .build()
             .build();
         rolling_hash = next_block_continue.hash();
@@ -199,7 +199,7 @@ pub fn write_heavy(benchmark: &mut Benchmark) {
             // TODO:
             .header()
             .parent(rolling_hash.clone())
-            .nonce(x as u32)
+            .iterations(x as u32)
             .build()
             .build();
         rolling_hash = next_block.hash();

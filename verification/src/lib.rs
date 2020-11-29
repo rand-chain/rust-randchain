@@ -58,6 +58,8 @@ extern crate lazy_static;
 extern crate log;
 extern crate parking_lot;
 extern crate rayon;
+extern crate rug;
+extern crate sha2;
 
 extern crate bitcrypto as crypto;
 extern crate chain;
@@ -67,6 +69,7 @@ extern crate network;
 extern crate primitives;
 extern crate serialization as ser;
 extern crate storage;
+extern crate vdf;
 
 mod canon;
 pub mod constants;

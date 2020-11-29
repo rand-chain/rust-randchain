@@ -1,13 +1,12 @@
 extern crate serialization as ser;
-#[macro_use]
 extern crate serialization_derive;
 #[macro_use]
 extern crate lazy_static;
 
-pub mod spow;
-pub mod vdf;
-
 mod config;
 mod util;
+mod vdf;
 
-pub use crate::spow::SPoWResult;
+pub use crate::config::MODULUS;
+pub use crate::vdf::Proof;
+pub use crate::vdf::{eval, prove, verify};

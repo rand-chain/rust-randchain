@@ -6,7 +6,6 @@ use invoke::{Identity, Invoke};
 use primitives::compact::Compact;
 use primitives::hash::H256;
 use rug::Integer;
-use spow::vdf;
 use std::cell::Cell;
 use VrfPk;
 
@@ -125,7 +124,7 @@ pub struct BlockHeaderBuilder<F = Identity> {
     bits: Compact,
     version: u32,
     pubkey: VrfPk,
-    nonce: u32,
+    iterations: u32,
     randomness: Integer,
     proof: vdf::Proof,
 }
@@ -147,7 +146,7 @@ where
             // set to 4 to allow creating long test chains
             version: 4,
             pubkey: VrfPk::from_bytes(&[0; 32]).unwrap(),
-            nonce: 0u32,
+            iterations: 0u32,
             randomness: Integer::from(0),
             proof: vec![],
         }
@@ -168,8 +167,8 @@ where
         self
     }
 
-    pub fn nonce(mut self, nonce: u32) -> Self {
-        self.nonce = nonce;
+    pub fn iterations(mut self, iterations: u32) -> Self {
+        self.iterations = iterations;
         self
     }
 
@@ -180,7 +179,7 @@ where
             bits: self.bits,
             version: self.version,
             pubkey: self.pubkey,
-            nonce: self.nonce,
+            iterations: self.iterations,
             randomness: self.randomness,
             proof: self.proof,
         })
@@ -196,16 +195,16 @@ pub fn block_hash_builder() -> BlockHashBuilder {
 
 pub fn build_n_empty_blocks_from(
     n: u32,
-    start_nonce: u32,
+    start_iterations: u32,
     previous: &chain::BlockHeader,
 ) -> Vec<chain::Block> {
     let mut result = Vec::new();
     let mut previous_hash = previous.hash();
-    let end_nonce = start_nonce + n;
-    for i in start_nonce..end_nonce {
+    let end_iterations = start_iterations + n;
+    for i in start_iterations..end_iterations {
         let block = block_builder()
             .header()
-            .nonce(i)
+            .iterations(i)
             .parent(previous_hash)
             .build()
             .build();
@@ -215,15 +214,19 @@ pub fn build_n_empty_blocks_from(
     result
 }
 
-pub fn build_n_empty_blocks_from_genesis(n: u32, start_nonce: u32) -> Vec<chain::Block> {
-    build_n_empty_blocks_from(n, start_nonce, &genesis().block_header)
+pub fn build_n_empty_blocks_from_genesis(n: u32, start_iterations: u32) -> Vec<chain::Block> {
+    build_n_empty_blocks_from(n, start_iterations, &genesis().block_header)
 }
 
-pub fn build_n_empty_blocks(n: u32, start_nonce: u32) -> Vec<chain::Block> {
+pub fn build_n_empty_blocks(n: u32, start_iterations: u32) -> Vec<chain::Block> {
     assert!(n != 0);
-    let previous = block_builder().header().nonce(start_nonce).build().build();
+    let previous = block_builder()
+        .header()
+        .iterations(start_iterations)
+        .build()
+        .build();
     let mut result = vec![previous];
-    let children = build_n_empty_blocks_from(n, start_nonce + 1, &result[0].block_header);
+    let children = build_n_empty_blocks_from(n, start_iterations + 1, &result[0].block_header);
     result.extend(children);
     result
 }
