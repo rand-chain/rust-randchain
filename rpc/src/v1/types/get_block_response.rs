@@ -85,7 +85,6 @@ mod tests {
 
         let block = VerboseBlock {
             hash: H256::from(1),
-            randomness_hash: H256::from(1),
             confirmations: -1,
             size: 500000,
             height: Some(3513513),
@@ -118,7 +117,6 @@ mod tests {
 
         let block = VerboseBlock {
             hash: H256::from(1),
-            randomness_hash: H256::from(1),
             confirmations: -1,
             size: 500000,
             height: Some(3513513),
