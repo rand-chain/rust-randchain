@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use chain::BlockHeader;
+use chain::Block;
 use hash::H256;
 use kv::{Key, KeyState, KeyValue, KeyValueDatabase, Operation, Transaction, Value};
 use parking_lot::RwLock;
@@ -11,8 +11,7 @@ use std::sync::Arc;
 struct InnerDatabase {
     meta: HashMap<&'static str, KeyState<Bytes>>,
     block_hash: HashMap<u32, KeyState<H256>>,
-    // BlockHeader already contains randomness and other spow info
-    block_header: HashMap<H256, KeyState<BlockHeader>>,
+    block: HashMap<H256, KeyState<Block>>,
     block_number: HashMap<H256, KeyState<u32>>,
     configuration: HashMap<&'static str, KeyState<Bytes>>,
 }
@@ -35,11 +34,9 @@ impl MemoryDatabase {
                 state.into_operation(key, KeyValue::BlockHash, Key::BlockHash)
             });
 
-        let block_header = replace(&mut db.block_header, HashMap::default())
+        let block = replace(&mut db.block, HashMap::default())
             .into_iter()
-            .flat_map(|(key, state)| {
-                state.into_operation(key, KeyValue::BlockHeader, Key::BlockHeader)
-            });
+            .flat_map(|(key, state)| state.into_operation(key, KeyValue::Block, Key::Block));
 
         let block_number = replace(&mut db.block_number, HashMap::default())
             .into_iter()
@@ -56,7 +53,7 @@ impl MemoryDatabase {
         Transaction {
             operations: meta
                 .chain(block_hash)
-                .chain(block_header)
+                .chain(block)
                 .chain(block_number)
                 .chain(configuration)
                 .collect(),
@@ -76,8 +73,8 @@ impl KeyValueDatabase for MemoryDatabase {
                     KeyValue::BlockHash(key, value) => {
                         db.block_hash.insert(key, KeyState::Insert(value));
                     }
-                    KeyValue::BlockHeader(key, value) => {
-                        db.block_header.insert(key, KeyState::Insert(value));
+                    KeyValue::Block(key, value) => {
+                        db.block.insert(key, KeyState::Insert(value));
                     }
                     KeyValue::BlockNumber(key, value) => {
                         db.block_number.insert(key, KeyState::Insert(value));
@@ -93,8 +90,8 @@ impl KeyValueDatabase for MemoryDatabase {
                     Key::BlockHash(key) => {
                         db.block_hash.insert(key, KeyState::Delete);
                     }
-                    Key::BlockHeader(key) => {
-                        db.block_header.insert(key, KeyState::Delete);
+                    Key::Block(key) => {
+                        db.block.insert(key, KeyState::Delete);
                     }
                     Key::BlockNumber(key) => {
                         db.block_number.insert(key, KeyState::Delete);
@@ -123,12 +120,12 @@ impl KeyValueDatabase for MemoryDatabase {
                 .cloned()
                 .unwrap_or_default()
                 .map(Value::BlockHash),
-            Key::BlockHeader(ref key) => db
-                .block_header
+            Key::Block(ref key) => db
+                .block
                 .get(key)
                 .cloned()
                 .unwrap_or_default()
-                .map(Value::BlockHeader),
+                .map(Value::Block),
             Key::BlockNumber(ref key) => db
                 .block_number
                 .get(key)

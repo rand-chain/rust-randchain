@@ -1,12 +1,12 @@
 use bytes::Bytes;
-use chain::{IndexedBlock, IndexedBlockHeader};
+use chain::{Block, IndexedBlock, IndexedBlockHeader};
 use hash::H256;
 use kv::{
     AutoFlushingOverlayDatabase, CacheDatabase, DatabaseConfig, DiskDatabase, Key, KeyState,
     KeyValue, KeyValueDatabase, MemoryDatabase, OverlayDatabase, Transaction as DBTransaction,
     Value,
 };
-use kv::{COL_BLOCK_HASHES, COL_BLOCK_HEADERS, COL_BLOCK_NUMBERS, COL_COUNT};
+use kv::{COL_BLOCKS, COL_BLOCK_HASHES, COL_BLOCK_NUMBERS, COL_COUNT};
 use parking_lot::RwLock;
 use ser::{deserialize, serialize};
 use std::fs;
@@ -60,7 +60,7 @@ impl BlockChainDatabase<CacheDatabase<AutoFlushingOverlayDatabase<DiskDatabase>>
         // TODO:
         // cfg.set_cache(Some(COL_TRANSACTIONS), total_cache / 4);
         // cfg.set_cache(Some(COL_TRANSACTIONS_META), total_cache / 4);
-        cfg.set_cache(Some(COL_BLOCK_HEADERS), total_cache / 4);
+        cfg.set_cache(Some(COL_BLOCKS), total_cache / 4);
 
         cfg.set_cache(Some(COL_BLOCK_HASHES), total_cache / 12);
         // TODO:
@@ -232,9 +232,12 @@ where
         }
 
         let mut update = DBTransaction::new();
-        update.insert(KeyValue::BlockHeader(
+        update.insert(KeyValue::Block(
             block.hash().clone(),
-            block.header.raw,
+            Block {
+                block_header: block.header.raw,
+                proof: block.proof,
+            },
         ));
 
         self.db.write(update).map_err(Error::DatabaseError)
@@ -392,9 +395,9 @@ where
 
     fn block_header(&self, block_ref: BlockRef) -> Option<IndexedBlockHeader> {
         self.resolve_hash(block_ref).and_then(|block_hash| {
-            self.get(Key::BlockHeader(block_hash.clone()))
-                .and_then(Value::as_block_header)
-                .map(|header| IndexedBlockHeader::new(block_hash, header))
+            self.get(Key::Block(block_hash.clone()))
+                .and_then(Value::as_block)
+                .map(|block| IndexedBlockHeader::new(block_hash, block.block_header))
         })
     }
 }
@@ -415,15 +418,20 @@ where
 
     fn block(&self, block_ref: BlockRef) -> Option<IndexedBlock> {
         self.resolve_hash(block_ref).and_then(|block_hash| {
-            self.block_header(block_hash.clone().into())
-                // TODO:
-                .map(|header| IndexedBlock::new(header, vec![]))
+            self.get(Key::Block(block_hash.clone()))
+                .and_then(Value::as_block)
+                .map(|block| {
+                    IndexedBlock::new(
+                        IndexedBlockHeader::new(block_hash, block.block_header),
+                        block.proof,
+                    )
+                })
         })
     }
 
     fn contains_block(&self, block_ref: BlockRef) -> bool {
         self.resolve_hash(block_ref)
-            .and_then(|hash| self.get(Key::BlockHeader(hash)))
+            .and_then(|hash| self.get(Key::Block(hash)))
             .is_some()
     }
 }
