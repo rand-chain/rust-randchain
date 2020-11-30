@@ -19,8 +19,9 @@ jobs:
           - stable
 
     steps:
-      - name: Run "cargo bench"
       - uses: actions/checkout@v2
+      
+      - name: Run "cargo bench"
         uses: actions-rs/cargo@v1
         with:
           command: bench

@@ -19,8 +19,9 @@ jobs:
           - stable
 
     steps:
-      - name: Run "cargo build"
       - uses: actions/checkout@v2
+      
+      - name: Run "cargo build"
         uses: actions-rs/cargo@v1
         with:
           command: build
