@@ -22,12 +22,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
       
-      - name: Run "cargo check"
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-      
-      - name: Run "cargo fmt"
+      - name: Run "cargo fmt & check"
         uses: actions-rs/cargo@v1
         with:
           command: fmt
