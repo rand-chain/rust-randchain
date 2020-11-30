@@ -1,6 +1,14 @@
 name: Continuous integration
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+      - release/*
+  pull_request:
+    branches:
+      - master
+      - release/*
 
 jobs:
   ci:
@@ -26,10 +34,6 @@ jobs:
 
       - uses: actions-rs/cargo@v1
         with:
-          command: test
-
-      - uses: actions-rs/cargo@v1
-        with:
           command: fmt
           args: --all -- --check
 
@@ -37,3 +41,7 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
