@@ -1,4 +1,4 @@
-name: Check
+name: CI
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
       - release/*
 
 jobs:
-  ci:
+  check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
