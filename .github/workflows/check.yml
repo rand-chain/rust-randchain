@@ -1,4 +1,4 @@
-name: Continuous integration
+name: CI
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
       - release/*
 
 jobs:
-  ci:
+  check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,31 +19,18 @@ jobs:
           - stable
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-
-      - name: cargo fmt
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      
+      - name: Run "cargo fmt & check"
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
-
-      - name: cargo clippy
+      
+      - name: Run "cargo clippy"
         uses: actions-rs/cargo@v1
+        continue-on-error: true
         with:
           command: clippy
           args: -- -D warnings
-
-      - name: cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-
-      - name: cargo bench
-        uses: actions-rs/cargo@v1
-        with:
-          command: bench
