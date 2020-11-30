@@ -1,4 +1,4 @@
-name: Fotmat
+name: Format
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
           - stable
 
     steps:
-      - name: cargo fmt
+      - name: Run "cargo fmt"
       - uses: actions/checkout@v2
         uses: actions-rs/cargo@v1
         with:
