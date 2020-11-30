@@ -1,4 +1,4 @@
-name: Format
+name: Check
 
 on:
   push:
@@ -22,8 +22,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
       
-      - name: Run "cargo fmt"
+      - name: Run "cargo check"
         uses: actions-rs/cargo@v1
         with:
-          command: fmt
-          args: --all -- --check
+          command: check

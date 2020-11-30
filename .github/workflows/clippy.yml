@@ -19,7 +19,8 @@ jobs:
           - stable
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout sources
+        uses: actions/checkout@v2
       
       - name: Run "cargo clippy"
         uses: actions-rs/cargo@v1
