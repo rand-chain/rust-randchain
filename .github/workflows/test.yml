@@ -22,12 +22,9 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
       
-      - name: Run "cargo test"
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --
-      
+      - name: Test
+        run: ./tools/test.sh
+
       - name: Run "cargo bench"
         uses: actions-rs/cargo@v1
         with:
