@@ -1,4 +1,4 @@
-name: Format
+name: Test
 
 on:
   push:
@@ -22,8 +22,12 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
       
-      - name: Run "cargo fmt"
+      - name: Run "cargo test"
         uses: actions-rs/cargo@v1
         with:
-          command: fmt
-          args: --all -- --check
+          command: test
+      
+      - name: Run "cargo bench"
+        uses: actions-rs/cargo@v1
+        with:
+          command: bench
