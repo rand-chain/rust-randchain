@@ -322,7 +322,7 @@ fn example4() {
         .build()
         .build();
 
-    // proof won't affect block_header_hash
+    // proof won't affect block_header_hash, so block_header_hash should be same as example3
     assert_eq!(
         hash,
         "7dedc4f783253c6a092842b04b4c6297237f0e92b7e340d17515166104b7e6aa".into()
