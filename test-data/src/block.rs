@@ -116,6 +116,10 @@ where
                 proof: vec![],
             }));
             self.proof = vdf::prove(&g, &header.randomness, header.iterations);
+            println!("{:?}", g);
+            println!("{:?}", header.randomness); // TODO: fix
+            println!("{:?}", header.iterations);
+            panic!(self.proof);
         }
         self
     }
@@ -255,7 +259,7 @@ fn example1() {
 }
 
 #[test]
-fn example5() {
+fn example2() {
     let (hash, block) = block_hash_builder()
         .block()
         .header()
@@ -272,4 +276,29 @@ fn example5() {
         block.header().previous_header_hash,
         "0000000000000000000000000000000000000000000000000000000000000000".into()
     );
+}
+
+#[test]
+fn example3() {
+    let (hash, block) = block_hash_builder()
+        .block()
+        .header()
+        .parent(H256::from(0))
+        .iterations(1024)
+        .build()
+        .proved()
+        .build()
+        .build();
+
+    panic!("{:?}", block.proof);
+
+    assert_eq!(
+        hash,
+        "9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b".into()
+    );
+
+    // assert_eq!(
+    //     block,
+    //     "9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b".into()
+    // );
 }
