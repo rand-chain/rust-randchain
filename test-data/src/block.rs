@@ -109,10 +109,14 @@ where
         BlockHeaderBuilder::with_callback(self)
     }
 
-    pub fn proved(self) -> Self {
-        if let Some(header) = self.header {
-            // TODO:
-            unimplemented!()
+    pub fn proved(mut self) -> Self {
+        if let Some(header) = self.header.clone() {
+            let g = h_g(&chain::IndexedBlock::from_raw(chain::Block {
+                block_header: header.clone(),
+                proof: vec![],
+            }));
+
+            self.proof = vdf::prove(&g, &header.randomness, header.iterations);
         }
         self
     }
