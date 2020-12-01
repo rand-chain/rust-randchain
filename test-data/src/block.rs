@@ -262,7 +262,7 @@ fn example5() {
 
     assert_eq!(
         hash,
-        "cdad13c50f352946307fda1ec0614625bf1fb7263a2e66cad160eff552c35f19".into()
+        "9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b".into()
     );
     assert_eq!(
         block.header().previous_header_hash,
