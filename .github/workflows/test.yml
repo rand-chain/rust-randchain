@@ -22,7 +22,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
       
-      - name: Test
+      - name: Run package unit tests
         run: ./tools/test.sh
 
       - name: Run "cargo bench"
@@ -30,3 +30,6 @@ jobs:
         with:
           command: bench
           args: --
+      
+      - name: Run bencher tests
+        run: ./tools/bencher.sh
