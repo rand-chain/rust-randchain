@@ -7,6 +7,7 @@ use primitives::compact::Compact;
 use primitives::hash::H256;
 use rug::Integer;
 use std::cell::Cell;
+use verification::h_g;
 use VrfPk;
 
 thread_local! {
@@ -66,6 +67,7 @@ where
 pub struct BlockBuilder<F = Identity> {
     callback: F,
     header: Option<chain::BlockHeader>,
+    proof: vdf::Proof,
 }
 
 impl BlockBuilder {
@@ -82,6 +84,7 @@ where
         BlockBuilder {
             callback: callback,
             header: None,
+            proof: vec![],
         }
     }
 
@@ -90,9 +93,15 @@ where
         self
     }
 
+    pub fn with_proof(mut self, poof: vdf::Proof) -> Self {
+        self.proof = poof;
+        self
+    }
+
     pub fn with_raw(mut self, raw: &'static str) -> Self {
         let raw_block: chain::Block = raw.into();
         self.header = Some(raw_block.header().clone());
+        self.proof = raw_block.proof.clone();
         self
     }
 
@@ -100,9 +109,20 @@ where
         BlockHeaderBuilder::with_callback(self)
     }
 
+    pub fn proved(mut self) -> Self {
+        if let Some(header) = self.header.clone() {
+            let g = h_g(&chain::IndexedBlock::from_raw(chain::Block {
+                block_header: header.clone(),
+                proof: vec![],
+            }));
+            self.proof = vdf::prove(&g, &header.randomness, header.iterations);
+        }
+        self
+    }
+
     pub fn build(self) -> F::Result {
         self.callback
-            .invoke(chain::Block::new(self.header.unwrap()))
+            .invoke(chain::Block::new(self.header.unwrap(), self.proof))
     }
 }
 
@@ -126,7 +146,6 @@ pub struct BlockHeaderBuilder<F = Identity> {
     pubkey: VrfPk,
     iterations: u32,
     randomness: Integer,
-    proof: vdf::Proof,
 }
 
 impl<F> BlockHeaderBuilder<F>
@@ -148,7 +167,6 @@ where
             pubkey: VrfPk::from_bytes(&[0; 32]).unwrap(),
             iterations: 0u32,
             randomness: Integer::from(0),
-            proof: vec![],
         }
     }
 
@@ -181,7 +199,6 @@ where
             pubkey: self.pubkey,
             iterations: self.iterations,
             randomness: self.randomness,
-            proof: self.proof,
         })
     }
 }
@@ -249,7 +266,7 @@ fn example5() {
 
     assert_eq!(
         hash,
-        "cdad13c50f352946307fda1ec0614625bf1fb7263a2e66cad160eff552c35f19".into()
+        "9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b".into()
     );
     assert_eq!(
         block.header().previous_header_hash,
