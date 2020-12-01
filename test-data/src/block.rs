@@ -116,10 +116,6 @@ where
                 proof: vec![],
             }));
             self.proof = vdf::prove(&g, &header.randomness, header.iterations);
-            println!("{:?}", g);
-            println!("{:?}", header.randomness); // TODO: fix
-            println!("{:?}", header.iterations);
-            panic!(self.proof);
         }
         self
     }
@@ -191,6 +187,23 @@ where
 
     pub fn iterations(mut self, iterations: u32) -> Self {
         self.iterations = iterations;
+        self
+    }
+
+    pub fn evaluated(mut self) -> Self {
+        let g = h_g(&chain::IndexedBlock::from_raw(chain::Block {
+            block_header: chain::BlockHeader {
+                version: self.version,
+                previous_header_hash: self.parent,
+                time: self.time,
+                bits: self.bits,
+                pubkey: self.pubkey.clone(),
+                iterations: self.iterations,
+                randomness: self.randomness,
+            },
+            proof: vec![],
+        }));
+        self.randomness = vdf::eval(&g, self.iterations);
         self
     }
 
@@ -280,21 +293,38 @@ fn example2() {
 
 #[test]
 fn example3() {
+    let (hash, _) = block_hash_builder()
+        .block()
+        .header()
+        .parent(H256::from(0))
+        .iterations(1024)
+        .evaluated()
+        .build()
+        .build()
+        .build();
+
+    assert_eq!(
+        hash,
+        "7dedc4f783253c6a092842b04b4c6297237f0e92b7e340d17515166104b7e6aa".into()
+    );
+}
+
+#[test]
+fn example4() {
     let (hash, block) = block_hash_builder()
         .block()
         .header()
         .parent(H256::from(0))
         .iterations(1024)
+        .evaluated()
         .build()
         .proved()
         .build()
         .build();
 
-    panic!("{:?}", block.proof);
-
     assert_eq!(
         hash,
-        "9fd5d5ead664fae8c2366b94b8246dc90fff44f43cee02742e4962af724da94b".into()
+        "7dedc4f783253c6a092842b04b4c6297237f0e92b7e340d17515166104b7e6aa".into()
     );
 
     // assert_eq!(
