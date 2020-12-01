@@ -7,6 +7,7 @@ use primitives::compact::Compact;
 use primitives::hash::H256;
 use rug::Integer;
 use std::cell::Cell;
+use verification::h_g;
 use VrfPk;
 
 thread_local! {
