@@ -83,6 +83,7 @@ where
         BlockBuilder {
             callback: callback,
             header: None,
+            proof: None,
         }
     }
 
@@ -117,7 +118,7 @@ where
 
     pub fn build(self) -> F::Result {
         self.callback
-            .invoke(chain::Block::new(self.header.unwrap()))
+            .invoke(chain::Block::new(self.header.unwrap(), self.proof.unwrap()))
     }
 }
 
@@ -141,7 +142,6 @@ pub struct BlockHeaderBuilder<F = Identity> {
     pubkey: VrfPk,
     iterations: u32,
     randomness: Integer,
-    proof: vdf::Proof,
 }
 
 impl<F> BlockHeaderBuilder<F>
