@@ -420,14 +420,14 @@ mod tests {
         v.push(Integer::from(0x2));
         v.push(Integer::from(0x10_24));
         let mut stream = Stream::default();
-        stream.append_vector(&v);
+        stream.append_list(&v);
         let b = stream.out();
         let expected: Bytes = "0301010102021024".into();
         assert_eq!(b, expected.into());
 
         let mut reader = Reader::new(&b);
         assert!(!reader.is_finished());
-        let recover: Vec<Integer> = reader.read_vector().unwrap();
+        let recover: Vec<Integer> = reader.read_list().unwrap();
         assert!(reader.is_finished());
         assert_eq!(recover, v);
     }
