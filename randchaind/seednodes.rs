@@ -10,7 +10,6 @@ pub fn testnet_seednodes() -> Vec<&'static str> {
     ]
 }
 
-
 // pub fn mainnet_seednodes() -> Vec<&'static str> {
 // 	vec![
 // 		// Pieter Wuille

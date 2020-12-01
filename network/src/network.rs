@@ -1,9 +1,6 @@
 //! randchain network
 
-extern crate rug;
-extern crate ecvrf;
-
-use chain::{IndexedBlock, BlockHeader, Block};
+use chain::{Block, BlockHeader, IndexedBlock};
 use compact::Compact;
 use primitives::bigint::U256;
 use primitives::hash::H256;
@@ -88,7 +85,7 @@ impl Network {
 
     pub fn genesis_block(&self) -> IndexedBlock {
         match *self {
-			Network::Mainnet | Network::Other(_) => {
+            Network::Mainnet | Network::Other(_) => {
                 let blk = Block {
                     block_header: BlockHeader {
                         version: 1,
@@ -99,11 +96,11 @@ impl Network {
                         iterations: 100000,
                         randomness: rug::Integer::from(8),
                     },
-                    proof: vec!()
+                    proof: vec![],
                 };
                 IndexedBlock::from_raw(blk)
-            },
-			Network::Testnet => {
+            }
+            Network::Testnet => {
                 let blk = Block {
                     block_header: BlockHeader {
                         version: 1,
@@ -114,11 +111,11 @@ impl Network {
                         iterations: 100000,
                         randomness: rug::Integer::from(8),
                     },
-                    proof: vec!()
+                    proof: vec![],
                 };
                 IndexedBlock::from_raw(blk)
-            },
-			Network::Regtest | Network::Unitest => {
+            }
+            Network::Regtest | Network::Unitest => {
                 let blk = Block {
                     block_header: BlockHeader {
                         version: 1,
@@ -129,11 +126,11 @@ impl Network {
                         iterations: 100000,
                         randomness: rug::Integer::from(8),
                     },
-                    proof: vec!()
+                    proof: vec![],
                 };
                 IndexedBlock::from_raw(blk)
-            },
-		}
+            }
+        }
     }
 
     pub fn default_verification_edge(&self) -> H256 {
