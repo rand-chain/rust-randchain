@@ -66,7 +66,7 @@ where
 pub struct BlockBuilder<F = Identity> {
     callback: F,
     header: Option<chain::BlockHeader>,
-    proof: Option<vdf::Proof>,
+    proof: vdf::Proof,
 }
 
 impl BlockBuilder {
@@ -83,7 +83,7 @@ where
         BlockBuilder {
             callback: callback,
             header: None,
-            proof: None,
+            proof: vec![],
         }
     }
 
@@ -93,14 +93,14 @@ where
     }
 
     pub fn with_proof(mut self, poof: vdf::Proof) -> Self {
-        self.proof = Some(poof);
+        self.proof = poof;
         self
     }
 
     pub fn with_raw(mut self, raw: &'static str) -> Self {
         let raw_block: chain::Block = raw.into();
         self.header = Some(raw_block.header().clone());
-        self.proof = Some(raw_block.proof.clone());
+        self.proof = raw_block.proof.clone();
         self
     }
 
@@ -118,7 +118,7 @@ where
 
     pub fn build(self) -> F::Result {
         self.callback
-            .invoke(chain::Block::new(self.header.unwrap(), self.proof.unwrap()))
+            .invoke(chain::Block::new(self.header.unwrap(), self.proof))
     }
 }
 
