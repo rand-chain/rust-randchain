@@ -91,6 +91,11 @@ where
         self
     }
 
+    pub fn with_proof(mut self, poof: vdf::Proof) -> Self {
+        self.proof = Some(poof);
+        self
+    }
+
     pub fn with_raw(mut self, raw: &'static str) -> Self {
         let raw_block: chain::Block = raw.into();
         self.header = Some(raw_block.header().clone());
@@ -158,7 +163,6 @@ where
             pubkey: VrfPk::from_bytes(&[0; 32]).unwrap(),
             iterations: 0u32,
             randomness: Integer::from(0),
-            proof: vec![],
         }
     }
 
@@ -191,7 +195,6 @@ where
             pubkey: self.pubkey,
             iterations: self.iterations,
             randomness: self.randomness,
-            proof: self.proof,
         })
     }
 }
