@@ -5,7 +5,6 @@ extern crate rug;
 
 extern crate chain;
 extern crate primitives;
-extern crate test_data;
 
 mod network;
 
