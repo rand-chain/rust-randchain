@@ -17,7 +17,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: [""]
+    # command: [""]
     cap_add:
       - ALL
     networks:
