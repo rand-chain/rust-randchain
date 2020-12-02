@@ -1502,6 +1502,7 @@ dependencies = [
  "serialization 0.1.0",
  "time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
  "vdf 0.1.0",
+ "verification 0.1.0",
 ]
 
 [[package]]

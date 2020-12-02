@@ -6,7 +6,7 @@ use rug::{integer::Order, Integer};
 use ser::Stream;
 use sha2::{Digest, Sha256};
 
-fn h_g(block: &IndexedBlock) -> Integer {
+pub fn h_g(block: &IndexedBlock) -> Integer {
     let mut stream = Stream::default();
     stream
         .append(&block.header.raw.version)

@@ -97,7 +97,7 @@ pub use accept_chain::ChainAcceptor;
 pub use accept_header::HeaderAcceptor;
 pub use canon::{CanonBlock, CanonHeader};
 
-pub use verify_block::BlockVerifier;
+pub use verify_block::{h_g, BlockVerifier};
 pub use verify_chain::ChainVerifier;
 pub use verify_header::HeaderVerifier;
 
