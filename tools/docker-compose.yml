@@ -2,27 +2,30 @@
 # `docker-compose up --scale node=4`
 version: '3'
 services:
-  # seednode:
-  #   tty: true
-  #   image: randchain-dev/randchaind:latest
-  #   entrypoint: /bin/randchaind
-  #   command: [""]
-  #   cap_add:
-  #     - ALL
-  #   networks:
-  #     repucoin_privnet:
-  #       ipv4_address: 10.0.0.200
+  seednode:
+    tty: true
+    image: randchain-dev/coredns:latest
+    entrypoint: coredns
+    command: ["-conf", "/etc/dnsseeder/Corefile"]
+    cap_add:
+      - ALL
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.200
+    extra_hosts:
+      - "mainnet.randchain.io:10.0.0.5"
 
   node:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    # command: [""]
+    # command: ["-s", "10.0.0.200"]
     cap_add:
       - ALL
     networks:
-      randchain_privnet:
-        ipv4_address: 10.0.0.2
+      - randchain_privnet
+    # extra_hosts:
+    #   - "mainnet.seeder.randchain.io:10.0.0.200"
 
 networks:
   randchain_privnet:
