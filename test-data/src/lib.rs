@@ -13,6 +13,7 @@ extern crate verification;
 use ecvrf::VrfPk;
 
 use chain::Block;
+use primitives::compact::Compact;
 
 pub mod block;
 pub mod chain_builder;
@@ -29,16 +30,19 @@ pub fn genesis() -> Block {
 }
 
 pub fn block_h0() -> Block {
-    Block {
-        block_header: chain::BlockHeader {},
-        proof: vec![],
-    }
-
+    block::block_builder()
+        .header()
+        .parent(0.into())
+        .time(1000)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1024)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
-
-// pub fn block_h0() -> Block {
-//     // "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b20600000001370201380138".into()
-// }
 
 pub fn block_h1() -> Block {
     "010000000484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa13ba3edfd7a7b12b20600000001370201380138".into()
