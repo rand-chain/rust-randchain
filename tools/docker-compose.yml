@@ -1,0 +1,32 @@
+# To launch a 4-node cluster, run
+# `docker-compose up --scale node=4`
+version: '3'
+services:
+  # seednode:
+  #   tty: true
+  #   image: randchain-dev/randchaind:latest
+  #   entrypoint: /bin/randchaind
+  #   command: [""]
+  #   cap_add:
+  #     - ALL
+  #   networks:
+  #     repucoin_privnet:
+  #       ipv4_address: 10.0.0.200
+
+  node:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    command: [""]
+    cap_add:
+      - ALL
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.2
+
+networks:
+  randchain_privnet:
+    driver: macvlan
+    ipam:
+      config:
+        - subnet: 10.0.0.0/8
