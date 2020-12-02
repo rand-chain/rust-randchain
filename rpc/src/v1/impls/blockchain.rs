@@ -311,29 +311,29 @@ pub mod tests {
         );
     }
 
-    //  #[test]
-    //  fn block_hash_error() {
-    //      let client = BlockChainClient::new(ErrorBlockChainClientCore::default());
-    //      let mut handler = IoHandler::new();
-    //      handler.extend_with(client.to_delegate());
+    #[test]
+    fn block_hash_error() {
+        let client = BlockChainClient::new(ErrorBlockChainClientCore::default());
+        let mut handler = IoHandler::new();
+        handler.extend_with(client.to_delegate());
 
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getblockhash",
-    // 	"params": [0],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
+        let sample = handler
+            .handle_request_sync(
+                &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockhash",
+                    	"params": [0],
+                    	"id": 1
+                    }"#),
+            )
+            .unwrap();
 
-    //      assert_eq!(
-    //          &sample,
-    //          r#"{"jsonrpc":"2.0","error":{"code":-32099,"message":"Block at given height is not found","data":"0"},"id":1}"#
-    //      );
-    //  }
+        assert_eq!(
+            &sample,
+            r#"{"jsonrpc":"2.0","error":{"code":-32099,"message":"Block at given height is not found","data":"0"},"id":1}"#
+        );
+    }
 
     //  #[test]
     //  fn difficulty_success() {
