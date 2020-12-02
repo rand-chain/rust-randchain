@@ -155,7 +155,6 @@ pub mod tests {
     use super::*;
     use db::BlockChainDatabase;
     use jsonrpc_core::IoHandler;
-    use primitives::bytes::Bytes as GlobalBytes;
     use primitives::hash::H256 as GlobalH256;
     use std::sync::Arc;
     use v1::traits::BlockChain;
@@ -184,33 +183,30 @@ pub mod tests {
         }
 
         fn raw_block(&self, _hash: GlobalH256) -> Option<RawBlock> {
-            let b2_bytes: GlobalBytes = "010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd610101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d010bffffffff0100f2052a010000004341047211a824f55b505228e4c3d5194c1fcfaa15a456abdf37f9b9d97a4040afc073dee6c89064984f03385237d92167c13e236446b417ab79a0fcae412ae3316b77ac00000000".into();
+            let b2_bytes = serialize(&test_data::block_h2());
             Some(RawBlock::from(b2_bytes))
         }
 
         fn verbose_block(&self, _hash: GlobalH256) -> Option<VerboseBlock> {
-            // https://blockexplorer.com/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd
-            // https://blockchain.info/ru/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd
-            // https://webbtc.com/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd.json
             Some(VerboseBlock {
-                hash: "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000".into(),
+                hash: test_data::block_h2().hash().into(),
                 confirmations: 1, // h2
-                size: 215,
+                size: serialize(&test_data::block_h2()).len() as u32,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
-                    .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469744,
+                pubkey_hex: test_data::block_h2().header().pubkey.to_bytes().to_hex(),
+                randomness_hex: test_data::block_h2()
+                    .header()
+                    .randomness
+                    .to_string_radix(16),
+                time: test_data::block_h2().header().time,
                 mediantime: None,
-                iterations: 1639830024,
-                bits: 486604799,
+                iterations: test_data::block_h2().header().iterations,
+                bits: test_data::block_h2().header().bits.into(),
                 difficulty: 1.0,
                 chainwork: 0.into(),
-                previousblockhash: Some(
-                    "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000".into(),
-                ),
+                previousblockhash: Some(test_data::block_h1().hash().into()),
                 nextblockhash: None,
             })
         }
@@ -260,11 +256,11 @@ pub mod tests {
             )
             .unwrap();
 
-        // direct hash is ....
+        // direct hash is b2cdad40a2ff16c92abcb99732ad36431a72fc5c414c7649809907252cccf3f2
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
         );
     }
 
@@ -277,12 +273,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblockcount",
-				"params": [],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockcount",
+                    	"params": [],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -298,20 +294,20 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblockhash",
-				"params": [0],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockhash",
+                    	"params": [0],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
-        // direct hash is ...
+        // direct hash is b2cdad40a2ff16c92abcb99732ad36431a72fc5c414c7649809907252cccf3f2
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
         );
     }
 
@@ -324,12 +320,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblockhash",
-				"params": [0],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockhash",
+                    	"params": [0],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -348,12 +344,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getdifficulty",
-				"params": [],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getdifficulty",
+                    	"params": [],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -371,61 +367,56 @@ pub mod tests {
         let core = BlockChainClientCore::new(storage);
 
         // get info on block #1:
-        let verbose_block = core.verbose_block(
-            "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
-        );
+        let verbose_block = core.verbose_block(test_data::block_h1().hash().into());
         assert_eq!(
             verbose_block,
             Some(VerboseBlock {
-                hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
+                hash: test_data::block_h1().hash().into(),
                 confirmations: 2, // h1 + h2
-                size: 55,
+                size: 341,
                 height: Some(1),
                 version: 1,
                 version_hex: "1".to_owned(),
-                // TODO:
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469665,
-                mediantime: Some(1231006505),
-                iterations: 2573394689,
-                bits: 486604799,
-                difficulty: 1.0,
+                randomness_hex: "9fa3e85750af0157b3d08c44a2cef54cb0ccab50ea9d63ea016a8cc99c9a600a2a4c7ba9b4adc427148b6d3967c2a279e784d2514c7f3f6bcea6fe5d72fb78369f9026bebbdaffebf226d6a0de8e55356e90ac019b09318093c1b5d16b19b335d08713dfd05a251ebba267310c55b3093be6b0649f9a6318d9e61bfc6ba8b612690c7117018cef475972db62e79fbde36b6cd20b1b0ec946e78b916211de6963acf2cf4a72892f906b5ecc589d6f3fff4739028f47e377e592379fcfb63bcbd9810eddc0d7f8e0f9069e8dc9fb22f93f6f5685ad9e1779cbd03aecd689ad679db0364f44fa921056e583f4c71018cb2954216775ee09a6021548cf44b9c05e64".to_owned(),
+                time: 1001,
+                mediantime: Some(1000),
+                iterations: 1,
+                bits: 553713663,
+                difficulty: 0.00000000023283064365386963,
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "0484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa1".into()
+                    test_data::genesis().hash().into()
                 ),
                 nextblockhash: Some(
-                    "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into()
+                    test_data::block_h2().hash().into()
                 ),
             })
         );
 
         // get info on block #2:
-        let verbose_block = core.verbose_block(
-            "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
-        );
+        let verbose_block = core.verbose_block(test_data::block_h2().hash().into());
         assert_eq!(
             verbose_block,
             Some(VerboseBlock {
-                hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
+                hash: test_data::block_h2().hash().into(),
                 confirmations: 1, // h2
-                size: 215,
+                size: 341,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469744,
-                mediantime: Some(1231469665),
-                iterations: 1639830024,
-                bits: 486604799,
-                difficulty: 1.0,
+                randomness_hex: "59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6".to_owned(),
+                time: 1002,
+                mediantime: Some(1001),
+                iterations: 1,
+                bits: 553713663,
+                difficulty: 0.00000000023283064365386963,
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into()
+                    test_data::block_h1().hash().into()
                 ),
                 nextblockhash: None,
             })
@@ -438,31 +429,31 @@ pub mod tests {
         let mut handler = IoHandler::new();
         handler.extend_with(client.to_delegate());
 
-        let expected = r#"{"jsonrpc":"2.0","result":"010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd610101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d010bffffffff0100f2052a010000004341047211a824f55b505228e4c3d5194c1fcfaa15a456abdf37f9b9d97a4040afc073dee6c89064984f03385237d92167c13e236446b417ab79a0fcae412ae3316b77ac00000000","id":1}"#;
+        let expected = r#"{"jsonrpc":"2.0","result":"010000008aa6954ae7b7fc8056227fe59bb8d2fe34a93e9d47d07acee0213d629066c78fea030000ffff002120000000000000000000000000000000000000000000000000000000000000000001000000fd000159c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d600","id":1}"#;
 
         let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8", false],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
         assert_eq!(&sample, expected);
 
         // try without optional parameter
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8"],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
         assert_eq!(&sample, expected);
@@ -477,12 +468,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -499,20 +490,20 @@ pub mod tests {
         handler.extend_with(client.to_delegate());
 
         let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd",true],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8",true],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
 
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":{"bits":486604799,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd","height":2,"mediantime":null,"nextblockhash":null,"iterations":1639830024,"previousblockhash":"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048","randomnessHex":"7788","size":215,"time":1231469744,"version":1,"versionHex":"1"},"id":1}"#
+            r#"{"jsonrpc":"2.0","result":{"bits":553713663,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"a84e37303d15d90f2d46a483b3f007efda0d876bd39ccd16b8fdd4d58adea1c5","height":2,"iterations":1,"mediantime":null,"nextblockhash":null,"previousblockhash":"8fc76690623d21e0ce7ad0479d3ea934fed2b89be57f225680fcb7e74a95a68a","pubkeyHex":"0000000000000000000000000000000000000000000000000000000000000000","randomnessHex":"59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6","size":341,"time":1002,"version":1,"versionHex":"1"},"id":1}"#
         );
     }
 
@@ -523,16 +514,16 @@ pub mod tests {
         handler.extend_with(client.to_delegate());
 
         let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", true],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", true],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
 
         assert_eq!(
             &sample,
