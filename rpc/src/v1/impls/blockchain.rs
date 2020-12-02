@@ -335,26 +335,26 @@ pub mod tests {
         );
     }
 
-    //  #[test]
-    //  fn difficulty_success() {
-    //      let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
-    //      let mut handler = IoHandler::new();
-    //      handler.extend_with(client.to_delegate());
+    #[test]
+    fn difficulty_success() {
+        let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
+        let mut handler = IoHandler::new();
+        handler.extend_with(client.to_delegate());
 
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getdifficulty",
-    // 	"params": [],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
+        let sample = handler
+            .handle_request_sync(
+                &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getdifficulty",
+                    	"params": [],
+                    	"id": 1
+                    }"#),
+            )
+            .unwrap();
 
-    //      assert_eq!(&sample, r#"{"jsonrpc":"2.0","result":1.0,"id":1}"#);
-    //  }
+        assert_eq!(&sample, r#"{"jsonrpc":"2.0","result":1.0,"id":1}"#);
+    }
 
     //  #[test]
     //  fn verbose_block_contents() {
