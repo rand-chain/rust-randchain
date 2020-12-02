@@ -423,41 +423,41 @@ pub mod tests {
         );
     }
 
-    //  #[test]
-    //  fn raw_block_success() {
-    //      let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
-    //      let mut handler = IoHandler::new();
-    //      handler.extend_with(client.to_delegate());
+    #[test]
+    fn raw_block_success() {
+        let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
+        let mut handler = IoHandler::new();
+        handler.extend_with(client.to_delegate());
 
-    //      let expected = r#"{"jsonrpc":"2.0","result":"010000000000000000000000000000000000000000000000000000000000000000000000e8030000ffff002120000000000000000000000000000000000000000000000000000000000000000001000000fd00018b470dda93e0236024645452e8b3d69dd3d84d7f2c941bc1b7f4e2dbe353981b08c9dd8d2ff486720fbefbe4afd63c7db9bf355eccff959894a4b46ce7538ee01216cd233e6a02c5f88a278518e4004accc2f2a8c1c0a84c93724041d87620b72bd673c9fbb2e024cc9df6ec560d290276e99e59076a76eb92f814d88329bce0eb5da2eb138e5906c8fa75f0809ad3e6b3645c538026f740df3331b0613c961593a0a57a04cc8c583a240583be4b33f4eecef0b79a5fdf7b602c411d7580b38b6c8e96516906f4917c34e678835faf25d8f19d610c027e9627026550ddde0f6f6ffd2f68610116c573c12d79b3beadf8823bfdb98ee81ebc78618cc9cbc4ef3400","id":1}"#;
+        let expected = r#"{"jsonrpc":"2.0","result":"010000008aa6954ae7b7fc8056227fe59bb8d2fe34a93e9d47d07acee0213d629066c78fea030000ffff002120000000000000000000000000000000000000000000000000000000000000000001000000fd000159c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d600","id":1}"#;
 
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getblock",
-    // 	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
-    //      assert_eq!(&sample, expected);
+        let sample = handler
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8", false],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
+        assert_eq!(&sample, expected);
 
-    //      // try without optional parameter
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getblock",
-    // 	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
-    //      assert_eq!(&sample, expected);
-    //  }
+        // try without optional parameter
+        let sample = handler
+            .handle_request_sync(
+                &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8"],
+                    	"id": 1
+                    }"#),
+            )
+            .unwrap();
+        assert_eq!(&sample, expected);
+    }
 
     #[test]
     fn raw_block_error() {
