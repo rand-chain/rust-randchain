@@ -75,7 +75,18 @@ pub fn block_h2() -> Block {
 }
 
 pub fn block_h3() -> Block {
-    "01000000b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae3ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent(block_h2().hash())
+        .time(1003)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
 
 pub fn block_h169() -> Block {
