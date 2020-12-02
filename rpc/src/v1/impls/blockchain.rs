@@ -459,30 +459,29 @@ pub mod tests {
     //      assert_eq!(&sample, expected);
     //  }
 
-    //  #[test]
-    //  // TODO:
-    //  fn raw_block_error() {
-    //      let client = BlockChainClient::new(ErrorBlockChainClientCore::default());
-    //      let mut handler = IoHandler::new();
-    //      handler.extend_with(client.to_delegate());
+    #[test]
+    fn raw_block_error() {
+        let client = BlockChainClient::new(ErrorBlockChainClientCore::default());
+        let mut handler = IoHandler::new();
+        handler.extend_with(client.to_delegate());
 
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getblock",
-    // 	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
+        let sample = handler
+            .handle_request_sync(
+                &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
+                    	"id": 1
+                    }"#),
+            )
+            .unwrap();
 
-    //      assert_eq!(
-    //          &sample,
-    //          r#"{"jsonrpc":"2.0","error":{"code":-32099,"message":"Block with given hash is not found","data":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"},"id":1}"#
-    //      );
-    //  }
+        assert_eq!(
+            &sample,
+            r#"{"jsonrpc":"2.0","error":{"code":-32099,"message":"Block with given hash is not found","data":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"},"id":1}"#
+        );
+    }
 
     //  #[test]
     //  // TODO:
