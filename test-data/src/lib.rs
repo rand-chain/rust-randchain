@@ -45,11 +45,33 @@ pub fn block_h0() -> Block {
 }
 
 pub fn block_h1() -> Block {
-    "010000000484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa13ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent(block_h0().hash())
+        .time(1001)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
 
 pub fn block_h2() -> Block {
-    "01000000c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b282773ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent(block_h1().hash())
+        .time(1002)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
 
 pub fn block_h3() -> Block {
