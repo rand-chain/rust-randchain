@@ -5,10 +5,12 @@ on:
     branches:
       - master
       - release/*
+      - proto
   pull_request:
     branches:
       - master
       - release/*
+      - proto
 
 jobs:
   test:
