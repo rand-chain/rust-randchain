@@ -307,7 +307,7 @@ pub mod tests {
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
         );
     }
 
