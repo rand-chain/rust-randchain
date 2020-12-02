@@ -285,31 +285,31 @@ pub mod tests {
         assert_eq!(&sample, r#"{"jsonrpc":"2.0","result":1,"id":1}"#);
     }
 
-    //  #[test]
-    //  fn block_hash_success() {
-    //      let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
-    //      let mut handler = IoHandler::new();
-    //      handler.extend_with(client.to_delegate());
+    #[test]
+    fn block_hash_success() {
+        let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
+        let mut handler = IoHandler::new();
+        handler.extend_with(client.to_delegate());
 
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getblockhash",
-    // 	"params": [0],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
+        let sample = handler
+            .handle_request_sync(
+                &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockhash",
+                    	"params": [0],
+                    	"id": 1
+                    }"#),
+            )
+            .unwrap();
 
-    //      // direct hash is ...
-    //      // but client expects reverse hash
-    //      assert_eq!(
-    //          &sample,
-    //          r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
-    //      );
-    //  }
+        // direct hash is b2cdad40a2ff16c92abcb99732ad36431a72fc5c414c7649809907252cccf3f2
+        // but client expects reverse hash
+        assert_eq!(
+            &sample,
+            r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
+        );
+    }
 
     //  #[test]
     //  fn block_hash_error() {
