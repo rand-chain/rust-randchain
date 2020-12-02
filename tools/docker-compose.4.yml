@@ -11,38 +11,39 @@ services:
       - ALL
     networks:
       randchain_privnet:
-        ipv4_address: 10.0.0.1
+        ipv4_address: 10.0.0.2
+  
   node2:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    # command: ["-s", "10.0.0.200"]
-    cap_add:
-      - ALL
-    networks:
-      randchain_privnet:
-        ipv4_address: 10.0.0.2
-    
-  node3:
-    tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
-    # command: ["-s", "10.0.0.200"]
+    command: ["-c", "10.0.0.2"]
     cap_add:
       - ALL
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.3
-  node4:
+    
+  node3:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    # command: ["-s", "10.0.0.200"]
+    command: ["-c", "10.0.0.2"]
     cap_add:
       - ALL
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.4
+  node4:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    command: ["-c", "10.0.0.2"]
+    cap_add:
+      - ALL
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.5
 
 networks:
   randchain_privnet:
