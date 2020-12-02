@@ -204,7 +204,7 @@ pub mod tests {
                 time: test_data::block_h2().header().time,
                 mediantime: None,
                 iterations: 1,
-                bits: test_data::block_h2().header().bits, // TODO:
+                bits: test_data::block_h2().header().bits.into(),
                 difficulty: 1.0,
                 chainwork: 0.into(),
                 previousblockhash: Some(test_data::block_h1().hash().into()),
