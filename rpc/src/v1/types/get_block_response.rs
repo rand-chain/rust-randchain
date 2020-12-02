@@ -80,7 +80,7 @@ mod tests {
         let block = VerboseBlock::default();
         assert_eq!(
             serde_json::to_string(&block).unwrap(),
-            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"height":null,"version":0,"versionHex":"","randomnessHex":"","time":0,"mediantime":null,"iterations":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
+            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"height":null,"version":0,"versionHex":"","pubkeyHex":"","randomnessHex":"","time":0,"mediantime":null,"iterations":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
         );
 
         let block = VerboseBlock {
