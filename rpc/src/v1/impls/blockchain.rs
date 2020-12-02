@@ -184,7 +184,7 @@ pub mod tests {
         }
 
         fn raw_block(&self, _hash: GlobalH256) -> Option<RawBlock> {
-            let b2_bytes: GlobalBytes = "010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd610101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d010bffffffff0100f2052a010000004341047211a824f55b505228e4c3d5194c1fcfaa15a456abdf37f9b9d97a4040afc073dee6c89064984f03385237d92167c13e236446b417ab79a0fcae412ae3316b77ac00000000".into();
+            let b2_bytes = serialize(&test_data::genesis());
             Some(RawBlock::from(b2_bytes))
         }
 
@@ -261,7 +261,7 @@ pub mod tests {
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
         );
     }
 
