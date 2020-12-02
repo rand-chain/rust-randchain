@@ -483,30 +483,29 @@ pub mod tests {
         );
     }
 
-    //  #[test]
-    //  // TODO:
-    //  fn verbose_block_success() {
-    //      let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
-    //      let mut handler = IoHandler::new();
-    //      handler.extend_with(client.to_delegate());
+    #[test]
+    fn verbose_block_success() {
+        let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
+        let mut handler = IoHandler::new();
+        handler.extend_with(client.to_delegate());
 
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getblock",
-    // 	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd",true],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
+        let sample = handler
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8",true],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
 
-    //      assert_eq!(
-    //          &sample,
-    //          r#"{"jsonrpc":"2.0","result":{"bits":486604799,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd","height":2,"mediantime":null,"nextblockhash":null,"iterations":1639830024,"previousblockhash":"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048","randomnessHex":"7788","size":215,"time":1231469744,"version":1,"versionHex":"1"},"id":1}"#
-    //      );
-    //  }
+        assert_eq!(
+            &sample,
+            r#"{"jsonrpc":"2.0","result":{"bits":553713663,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"a84e37303d15d90f2d46a483b3f007efda0d876bd39ccd16b8fdd4d58adea1c5","height":2,"iterations":1,"mediantime":null,"nextblockhash":null,"previousblockhash":"8fc76690623d21e0ce7ad0479d3ea934fed2b89be57f225680fcb7e74a95a68a","pubkeyHex":"0000000000000000000000000000000000000000000000000000000000000000","randomnessHex":"59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6","size":341,"time":1002,"version":1,"versionHex":"1"},"id":1}"#
+        );
+    }
 
     //  #[test]
     //  fn verbose_block_error() {
