@@ -167,6 +167,16 @@ where
         self
     }
 
+    pub fn version(mut self, version: u32) -> Self {
+        self.version = version;
+        self
+    }
+
+    pub fn pubkey(mut self, pubkey: VrfPk) -> Self {
+        self.pubkey = pubkey;
+        self
+    }
+
     pub fn iterations(mut self, iterations: u32) -> Self {
         self.iterations = iterations;
         self

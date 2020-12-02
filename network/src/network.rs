@@ -86,18 +86,18 @@ impl Network {
     pub fn genesis_block(&self) -> IndexedBlock {
         match *self {
             Network::Mainnet | Network::Other(_) => {
-                let blk = Block {
-                    block_header: BlockHeader {
-                        version: 1,
-                        previous_header_hash: [0; 32].into(), // should be zero, otherwise there will be error UnknownParent
-                        time: 4,
-                        bits: 5.into(),
-                        pubkey: ecvrf::VrfPk::from_bytes(&[6; 32]).unwrap(),
-                        iterations: 100000,
-                        randomness: rug::Integer::from(8),
-                    },
-                    proof: vec![],
-                };
+                let blk = test_data::block::block_builder()
+                    .header()
+                    .parent(0.into()) // genesis_block has all-0 previous_header_hash
+                    .time(1000)
+                    .bits(Compact::max_value())
+                    .version(1)
+                    .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+                    .iterations(1)
+                    .evaluated()
+                    .build()
+                    .proved()
+                    .build();
                 IndexedBlock::from_raw(blk)
             }
             Network::Testnet => {

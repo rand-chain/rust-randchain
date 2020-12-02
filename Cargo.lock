@@ -823,6 +823,7 @@ dependencies = [
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "primitives 0.1.0",
  "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "test-data 0.1.0",
 ]
 
 [[package]]
