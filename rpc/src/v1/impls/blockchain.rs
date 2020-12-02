@@ -383,8 +383,8 @@ pub mod tests {
                 time: 1001,
                 mediantime: Some(1000),
                 iterations: 1,
-                bits: 553713663, // TODO:
-                difficulty: 0.00000000023283064365386963, // TODO:
+                bits: 553713663,
+                difficulty: 0.00000000023283064365386963,
                 chainwork: 0.into(),
                 previousblockhash: Some(
                     test_data::genesis().hash().into()
@@ -412,8 +412,8 @@ pub mod tests {
                 time: 1002,
                 mediantime: Some(1001),
                 iterations: 1,
-                bits: 553713663, // TODO:
-                difficulty: 0.00000000023283064365386963,  // TODO:
+                bits: 553713663,
+                difficulty: 0.00000000023283064365386963,
                 chainwork: 0.into(),
                 previousblockhash: Some(
                     test_data::block_h1().hash().into()
