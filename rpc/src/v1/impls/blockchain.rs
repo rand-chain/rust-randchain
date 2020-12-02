@@ -273,12 +273,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-    {
-    	"jsonrpc": "2.0",
-    	"method": "getblockcount",
-    	"params": [],
-    	"id": 1
-    }"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockcount",
+                    	"params": [],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
