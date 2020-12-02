@@ -264,26 +264,26 @@ pub mod tests {
         );
     }
 
-    //  #[test]
-    //  fn block_count_success() {
-    //      let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
-    //      let mut handler = IoHandler::new();
-    //      handler.extend_with(client.to_delegate());
+    #[test]
+    fn block_count_success() {
+        let client = BlockChainClient::new(SuccessBlockChainClientCore::default());
+        let mut handler = IoHandler::new();
+        handler.extend_with(client.to_delegate());
 
-    //      let sample = handler
-    //          .handle_request_sync(
-    //              &(r#"
-    // {
-    // 	"jsonrpc": "2.0",
-    // 	"method": "getblockcount",
-    // 	"params": [],
-    // 	"id": 1
-    // }"#),
-    //          )
-    //          .unwrap();
+        let sample = handler
+            .handle_request_sync(
+                &(r#"
+    {
+    	"jsonrpc": "2.0",
+    	"method": "getblockcount",
+    	"params": [],
+    	"id": 1
+    }"#),
+            )
+            .unwrap();
 
-    //      assert_eq!(&sample, r#"{"jsonrpc":"2.0","result":1,"id":1}"#);
-    //  }
+        assert_eq!(&sample, r#"{"jsonrpc":"2.0","result":1,"id":1}"#);
+    }
 
     //  #[test]
     //  fn block_hash_success() {
