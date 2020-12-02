@@ -37,7 +37,7 @@ pub fn block_h0() -> Block {
         .bits(Compact::max_value())
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1024)
+        .iterations(1)
         .evaluated()
         .build()
         .proved()
