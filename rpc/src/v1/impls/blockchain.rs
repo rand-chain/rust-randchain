@@ -155,7 +155,6 @@ pub mod tests {
     use super::*;
     use db::BlockChainDatabase;
     use jsonrpc_core::IoHandler;
-    use primitives::bytes::Bytes as GlobalBytes;
     use primitives::hash::H256 as GlobalH256;
     use std::sync::Arc;
     use v1::traits::BlockChain;
