@@ -367,61 +367,56 @@ pub mod tests {
         let core = BlockChainClientCore::new(storage);
 
         // get info on block #1:
-        let verbose_block = core.verbose_block(
-            "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
-        );
+        let verbose_block = core.verbose_block(test_data::block_h1().hash().into());
         assert_eq!(
             verbose_block,
             Some(VerboseBlock {
-                hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
+                hash: test_data::block_h1().hash().into(),
                 confirmations: 2, // h1 + h2
-                size: 55,
+                size: 341,
                 height: Some(1),
                 version: 1,
                 version_hex: "1".to_owned(),
-                // TODO:
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469665,
-                mediantime: Some(1231006505),
-                iterations: 2573394689,
-                bits: 486604799,
-                difficulty: 1.0,
+                randomness_hex: "9fa3e85750af0157b3d08c44a2cef54cb0ccab50ea9d63ea016a8cc99c9a600a2a4c7ba9b4adc427148b6d3967c2a279e784d2514c7f3f6bcea6fe5d72fb78369f9026bebbdaffebf226d6a0de8e55356e90ac019b09318093c1b5d16b19b335d08713dfd05a251ebba267310c55b3093be6b0649f9a6318d9e61bfc6ba8b612690c7117018cef475972db62e79fbde36b6cd20b1b0ec946e78b916211de6963acf2cf4a72892f906b5ecc589d6f3fff4739028f47e377e592379fcfb63bcbd9810eddc0d7f8e0f9069e8dc9fb22f93f6f5685ad9e1779cbd03aecd689ad679db0364f44fa921056e583f4c71018cb2954216775ee09a6021548cf44b9c05e64".to_owned(),
+                time: 1001,
+                mediantime: Some(1000),
+                iterations: 1,
+                bits: 553713663, // TODO:
+                difficulty: 0.00000000023283064365386963, // TODO:
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "0484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa1".into()
+                    test_data::genesis().hash().into()
                 ),
                 nextblockhash: Some(
-                    "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into()
+                    test_data::block_h2().hash().into()
                 ),
             })
         );
 
         // get info on block #2:
-        let verbose_block = core.verbose_block(
-            "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
-        );
+        let verbose_block = core.verbose_block(test_data::block_h2().hash().into());
         assert_eq!(
             verbose_block,
             Some(VerboseBlock {
-                hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
+                hash: test_data::block_h2().hash().into(),
                 confirmations: 1, // h2
-                size: 215,
+                size: 341,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469744,
-                mediantime: Some(1231469665),
-                iterations: 1639830024,
-                bits: 486604799,
-                difficulty: 1.0,
+                randomness_hex: "59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6".to_owned(),
+                time: 1002,
+                mediantime: Some(1001),
+                iterations: 1,
+                bits: 553713663, // TODO:
+                difficulty: 0.00000000023283064365386963,  // TODO:
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into()
+                    test_data::block_h1().hash().into()
                 ),
                 nextblockhash: None,
             })
