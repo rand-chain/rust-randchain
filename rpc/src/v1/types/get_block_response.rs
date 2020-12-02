@@ -151,7 +151,7 @@ mod tests {
         let verbose_response = GetBlockResponse::Verbose(block);
         assert_eq!(
             serde_json::to_string(&verbose_response).unwrap(),
-            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"height":null,"version":0,"versionHex":"","randomnessHex":"","time":0,"mediantime":null,"iterations":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
+            r#"{"hash":"0000000000000000000000000000000000000000000000000000000000000000","confirmations":0,"size":0,"height":null,"version":0,"versionHex":"","pubkeyHex":"","randomnessHex":"","time":0,"mediantime":null,"iterations":0,"bits":0,"difficulty":0.0,"chainwork":"0","previousblockhash":null,"nextblockhash":null}"#
         );
     }
 }
