@@ -184,30 +184,30 @@ pub mod tests {
         }
 
         fn raw_block(&self, _hash: GlobalH256) -> Option<RawBlock> {
-            let b2_bytes = serialize(&test_data::genesis());
+            let b2_bytes = serialize(&test_data::block_h2());
             Some(RawBlock::from(b2_bytes))
         }
 
         fn verbose_block(&self, _hash: GlobalH256) -> Option<VerboseBlock> {
             Some(VerboseBlock {
-                hash: "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000".into(),
+                hash: test_data::block_h2().hash().into(),
                 confirmations: 1, // h2
-                size: 215,
+                size: serialize(&test_data::block_h2()).len() as u32,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
-                    .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469744,
+                pubkey_hex: test_data::block_h2().header().pubkey.to_bytes().to_hex(),
+                randomness_hex: test_data::block_h2()
+                    .header()
+                    .randomness
+                    .to_string_radix(16),
+                time: test_data::block_h2().header().time,
                 mediantime: None,
-                iterations: 1639830024,
-                bits: 486604799,
+                iterations: 1,
+                bits: test_data::block_h2().header().bits, // TODO:
                 difficulty: 1.0,
                 chainwork: 0.into(),
-                previousblockhash: Some(
-                    "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000".into(),
-                ),
+                previousblockhash: Some(test_data::block_h1().hash().into()),
                 nextblockhash: None,
             })
         }
@@ -435,7 +435,7 @@ pub mod tests {
         let mut handler = IoHandler::new();
         handler.extend_with(client.to_delegate());
 
-        let expected = r#"{"jsonrpc":"2.0","result":"010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd610101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d010bffffffff0100f2052a010000004341047211a824f55b505228e4c3d5194c1fcfaa15a456abdf37f9b9d97a4040afc073dee6c89064984f03385237d92167c13e236446b417ab79a0fcae412ae3316b77ac00000000","id":1}"#;
+        let expected = r#"{"jsonrpc":"2.0","result":"010000000000000000000000000000000000000000000000000000000000000000000000e8030000ffff002120000000000000000000000000000000000000000000000000000000000000000001000000fd00018b470dda93e0236024645452e8b3d69dd3d84d7f2c941bc1b7f4e2dbe353981b08c9dd8d2ff486720fbefbe4afd63c7db9bf355eccff959894a4b46ce7538ee01216cd233e6a02c5f88a278518e4004accc2f2a8c1c0a84c93724041d87620b72bd673c9fbb2e024cc9df6ec560d290276e99e59076a76eb92f814d88329bce0eb5da2eb138e5906c8fa75f0809ad3e6b3645c538026f740df3331b0613c961593a0a57a04cc8c583a240583be4b33f4eecef0b79a5fdf7b602c411d7580b38b6c8e96516906f4917c34e678835faf25d8f19d610c027e9627026550ddde0f6f6ffd2f68610116c573c12d79b3beadf8823bfdb98ee81ebc78618cc9cbc4ef3400","id":1}"#;
 
         let sample = handler
             .handle_request_sync(
