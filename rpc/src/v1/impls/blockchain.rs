@@ -189,9 +189,6 @@ pub mod tests {
         }
 
         fn verbose_block(&self, _hash: GlobalH256) -> Option<VerboseBlock> {
-            // https://blockexplorer.com/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd
-            // https://blockchain.info/ru/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd
-            // https://webbtc.com/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd.json
             Some(VerboseBlock {
                 hash: "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000".into(),
                 confirmations: 1, // h2
