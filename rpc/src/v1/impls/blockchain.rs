@@ -356,77 +356,77 @@ pub mod tests {
         assert_eq!(&sample, r#"{"jsonrpc":"2.0","result":1.0,"id":1}"#);
     }
 
-    //  #[test]
-    //  fn verbose_block_contents() {
-    //      let storage = Arc::new(BlockChainDatabase::init_test_chain(vec![
-    //          test_data::genesis().into(),
-    //          test_data::block_h1().into(),
-    //          test_data::block_h2().into(),
-    //      ]));
+    #[test]
+    fn verbose_block_contents() {
+        let storage = Arc::new(BlockChainDatabase::init_test_chain(vec![
+            test_data::genesis().into(),
+            test_data::block_h1().into(),
+            test_data::block_h2().into(),
+        ]));
 
-    //      let core = BlockChainClientCore::new(storage);
+        let core = BlockChainClientCore::new(storage);
 
-    //      // get info on block #1:
-    //      let verbose_block = core.verbose_block(
-    //          "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
-    //      );
-    //      assert_eq!(
-    //          verbose_block,
-    //          Some(VerboseBlock {
-    //              hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
-    //              confirmations: 2, // h1 + h2
-    //              size: 55,
-    //              height: Some(1),
-    //              version: 1,
-    //              version_hex: "1".to_owned(),
-    //              // TODO:
-    //              pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
-    //                  .to_owned(),
-    //              randomness_hex: "7788".to_owned(),
-    //              time: 1231469665,
-    //              mediantime: Some(1231006505),
-    //              iterations: 2573394689,
-    //              bits: 486604799,
-    //              difficulty: 1.0,
-    //              chainwork: 0.into(),
-    //              previousblockhash: Some(
-    //                  "0484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa1".into()
-    //              ),
-    //              nextblockhash: Some(
-    //                  "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into()
-    //              ),
-    //          })
-    //      );
+        // get info on block #1:
+        let verbose_block = core.verbose_block(
+            "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
+        );
+        assert_eq!(
+            verbose_block,
+            Some(VerboseBlock {
+                hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
+                confirmations: 2, // h1 + h2
+                size: 55,
+                height: Some(1),
+                version: 1,
+                version_hex: "1".to_owned(),
+                // TODO:
+                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                    .to_owned(),
+                randomness_hex: "7788".to_owned(),
+                time: 1231469665,
+                mediantime: Some(1231006505),
+                iterations: 2573394689,
+                bits: 486604799,
+                difficulty: 1.0,
+                chainwork: 0.into(),
+                previousblockhash: Some(
+                    "0484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa1".into()
+                ),
+                nextblockhash: Some(
+                    "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into()
+                ),
+            })
+        );
 
-    //      // get info on block #2:
-    //      let verbose_block = core.verbose_block(
-    //          "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
-    //      );
-    //      assert_eq!(
-    //          verbose_block,
-    //          Some(VerboseBlock {
-    //              hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
-    //              confirmations: 1, // h2
-    //              size: 215,
-    //              height: Some(2),
-    //              version: 1,
-    //              version_hex: "1".to_owned(),
-    //              pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
-    //                  .to_owned(),
-    //              randomness_hex: "7788".to_owned(),
-    //              time: 1231469744,
-    //              mediantime: Some(1231469665),
-    //              iterations: 1639830024,
-    //              bits: 486604799,
-    //              difficulty: 1.0,
-    //              chainwork: 0.into(),
-    //              previousblockhash: Some(
-    //                  "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into()
-    //              ),
-    //              nextblockhash: None,
-    //          })
-    //      );
-    //  }
+        // get info on block #2:
+        let verbose_block = core.verbose_block(
+            "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
+        );
+        assert_eq!(
+            verbose_block,
+            Some(VerboseBlock {
+                hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
+                confirmations: 1, // h2
+                size: 215,
+                height: Some(2),
+                version: 1,
+                version_hex: "1".to_owned(),
+                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                    .to_owned(),
+                randomness_hex: "7788".to_owned(),
+                time: 1231469744,
+                mediantime: Some(1231469665),
+                iterations: 1639830024,
+                bits: 486604799,
+                difficulty: 1.0,
+                chainwork: 0.into(),
+                previousblockhash: Some(
+                    "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into()
+                ),
+                nextblockhash: None,
+            })
+        );
+    }
 
     //  #[test]
     //  fn raw_block_success() {
