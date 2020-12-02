@@ -202,7 +202,7 @@ pub mod tests {
                     .to_string_radix(16),
                 time: test_data::block_h2().header().time,
                 mediantime: None,
-                iterations: 1,
+                iterations:  test_data::block_h2().header().iterations,
                 bits: test_data::block_h2().header().bits.into(),
                 difficulty: 1.0,
                 chainwork: 0.into(),
@@ -465,6 +465,7 @@ pub mod tests {
     }
 
     #[test]
+    // TODO:
     fn raw_block_error() {
         let client = BlockChainClient::new(ErrorBlockChainClientCore::default());
         let mut handler = IoHandler::new();
