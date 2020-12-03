@@ -21,7 +21,7 @@ LABEL authors="Haoyu Lin and Runchao Han"
 WORKDIR /app
 COPY --from=builder /app/target/release/randchaind /bin/randchaind
 # show backtraces
-ENV RUST_BACKTRACE=1
+ENV RUST_BACKTRACE=full
 ENV RUST_LOG=trace
 #      main    test    reg 
 # P2P  8333    18333   18444

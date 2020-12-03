@@ -7,6 +7,9 @@ services:
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
     # command: ["-s", "10.0.0.200"]
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
     cap_add:
       - ALL
     networks:
@@ -18,6 +21,9 @@ services:
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
     command: ["-c", "10.0.0.2"]
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
     cap_add:
       - ALL
     depends_on:
@@ -32,6 +38,9 @@ services:
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
     command: ["-c", "10.0.0.2"]
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
     cap_add:
       - ALL
     depends_on:
@@ -46,6 +55,9 @@ services:
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
     command: ["-c", "10.0.0.2"]
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
     cap_add:
       - ALL
     depends_on:
