@@ -20,6 +20,9 @@ services:
     command: ["-c", "10.0.0.2"]
     cap_add:
       - ALL
+    depends_on:
+      node1:
+        condition: service_started
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.3
@@ -31,9 +34,13 @@ services:
     command: ["-c", "10.0.0.2"]
     cap_add:
       - ALL
+    depends_on:
+      node1:
+        condition: service_started
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.4
+
   node4:
     tty: true
     image: randchain-dev/randchaind:latest
@@ -41,6 +48,9 @@ services:
     command: ["-c", "10.0.0.2"]
     cap_add:
       - ALL
+    depends_on:
+      node1:
+        condition: service_started
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.5
