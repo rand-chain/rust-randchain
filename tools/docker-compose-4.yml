@@ -6,7 +6,6 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    # command: ["-s", "10.0.0.200"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
