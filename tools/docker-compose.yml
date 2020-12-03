@@ -4,11 +4,14 @@ version: '3'
 services:
   seednode:
     tty: true
-    image: randchain-dev/coredns:latest
+    image: randchain-dev/coredns:v0.1.1
     entrypoint: coredns
     command: ["-conf", "/etc/dnsseeder/Corefile"]
     cap_add:
       - ALL
+    depends_on:
+      node:
+        condition: service_started
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.200
@@ -23,9 +26,8 @@ services:
     cap_add:
       - ALL
     networks:
-      - randchain_privnet
-    # extra_hosts:
-    #   - "mainnet.seeder.randchain.io:10.0.0.200"
+      randchain_privnet:
+        ipv4_address: 10.0.0.5
 
 networks:
   randchain_privnet:
