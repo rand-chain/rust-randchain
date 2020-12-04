@@ -1,6 +1,7 @@
 extern crate byteorder;
 extern crate chain;
 extern crate db;
+extern crate ecvrf;
 extern crate network;
 extern crate primitives;
 extern crate storage;

@@ -15,6 +15,7 @@ primitives = { path = "../primitives" }
 test-data = { path = "../test-data" }
 time = "*"
 byteorder = "1.0"
+ecvrf = "0.4.2"
 
 [[bin]]
 path = "src/main.rs"
