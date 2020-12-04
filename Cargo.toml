@@ -38,6 +38,3 @@ debug = true
 [[bin]]
 path = "randchaind/main.rs"
 name = "randchaind"
-
-[workspace]
-members = ["bencher"]
