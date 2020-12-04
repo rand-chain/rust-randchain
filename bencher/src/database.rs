@@ -1,5 +1,8 @@
 use chain::IndexedBlock;
 use db::BlockChainDatabase;
+use ecvrf::VrfPk;
+use network::Network;
+use primitives::compact::Compact;
 use storage::{BlockOrigin, BlockProvider, BlockRef, ForkChain};
 use test_data;
 
@@ -24,7 +27,7 @@ pub fn fetch(benchmark: &mut Benchmark) {
             .header()
             .parent(rolling_hash.clone())
             .time(1000)
-            .bits(Compact::from_u256(Network::Mainnet.max_bits()))
+            .bits(Compact::from_u256(Network::Unitest.max_bits()))
             .version(1)
             .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
             .iterations(x as u32)
