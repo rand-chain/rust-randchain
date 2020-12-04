@@ -54,7 +54,7 @@ pub fn block_h1() -> Block {
         .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1)
+        .iterations(3)
         .evaluated()
         .build()
         .proved()
