@@ -1,0 +1,69 @@
+version: '3'
+services:
+  node1:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
+    cap_add:
+      - ALL
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.2
+  
+  node2:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    command: ["-c", "10.0.0.2"]
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
+    cap_add:
+      - ALL
+    depends_on:
+      - node1
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.3
+    
+  node3:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    command: ["-c", "10.0.0.2"]
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
+    cap_add:
+      - ALL
+    depends_on:
+      - node1
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.4
+
+  node4:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    command: ["-c", "10.0.0.2"]
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
+    cap_add:
+      - ALL
+    depends_on:
+      - node1
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.5
+
+networks:
+  randchain_privnet:
+    driver: macvlan
+    ipam:
+      config:
+        - subnet: 10.0.0.0/8

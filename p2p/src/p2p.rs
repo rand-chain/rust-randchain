@@ -220,9 +220,9 @@ impl Context {
                             channel.session().initialize();
                             Context::on_message(context, channel)
                         }
-                        Ok(DeadlineStatus::Meet(Err(_))) => {
+                        Ok(DeadlineStatus::Meet(Err(err))) => {
                             // protocol error
-                            trace!("Handshake with {} failed", socket);
+                            trace!("Handshake with {} failed: {}", socket, err);
                             // TODO: close socket
                             context.node_table.write().note_failure(&socket);
                             context.connection_counter.note_close_outbound_connection();
@@ -236,9 +236,9 @@ impl Context {
                             context.connection_counter.note_close_outbound_connection();
                             Box::new(finished(Ok(())))
                         }
-                        Err(_) => {
+                        Err(err) => {
                             // network error
-                            trace!("Unable to connect to {}", socket);
+                            trace!("Unable to connect to {}: {}", socket, err);
                             context.node_table.write().note_failure(&socket);
                             context.connection_counter.note_close_outbound_connection();
                             Box::new(finished(Ok(())))
