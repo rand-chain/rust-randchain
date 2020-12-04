@@ -5,6 +5,7 @@ extern crate rug;
 extern crate time;
 
 extern crate chain;
+extern crate network;
 extern crate primitives;
 extern crate serialization as ser;
 extern crate vdf;
@@ -13,6 +14,7 @@ extern crate verification;
 use ecvrf::VrfPk;
 
 use chain::Block;
+use network::Network::Mainnet;
 use primitives::compact::Compact;
 
 pub mod block;
@@ -34,10 +36,10 @@ pub fn block_h0() -> Block {
         .header()
         .parent(0.into())
         .time(1000)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1)
+        .iterations(4)
         .evaluated()
         .build()
         .proved()
@@ -49,10 +51,10 @@ pub fn block_h1() -> Block {
         .header()
         .parent(block_h0().hash())
         .time(1001)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1)
+        .iterations(4)
         .evaluated()
         .build()
         .proved()
@@ -64,10 +66,10 @@ pub fn block_h2() -> Block {
         .header()
         .parent(block_h1().hash())
         .time(1002)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1)
+        .iterations(4)
         .evaluated()
         .build()
         .proved()
@@ -79,7 +81,7 @@ pub fn block_h3() -> Block {
         .header()
         .parent(block_h2().hash())
         .time(1003)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
@@ -94,7 +96,7 @@ pub fn block_h169() -> Block {
         .header()
         .parent("6868686868686868686868686868686868686868686868686868686868686868".into())
         .time(1169)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
@@ -109,7 +111,7 @@ pub fn block_h170() -> Block {
         .header()
         .parent(block_h169().hash())
         .time(1170)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
@@ -124,10 +126,10 @@ pub fn block_h181() -> Block {
         .header()
         .parent("8080808080808080808080808080808080808080808080808080808080808080".into())
         .time(1181)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1)
+        .iterations(4)
         .evaluated()
         .build()
         .proved()
@@ -139,10 +141,10 @@ pub fn block_h182() -> Block {
         .header()
         .parent(block_h181().hash())
         .time(1182)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1)
+        .iterations(4)
         .evaluated()
         .build()
         .proved()
@@ -154,10 +156,10 @@ pub fn block_h221() -> Block {
         .header()
         .parent("2020202020202020202020202020202020202020202020202020202020202020".into())
         .time(1221)
-        .bits(Compact::max_value())
+        .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
         .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
-        .iterations(1)
+        .iterations(4)
         .evaluated()
         .build()
         .proved()
