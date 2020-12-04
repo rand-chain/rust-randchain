@@ -90,21 +90,76 @@ pub fn block_h3() -> Block {
 }
 
 pub fn block_h169() -> Block {
-    "0100000069696969696969696969696969696969696969696969696969696969696969693ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent("6868686868686868686868686868686868686868686868686868686868686868".into())
+        .time(1169)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
 
 pub fn block_h170() -> Block {
-    "0100000012bc7f0860ef556a071363e72b862aa839b98093e681948dfd13a3bbf76904563ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent(block_h169().hash())
+        .time(1170)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
 
 pub fn block_h181() -> Block {
-    "010000002405eed65d493e68cbe8045858a9b8a3db202d5eeec94c8ab8c3c85befabae0f3ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent("8080808080808080808080808080808080808080808080808080808080808080".into())
+        .time(1181)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
 
 pub fn block_h182() -> Block {
-    "0100000072db6cf01a23a2b797e7300f4943b31978b814fffad350fc1314a8bdcfa717063ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent(block_h181().hash())
+        .time(1182)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
 
 pub fn block_h221() -> Block {
-    "0100000021212121212121212121212121212121212121212121212121212121212121213ba3edfd7a7b12b20600000001370201380138".into()
+    block::block_builder()
+        .header()
+        .parent("2020202020202020202020202020202020202020202020202020202020202020".into())
+        .time(1221)
+        .bits(Compact::max_value())
+        .version(1)
+        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .iterations(1)
+        .evaluated()
+        .build()
+        .proved()
+        .build()
 }
