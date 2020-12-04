@@ -16,11 +16,11 @@ const MAGIC_UNITEST: u32 = 0x00000000;
 
 lazy_static! {
     static ref MAX_BITS_MAINNET: U256 =
-        "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
             .parse()
             .expect("hardcoded value should parse without errors");
     static ref MAX_BITS_TESTNET: U256 =
-        "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
             .parse()
             .expect("hardcoded value should parse without errors");
     static ref MAX_BITS_REGTEST: U256 =
