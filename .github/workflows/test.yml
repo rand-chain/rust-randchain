@@ -32,6 +32,3 @@ jobs:
         with:
           command: bench
           args: --
-      
-      - name: Run bencher tests
-        run: ./tools/bencher.sh
