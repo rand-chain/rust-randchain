@@ -9,18 +9,19 @@ services:
     cap_add:
       - ALL
     depends_on:
-      - node
+      - bootstrap-node
+    restart: always
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.200
     extra_hosts:
       - "mainnet.randchain.io:10.0.0.5"
 
-  node1:
+  bootstrap-node:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-s", "10.0.0.200"]
+    command: ["-s", "10.0.0.200:53"]
     cap_add:
       - ALL
     environment:
@@ -34,7 +35,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-s", "10.0.0.200", "-c", "10.0.0.5"]
+    command: ["-s", "10.0.0.200:53", "-c", "10.0.0.5"]
     cap_add:
       - ALL
     environment:
