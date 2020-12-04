@@ -33,8 +33,8 @@ pub const APP_INFO: AppInfo = AppInfo {
     name: "randchaind",
     author: "RandChain",
 };
-pub const PROTOCOL_VERSION: u32 = 00_001;
-pub const PROTOCOL_MINIMUM: u32 = 00_001;
+pub const PROTOCOL_VERSION: u32 = 70_014;
+pub const PROTOCOL_MINIMUM: u32 = 70_001;
 pub const USER_AGENT: &'static str = "randchaind";
 pub const REGTEST_USER_AGENT: &'static str = "/randchaind-testnet:0.0.1/";
 pub const LOG_INFO: &'static str = "sync=info";
