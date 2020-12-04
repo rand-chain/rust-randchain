@@ -9,8 +9,7 @@ services:
     cap_add:
       - ALL
     depends_on:
-      node:
-        condition: service_started
+      - node
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.200
