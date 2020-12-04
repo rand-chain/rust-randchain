@@ -21,7 +21,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-s", "10.0.0.200:53"]
+    command: ["-s", "10.0.0.200"]
     cap_add:
       - ALL
     environment:
@@ -35,7 +35,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-s", "10.0.0.200:53", "-c", "10.0.0.5"]
+    command: ["-s", "10.0.0.200", "-c", "10.0.0.5"]
     cap_add:
       - ALL
     environment:

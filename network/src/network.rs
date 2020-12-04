@@ -83,6 +83,10 @@ impl Network {
         }
     }
 
+    pub fn dns_default_port(&self) -> u16 {
+        53
+    }
+
     pub fn genesis_block(&self) -> IndexedBlock {
         match *self {
             Network::Mainnet | Network::Other(_) => {
