@@ -633,8 +633,8 @@ impl P2P {
                         );
                     }
                 },
-                Err(_err) => {
-                    trace!("Dns lookup of seednode {} failed", owned_seednode);
+                Err(err) => {
+                    trace!("Dns lookup of seednode {} failed: {}", owned_seednode, err);
                 }
             }
             finished(())

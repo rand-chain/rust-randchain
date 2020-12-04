@@ -9,7 +9,7 @@ services:
     cap_add:
       - ALL
     depends_on:
-      - node
+      - node1
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.200
