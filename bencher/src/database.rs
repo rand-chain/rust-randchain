@@ -21,11 +21,16 @@ pub fn fetch(benchmark: &mut Benchmark) {
 
     for x in 0..BLOCKS {
         let next_block = test_data::block_builder()
-            // TODO:
             .header()
             .parent(rolling_hash.clone())
+            .time(1000)
+            .bits(Compact::from_u256(Network::Mainnet.max_bits()))
+            .version(1)
+            .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
             .iterations(x as u32)
+            .evaluated()
             .build()
+            .proved()
             .build();
         rolling_hash = next_block.hash();
         blocks.push(next_block);
