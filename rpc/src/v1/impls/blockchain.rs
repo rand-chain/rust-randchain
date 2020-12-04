@@ -256,11 +256,11 @@ pub mod tests {
             )
             .unwrap();
 
-        // direct hash is b2cdad40a2ff16c92abcb99732ad36431a72fc5c414c7649809907252cccf3f2
+        // direct hash is 0e02cf1de23136c83e2aa473e226c02f5f2d4a7dffd16e49fafdfb5e7d6f5971
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"71596f7d5efbfdfa496ed1ff7d4a2d5f2fc026e273a42a3ec83631e21dcf020e","id":1}"#
         );
     }
 
@@ -303,11 +303,11 @@ pub mod tests {
             )
             .unwrap();
 
-        // direct hash is b2cdad40a2ff16c92abcb99732ad36431a72fc5c414c7649809907252cccf3f2
+        // direct hash is 0e02cf1de23136c83e2aa473e226c02f5f2d4a7dffd16e49fafdfb5e7d6f5971
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"f2f3cc2c2507998049764c415cfc721a4336ad3297b9bc2ac916ffa240adcdb2","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"71596f7d5efbfdfa496ed1ff7d4a2d5f2fc026e273a42a3ec83631e21dcf020e","id":1}"#
         );
     }
 
