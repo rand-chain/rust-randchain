@@ -373,18 +373,18 @@ pub mod tests {
             Some(VerboseBlock {
                 hash: test_data::block_h1().hash().into(),
                 confirmations: 2, // h1 + h2
-                size: 341,
+                size: 859,
                 height: Some(1),
                 version: 1,
                 version_hex: "1".to_owned(),
                 pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "9fa3e85750af0157b3d08c44a2cef54cb0ccab50ea9d63ea016a8cc99c9a600a2a4c7ba9b4adc427148b6d3967c2a279e784d2514c7f3f6bcea6fe5d72fb78369f9026bebbdaffebf226d6a0de8e55356e90ac019b09318093c1b5d16b19b335d08713dfd05a251ebba267310c55b3093be6b0649f9a6318d9e61bfc6ba8b612690c7117018cef475972db62e79fbde36b6cd20b1b0ec946e78b916211de6963acf2cf4a72892f906b5ecc589d6f3fff4739028f47e377e592379fcfb63bcbd9810eddc0d7f8e0f9069e8dc9fb22f93f6f5685ad9e1779cbd03aecd689ad679db0364f44fa921056e583f4c71018cb2954216775ee09a6021548cf44b9c05e64".to_owned(),
+                randomness_hex: "966e8f70aa11fdb48b7d463c57db4722d1ac994640879f98a616b165c3a5df9db31c0dee6cbcebf46c427049ead7b7edbe39970ce7b0fecf2a9b07c4381e466055f1e8fc152f304f3cfdbb475bdaa93a9f95de38ff1d091d175bfea579574f444c1650a6ab4bfd97d2b19f6653549517d91b882a5560da1b6b0188ae67d016dfe2dfe795593e844b2d32e29b985b425038c83c7aaf9b9ea3d73065767f234da6f25e43137a8d91265d16afdb9ab728f619385a31734ba769bfb5ff1bea3869043534d1697efc3148a0867ceacb6d2d24508ea1b201abfbb23604aa7cc3dd7dbfe9c002f2f26199aea18e9c24e870bfa090505eecc307d895caf7bdadccbdfbb4".to_owned(),
                 time: 1001,
                 mediantime: Some(1000),
-                iterations: 1,
-                bits: 553713663,
-                difficulty: 0.00000000023283064365386963,
+                iterations: 4,
+                bits: 545259519,
+                difficulty: 0.00000000046565423739069247,
                 chainwork: 0.into(),
                 previousblockhash: Some(
                     test_data::genesis().hash().into()
@@ -402,18 +402,18 @@ pub mod tests {
             Some(VerboseBlock {
                 hash: test_data::block_h2().hash().into(),
                 confirmations: 1, // h2
-                size: 341,
+                size: 859,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
                 pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6".to_owned(),
+                randomness_hex: "5ced562ee6e1c95c2e034d3ed4fc38508fd4cf0a1faa466303c79b7bc9fcaf4d60d1dc53884698e891e5ee1f661f79e58631b8003d0fd18d526fcc3f95e97597c125573895ffc3a6a9b1458b1a383cdb1ea151f2b01f62980d6e92aaef8d0c5a06e56995176a75cb8aa37c94a5e677e1dd91e1fb3874b72f614507b5e9b29bc5e43264123e8fb29664558dad1aa4e350843262effaffe63685765fa7028ce10b81d13059a3dfc8207b7bc37ce4e8e23d22a797b454abf7777c641a534a2bfd5d67f5d182c75a4a7fe9f3a31eb85afe533cc55edca86b9dfe6e8d66c2c00a90097ac0ff8ca06f00dd524018fb422ad68994ec537cd12ab10f4144a8f3290dae1a".to_owned(),
                 time: 1002,
                 mediantime: Some(1001),
-                iterations: 1,
-                bits: 553713663,
-                difficulty: 0.00000000023283064365386963,
+                iterations: 4,
+                bits: 545259519,
+                difficulty: 0.00000000046565423739069247,
                 chainwork: 0.into(),
                 previousblockhash: Some(
                     test_data::block_h1().hash().into()
