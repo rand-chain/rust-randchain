@@ -10,6 +10,7 @@ services:
       - ALL
     depends_on:
       - bootstrap-node
+    restart: always
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.200
