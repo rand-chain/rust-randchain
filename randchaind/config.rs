@@ -94,15 +94,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     };
 
     let seednodes: Vec<String> = match matches.value_of("seednode") {
-        // if no port is specified
-        // apply the default port 53 to the address
-        // then convert it to string
-        Some(s) => vec![s
-            .parse::<net::IpAddr>()
-            .map(|ip| net::SocketAddr::new(ip, network.dns_default_port()).to_string())
-            .map_err(|_| "Invalid APIs".to_owned())?]
-        .into_iter()
-        .collect(),
+        Some(s) => vec![s.parse().map_err(|_| "Invalid seednode".to_owned())?],
         None => match network {
             Network::Mainnet => mainnet_seednodes().into_iter().map(Into::into).collect(),
             Network::Testnet => testnet_seednodes().into_iter().map(Into::into).collect(),
