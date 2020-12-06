@@ -287,7 +287,7 @@ impl Context {
                             // PROTOTYPE ONLY: Replace port to the default one
                             // TODO: Ports should be announced by nodes themselves rather than hardcoded here
                             let mut addr = connection.address.clone();
-                            addr.set_port(config.local_address.port());
+                            addr.set_port(config.network.port());
                             // insert the address to node table
                             context.node_table.write().insert(addr, connection.services);
                             // establish channel
