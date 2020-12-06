@@ -284,16 +284,18 @@ impl Context {
                         Ok(DeadlineStatus::Meet(Ok(connection))) => {
                             // successfull hanshake
                             trace!("Accepted connection from {}", connection.address);
-                            context
-                                .node_table
-                                .write()
-                                .insert(connection.address, connection.services);
+                            // PROTOTYPE ONLY: Replace port to the default one
+                            // TODO: Ports should be announced by nodes themselves rather than hardcoded here
+                            let mut addr = connection.address.clone();
+                            addr.set_port(config.network.port());
+                            // insert the address to node table
+                            context.node_table.write().insert(addr, connection.services);
+                            // establish channel
                             let channel = context.connections.store::<NormalSessionFactory>(
                                 context.clone(),
                                 connection,
                                 Direction::Inbound,
                             );
-
                             // initialize session and then start reading messages
                             channel.session().initialize();
                             Context::on_message(context.clone(), channel)
