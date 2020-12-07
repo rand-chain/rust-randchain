@@ -7,7 +7,8 @@ extern crate log;
 
 use clap::Clap;
 use ecvrf::VrfPk;
-use hex::ToHex;
+use hex::{FromHex, ToHex};
+use std::io::prelude::*;
 
 /// RandChain miner client
 #[derive(Clap)]
@@ -40,10 +41,10 @@ struct KeyGenOpts {
 struct MineOpts {
     /// Output public key file
     #[clap(short = "u", long = "pub", default_value = "pub.key")]
-    _pubkey: String,
+    pubkey: String,
     /// randchaind rpc port
     #[clap(short = "p", long = "port", default_value = "8333")]
-    _port: u16,
+    port: u16,
 }
 
 fn main() {
@@ -75,12 +76,26 @@ fn key_gen(opts: KeyGenOpts) {
     let sk_hex: String = sk.to_bytes().to_hex();
     let pk_hex: String = pk.to_bytes().to_hex();
 
-    std::fs::write(&opts.prikey, sk_hex).expect("save prikey error");
+    std::fs::write(&opts.prikey, sk_hex).expect("save prikey err");
     log::info!("PriKey saved to: {}", opts.prikey);
-    std::fs::write(&opts.pubkey, pk_hex).expect("save pubkey error");
+    std::fs::write(&opts.pubkey, pk_hex).expect("save pubkey err");
     log::info!("PubKey saved to: {}", opts.pubkey);
 }
 
-fn mine(_opts: MineOpts) {
+fn load_pk(filename: &str) -> VrfPk {
+    let mut pk_hex = String::new();
+    let mut f = std::fs::File::open(filename).expect("unable to open.");
+    f.read_to_string(&mut pk_hex).expect("unable to read pk.");
+    log::info!("loaded pubkey: {}", pk_hex);
+
+    let mut pk: [u8; 32] = [0; 32];
+    pk.copy_from_slice(&pk_hex.from_hex::<Vec<u8>>().expect("pubkey format err."));
+    VrfPk::from_bytes(&pk).expect("pubkey format err.")
+}
+
+fn mine(opts: MineOpts) {
+    let pubkey = load_pk(&opts.pubkey);
+
+    log::info!("connecting to port: {}", opts.port);
     unimplemented!();
 }
