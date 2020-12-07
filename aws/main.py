@@ -652,185 +652,187 @@ def list_instances(instances):
     print("*"*80)
 
 
-# get all instances with aws
-instances = query_instances_by_regions(full_regions)
-# exit()
+if __name__ == '__main__':
 
-print('='*80+'\n' + 'List of instances : ')
-for i in instances:
-    if is_running_instance(i):
+    # get all instances with aws
+    instances = query_instances_by_regions(full_regions)
+    # exit()
 
-        print('[+] Instance %15s ::: %14s ::: %15s :::  ssh -i %s ubuntu@%s' % (get_instance_city(i),
-                                                                                get_instance_region(i),  get_instance_ip(i), get_instance_key(i), get_instance_ip(i)))
+    print('='*80+'\n' + 'List of instances : ')
+    for i in instances:
+        if is_running_instance(i):
 
-        # Count active instances
-        if 'count' in full_regions[i['myregion']]:
-            full_regions[i['myregion']]['count'] += 1
-        else:
-            full_regions[i['myregion']]['count'] = 1
-cnt = 0
-for f in full_regions:
-    print('%15s : %d ' % (full_regions[f]['city'], full_regions[f]['count']))
-    cnt += full_regions[f]['count']
-print('-'*20+'\n' + "Total: %d" % cnt + '\n' + '-'*20 + '\n\n')
+            print('[+] Instance %15s ::: %14s ::: %15s :::  ssh -i %s ubuntu@%s' % (get_instance_city(i),
+                                                                                    get_instance_region(i),  get_instance_ip(i), get_instance_key(i), get_instance_ip(i)))
 
-
-impose_limit = True
-rate_Mbps = "40"
-random.seed(datetime.datetime.now())
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--list",        help="Just list all instances", action='store_true')
-parser.add_argument(
-    "--getmax",        help="Get the maximum instances that can be rented per region", action='store_true')
-parser.add_argument("--boot",        help="Boostrap", action='store_true')
-parser.add_argument("--bootover",
-                    help="Forced bootstrap, i.e. overwrite", action='store_true')
-parser.add_argument("--checkboot",
-                    help="Check which nodes have been bootstrapped", action='store_true')
-parser.add_argument(
-    "--compare",        help="Print the last hashes of the chain 0 in all nodes", action='store_true')
-parser.add_argument("--compareon",        type=str,
-                    help="Print the i-th hash of chain 0", action='store', nargs=1)
-parser.add_argument("--pattern",        type=str,
-                    help="Grep on pattern in all out files", action='store', nargs=1)
-parser.add_argument(
-    "--dlat",        help="Get diameter and latency", action='store_true')
+            # Count active instances
+            if 'count' in full_regions[i['myregion']]:
+                full_regions[i['myregion']]['count'] += 1
+            else:
+                full_regions[i['myregion']]['count'] = 1
+    cnt = 0
+    for f in full_regions:
+        print('%15s : %d ' % (full_regions[f]['city'], full_regions[f]['count']))
+        cnt += full_regions[f]['count']
+    print('-'*20+'\n' + "Total: %d" % cnt + '\n' + '-'*20 + '\n\n')
 
 
-parser.add_argument(
-    "--launch",        help="Launch the network, i.e. restart all running nodes ", action='store_true')
-parser.add_argument("--speciallaunch",
-                    help="Launch the network, i.e. restart all running nodes ", action='store_true')
-parser.add_argument(
-    "--killnodes",        help="Kill all launched instances", action='store_true')
-parser.add_argument(
-    "--nodes",        help="Get number of running nodes on all instances", action='store_true')
-parser.add_argument(
-    "--dump",        help="Transfer logs,etc to local machine", action='store_true')
-parser.add_argument("--dumpblocks",
-                    help="Transfer only blocks to local machine", action='store_true')
-parser.add_argument("--dumppings",
-                    help="Transfer only pings to local machine", action='store_true')
-
-parser.add_argument("--run",        type=str,
-                    help="Run new instances", action='store', nargs=1)
-parser.add_argument("--terminate",
-                    help="Terminate all instances", action='store_true')
-
-parser.add_argument(
-    "--nolimit",        help="Do not limit bandwidth", action='store_true')
-parser.add_argument("--limitrate",        type=str,
-                    help="Limit the bandwidth per node to PARAM Mbps", action='store', nargs=1)
-
-args = parser.parse_args()
-
-
-if args.nolimit:
-    impose_limit = False
-
-if args.limitrate:
     impose_limit = True
-#    rate_Mbps = int(args.limitrate[0])
-    rate_Mbps = args.limitrate[0]
+    rate_Mbps = "40"
+    # random.seed(datetime.datetime.now())
 
-if args.list:
-    list_instances(instances)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--list",        help="Just list all instances", action='store_true')
+    parser.add_argument(
+        "--getmax",        help="Get the maximum instances that can be rented per region", action='store_true')
+    parser.add_argument("--boot",        help="Boostrap", action='store_true')
+    parser.add_argument("--bootover",
+                        help="Forced bootstrap, i.e. overwrite", action='store_true')
+    parser.add_argument("--checkboot",
+                        help="Check which nodes have been bootstrapped", action='store_true')
+    parser.add_argument(
+        "--compare",        help="Print the last hashes of the chain 0 in all nodes", action='store_true')
+    parser.add_argument("--compareon",        type=str,
+                        help="Print the i-th hash of chain 0", action='store', nargs=1)
+    parser.add_argument("--pattern",        type=str,
+                        help="Grep on pattern in all out files", action='store', nargs=1)
+    parser.add_argument(
+        "--dlat",        help="Get diameter and latency", action='store_true')
 
-if args.getmax:
-    print('='*80+'\n' + 'Max instances per city : ')
-    full_regions = query_regions_for_max_instance(full_regions)
-    for r in full_regions:
-        print('%15s' % full_regions[r]['city'] + " " + full_regions[r]
-              ['max_instances'] if 'max_instances' in full_regions[r] else '0')
+
+    parser.add_argument(
+        "--launch",        help="Launch the network, i.e. restart all running nodes ", action='store_true')
+    parser.add_argument("--speciallaunch",
+                        help="Launch the network, i.e. restart all running nodes ", action='store_true')
+    parser.add_argument(
+        "--killnodes",        help="Kill all launched instances", action='store_true')
+    parser.add_argument(
+        "--nodes",        help="Get number of running nodes on all instances", action='store_true')
+    parser.add_argument(
+        "--dump",        help="Transfer logs,etc to local machine", action='store_true')
+    parser.add_argument("--dumpblocks",
+                        help="Transfer only blocks to local machine", action='store_true')
+    parser.add_argument("--dumppings",
+                        help="Transfer only pings to local machine", action='store_true')
+
+    parser.add_argument("--run",        type=str,
+                        help="Run new instances", action='store', nargs=1)
+    parser.add_argument("--terminate",
+                        help="Terminate all instances", action='store_true')
+
+    parser.add_argument(
+        "--nolimit",        help="Do not limit bandwidth", action='store_true')
+    parser.add_argument("--limitrate",        type=str,
+                        help="Limit the bandwidth per node to PARAM Mbps", action='store', nargs=1)
+
+    args = parser.parse_args()
 
 
-if args.boot:
-    bootstrap_all_instances(instances, False)
-    check_bootstraped(instances)
+    if args.nolimit:
+        impose_limit = False
 
-if args.bootover:
+    if args.limitrate:
+        impose_limit = True
+    #    rate_Mbps = int(args.limitrate[0])
+        rate_Mbps = args.limitrate[0]
 
-    answer = input(
-        "Are you sure you want to BOOTSTRAP OVER all instances? (yes/anything):")
-    if answer == 'yes':
-        bootstrap_all_instances(instances)
+    if args.list:
+        list_instances(instances)
+
+    if args.getmax:
+        print('='*80+'\n' + 'Max instances per city : ')
+        full_regions = query_regions_for_max_instance(full_regions)
+        for r in full_regions:
+            print('%15s' % full_regions[r]['city'] + " " + full_regions[r]
+                ['max_instances'] if 'max_instances' in full_regions[r] else '0')
+
+
+    if args.boot:
+        bootstrap_all_instances(instances, False)
         check_bootstraped(instances)
 
-if args.checkboot:
-    check_bootstraped(instances)
+    if args.bootover:
 
-if args.launch:
-    #    answer = input("Are you sure you want to RE-LAUNCH all nodes (yes/anything):")
-    answer = "yes"
-    if answer == 'yes':
+        answer = input(
+            "Are you sure you want to BOOTSTRAP OVER all instances? (yes/anything):")
+        if answer == 'yes':
+            bootstrap_all_instances(instances)
+            check_bootstraped(instances)
+
+    if args.checkboot:
+        check_bootstraped(instances)
+
+    if args.launch:
+        #    answer = input("Are you sure you want to RE-LAUNCH all nodes (yes/anything):")
+        answer = "yes"
+        if answer == 'yes':
+            kill_launched_nodes(instances)
+            relaunch_nodes(instances, impose_limit, rate_Mbps)
+            get_running_nodes(instances)
+
+    if args.speciallaunch:
+        #answer = input("Are you sure you want to RE-LAUNCH all nodes (yes/anything):")
+        # if answer == 'yes':
         kill_launched_nodes(instances)
-        relaunch_nodes(instances, impose_limit, rate_Mbps)
+        special_relaunch_nodes(instances, impose_limit, rate_Mbps)
         get_running_nodes(instances)
 
-if args.speciallaunch:
-    #answer = input("Are you sure you want to RE-LAUNCH all nodes (yes/anything):")
-    # if answer == 'yes':
-    kill_launched_nodes(instances)
-    special_relaunch_nodes(instances, impose_limit, rate_Mbps)
-    get_running_nodes(instances)
+
+    if args.killnodes:
+
+        #    answer = input("Are you sure you want to KILL all running nodes on instances? (yes/anything):")
+        answer = "yes"
+        if answer == 'yes':
+            kill_launched_nodes(instances)
+            get_running_nodes(instances)
 
 
-if args.killnodes:
+    if args.compare:
+        print_hashes(instances)
 
-    #    answer = input("Are you sure you want to KILL all running nodes on instances? (yes/anything):")
-    answer = "yes"
-    if answer == 'yes':
-        kill_launched_nodes(instances)
+    if args.compareon:
+        print_hashes(instances, int(args.compareon[0]))
+
+    if args.pattern:
+        check_pattern(instances, args.pattern[0])
+
+    if args.dlat:
+        get_dlat(instances)
+
+
+    if args.nodes:
         get_running_nodes(instances)
 
+    if args.dump:
+        #    answer = input("Are you sure you want to DUMP the data from all nodes to local hdd (yes/anything):")
+        answer = 'yes'
+        if answer == 'yes':
+            dump_data(instances)
 
-if args.compare:
-    print_hashes(instances)
+    if args.dumpblocks:
+        #    answer = input("Are you sure you want to DUMP BLOCKS from all nodes to local hdd (yes/anything):")
+        answer = "yes"
+        if answer == 'yes':
+            dump_blocks(instances)
 
-if args.compareon:
-    print_hashes(instances, int(args.compareon[0]))
-
-if args.pattern:
-    check_pattern(instances, args.pattern[0])
-
-if args.dlat:
-    get_dlat(instances)
-
-
-if args.nodes:
-    get_running_nodes(instances)
-
-if args.dump:
-    #    answer = input("Are you sure you want to DUMP the data from all nodes to local hdd (yes/anything):")
-    answer = 'yes'
-    if answer == 'yes':
-        dump_data(instances)
-
-if args.dumpblocks:
-    #    answer = input("Are you sure you want to DUMP BLOCKS from all nodes to local hdd (yes/anything):")
-    answer = "yes"
-    if answer == 'yes':
-        dump_blocks(instances)
-
-if args.dumppings:
-    dump_pings(instances)
+    if args.dumppings:
+        dump_pings(instances)
 
 
-if args.run:
+    if args.run:
 
-    answer = input(
-        "Are you sure you want to RUN NEW INSTANCES (yes/anything):")
-    if answer == 'yes':
-        run_new_instances(instances, int(args.run[0]))
-        list_instances(instances)
+        answer = input(
+            "Are you sure you want to RUN NEW INSTANCES (yes/anything):")
+        if answer == 'yes':
+            run_new_instances(instances, int(args.run[0]))
+            list_instances(instances)
 
 
-if args.terminate:
+    if args.terminate:
 
-    answer = input(
-        "Are you sure you want to TERMINATE ALL instances (yes/anything):")
-    if answer == 'yes':
-        terminate_all_instances(instances)
-        list_instances(instances)
+        answer = input(
+            "Are you sure you want to TERMINATE ALL instances (yes/anything):")
+        if answer == 'yes':
+            terminate_all_instances(instances)
+            list_instances(instances)
