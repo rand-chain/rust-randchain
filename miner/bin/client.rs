@@ -19,11 +19,25 @@ enum SubCommand {
 
 /// A subcommand for ....
 #[derive(Clap)]
-struct GenkeyOpts {}
+struct GenkeyOpts {
+    /// Output public key file
+    #[clap(short = "u", long = "pub", default_value = "pub.key")]
+    pubkey: String,
+    /// Output private key file
+    #[clap(short = "r", long = "pri", default_value = "pri.key")]
+    prikey: String,
+}
 
 /// A subcommand for ....
 #[derive(Clap)]
-struct MineOpts {}
+struct MineOpts {
+    /// Output public key file
+    #[clap(short = "u", long = "pub", default_value = "pub.key")]
+    pubkey: String,
+    /// randchaind rpc port
+    #[clap(short = "p", long = "port", default_value = "8333")]
+    port: u16,
+}
 
 fn main() {
     let opts: Opts = Opts::parse();
