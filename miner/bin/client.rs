@@ -90,7 +90,6 @@ fn load_pk(filename: &str) -> VrfPk {
 
     let mut pk: [u8; 32] = [0; 32];
     pk.copy_from_slice(&pk_hex.from_hex::<Vec<u8>>().expect("pubkey format err."));
-
     VrfPk::from_bytes(&pk).expect("pubkey format err.")
 }
 
