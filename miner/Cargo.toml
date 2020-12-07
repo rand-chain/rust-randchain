@@ -20,6 +20,10 @@ primitives = { path = "../primitives" }
 serialization = { path = "../serialization" }
 verification = { path = "../verification" }
 
+[[bin]]
+name = "miner"
+path = "bin/client.rs"
+
 [dev-dependencies]
 test-data = { path = "../test-data" }
 
