@@ -1,5 +1,8 @@
 extern crate clap;
 extern crate ecvrf;
+extern crate env_logger;
+#[macro_use]
+extern crate log;
 
 use clap::Clap;
 use ecvrf::{VrfPk, VrfSk};
@@ -42,6 +45,9 @@ struct MineOpts {
 }
 
 fn main() {
+    ::std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     let opts: Opts = Opts::parse();
     match opts.command {
         SubCommand::KeyGen(o) => {
@@ -55,19 +61,19 @@ fn main() {
 
 fn key_gen(opts: KeyGenOpts) {
     if std::path::Path::new(&opts.prikey).exists() {
-        println!("{} existed", &opts.prikey);
+        log::error!("{} existed", &opts.prikey);
         return;
     }
     if std::path::Path::new(&opts.pubkey).exists() {
-        println!("{} existed", &opts.pubkey);
+        log::error!("{} existed", &opts.pubkey);
         return;
     }
 
     let (sk, pk) = ecvrf::keygen();
     std::fs::write(&opts.prikey, sk.to_bytes()).expect("save prikey error");
-    println!("PriKey saved to: {}", opts.prikey);
+    log::info!("PriKey saved to: {}", opts.prikey);
     std::fs::write(&opts.pubkey, pk.to_bytes()).expect("save pubkey error");
-    println!("PubKey saved to: {}", opts.pubkey);
+    log::info!("PubKey saved to: {}", opts.pubkey);
 }
 
 fn mine(opts: MineOpts) {
