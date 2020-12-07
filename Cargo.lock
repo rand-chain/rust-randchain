@@ -809,6 +809,7 @@ dependencies = [
  "network 0.1.0",
  "primitives 0.1.0",
  "rug 1.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-hex 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serialization 0.1.0",
  "sha2 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "storage 0.1.0",

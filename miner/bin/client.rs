@@ -1,11 +1,13 @@
 extern crate clap;
 extern crate ecvrf;
 extern crate env_logger;
+extern crate rustc_hex as hex;
 #[macro_use]
 extern crate log;
 
 use clap::Clap;
 use ecvrf::{VrfPk, VrfSk};
+use hex::ToHex;
 
 /// RandChain miner client
 #[derive(Clap)]
@@ -22,7 +24,7 @@ enum SubCommand {
     Mine(MineOpts),
 }
 
-/// A subcommand for ....
+/// A subcommand for generating key pair
 #[derive(Clap)]
 struct KeyGenOpts {
     /// Output public key file
@@ -33,7 +35,7 @@ struct KeyGenOpts {
     prikey: String,
 }
 
-/// A subcommand for ....
+/// A subcommand for mining
 #[derive(Clap)]
 struct MineOpts {
     /// Output public key file
@@ -70,9 +72,12 @@ fn key_gen(opts: KeyGenOpts) {
     }
 
     let (sk, pk) = ecvrf::keygen();
-    std::fs::write(&opts.prikey, sk.to_bytes()).expect("save prikey error");
+    let sk_hex: String = sk.to_bytes().to_hex();
+    let pk_hex: String = pk.to_bytes().to_hex();
+
+    std::fs::write(&opts.prikey, sk_hex).expect("save prikey error");
     log::info!("PriKey saved to: {}", opts.prikey);
-    std::fs::write(&opts.pubkey, pk.to_bytes()).expect("save pubkey error");
+    std::fs::write(&opts.pubkey, pk_hex).expect("save pubkey error");
     log::info!("PubKey saved to: {}", opts.pubkey);
 }
 
