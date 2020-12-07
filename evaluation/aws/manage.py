@@ -73,19 +73,21 @@ while _t_num_nodes:
 AMI_IMAGE_ID_PER_REGION: Dict[str, str] = {}
 
 AWS_DIR = os.path.abspath(os.path.dirname(__file__))
-NETWORK_CONFIG_PATH = os.path.abspath(os.path.join(AWS_DIR, '..', 'config', 'network', 'amazon.txt'))
-PACK_SCRIPT_PATH = os.path.join(AWS_DIR, "pack-hydrand.sh")
+NETWORK_CONFIG_PATH = os.path.abspath(os.path.join(AWS_DIR, 'nodes.txt'))
+PACK_SCRIPT_PATH = os.path.join(AWS_DIR, "pack.sh")
 SETUP_INSTANCE_SCRIPT_PATH = os.path.join(AWS_DIR, "setup-instance.sh")
 with open(SETUP_INSTANCE_SCRIPT_PATH, 'r') as f:
     SETUP_INSTANCE_SCRIPT = f.read()
 
-DATA_PATH = os.path.join(AWS_DIR, 'data')
-RESULTS_PATH = os.path.join(AWS_DIR, 'data', 'results.csv')
+DATA_PATH = os.path.join(AWS_DIR, '..', 'data')
+RESULTS_PATH = os.path.join(AWS_DIR, '..', 'data', 'results.csv')
 
 ec2 = {region: boto3.resource("ec2", region_name=region) for region in REGIONS}
-ec2_clients = {region: boto3.client("ec2", region_name=region) for region in REGIONS}
+ec2_clients = {region: boto3.client(
+    "ec2", region_name=region) for region in REGIONS}
 
-ssh: pssh.clients.ParallelSSHClient = None  # parallel ssh client from pssh library
+# parallel ssh client from pssh library
+ssh: pssh.clients.ParallelSSHClient = None
 
 
 class InstanceState(enum.IntEnum):
@@ -203,7 +205,8 @@ class Instances:
 
     def __setitem__(self, key: str, value: Instance):
         if key in self._instances_dict:
-            raise KeyError('Cannot set the same instance twice, use refresh_infos() to update the existing instance.')
+            raise KeyError(
+                'Cannot set the same instance twice, use refresh_infos() to update the existing instance.')
         self._instances_dict[key] = value
 
     def __repr__(self):
@@ -292,7 +295,8 @@ def refresh(what=None):
         for info in infos:
             i = what.get(info['InstanceId'])
             if not i:
-                assert instances.get(info['InstanceId']) is None and what is instances
+                assert instances.get(
+                    info['InstanceId']) is None and what is instances
                 i = Instance(info['InstanceId'], region)
                 instances[i.id] = i
             i.load_properties(info, statuses.get(i.id))
@@ -318,10 +322,12 @@ def start_instances(what=None, dryrun=False):
     if not all(i.state == InstanceState.STOPPED for i in what):
         raise ValueError("instance(s) in invalid state")
 
-    print(f"starting instance(s): {', '.join(what.ids)}...", end='', flush=True)
+    print(
+        f"starting instance(s): {', '.join(what.ids)}...", end='', flush=True)
     for region, instances in what.by_region():
         with DryRunHandler(dryrun):
-            ec2_clients[region].start_instances(InstanceIds=instances.ids, DryRun=dryrun)
+            ec2_clients[region].start_instances(
+                InstanceIds=instances.ids, DryRun=dryrun)
         if not dryrun:
             for i in instances:
                 i.state = InstanceState.PENDING
@@ -334,10 +340,12 @@ def stop_instances(what=None, dryrun=False):
     what = _instances.running if what is None else lookup(what)
     if not all(i.state == InstanceState.RUNNING for i in what):
         raise ValueError("instance(s) in invalid state")
-    print(f"stopping instance(s): {', '.join(what.ids)}...", end='', flush=True)
+    print(
+        f"stopping instance(s): {', '.join(what.ids)}...", end='', flush=True)
     for region, instances in what.by_region():
         with DryRunHandler(dryrun):
-            ec2_clients[region].stop_instances(InstanceIds=instances.ids, DryRun=dryrun)
+            ec2_clients[region].stop_instances(
+                InstanceIds=instances.ids, DryRun=dryrun)
         if not dryrun:
             for i in instances:
                 i.state = InstanceState.STOPPING
@@ -351,15 +359,18 @@ def terminate_instances(what=None, dryrun=False):
     if what is None:
         what = [i for i in _instances if i.state != InstanceState.TERMINATED]
     what = lookup(what)
-    print(f"terminating instance(s): {', '.join(what.ids)}...", end='', flush=True)
+    print(
+        f"terminating instance(s): {', '.join(what.ids)}...", end='', flush=True)
     for region, instances in what.by_region():
         with DryRunHandler(dryrun):
-            ec2_clients[region].terminate_instances(InstanceIds=instances.ids, DryRun=dryrun)
+            ec2_clients[region].terminate_instances(
+                InstanceIds=instances.ids, DryRun=dryrun)
         if not dryrun:
             for i in instances:
                 i.state = InstanceState.SHUTTING_DOWN
     if not dryrun:
-        refresh_until(lambda: all(i.state == InstanceState.TERMINATED for i in what), instances=what)
+        refresh_until(lambda: all(
+            i.state == InstanceState.TERMINATED for i in what), instances=what)
     print(" done")
 
 
@@ -367,10 +378,12 @@ def reboot_instances(what=None, dryrun=False):
     what = _instances.running if what is None else lookup(what)
     if not all(i.state == InstanceState.RUNNING for i in what):
         raise ValueError("instance(s) in invalid state")
-    print(f"rebooting instance(s): {', '.join(what.ids)}...", end='', flush=True)
+    print(
+        f"rebooting instance(s): {', '.join(what.ids)}...", end='', flush=True)
     for region, instances in what.by_region():
         with DryRunHandler(dryrun):
-            ec2_clients[region].reboot_instances(InstanceIds=instances.ids, DryRun=dryrun)
+            ec2_clients[region].reboot_instances(
+                InstanceIds=instances.ids, DryRun=dryrun)
         if not dryrun:
             for i in instances:
                 i.state = InstanceState.PENDING
@@ -385,17 +398,18 @@ def _create_instances(region, num_instances=1, instance_type='t2.micro', dryrun=
 
     load_ami_image_ids()
 
-    print(f"    {REGIONS[region] + ':': <41} launching {num_instances: >3} instances... ", end="", flush=True)
+    print(
+        f"    {REGIONS[region] + ':': <41} launching {num_instances: >3} instances... ", end="", flush=True)
     result = None
     with DryRunHandler(dryrun):
         result = ec2[region].create_instances(
             ImageId=AMI_IMAGE_ID_PER_REGION[region],
             InstanceType='t2.micro',
-            KeyName='hydrand',
+            KeyName='randchaind',
             MinCount=num_instances,
             MaxCount=num_instances,
             UserData=SETUP_INSTANCE_SCRIPT,
-            SecurityGroups=['hydrand'],
+            SecurityGroups=['randchain'],
             InstanceInitiatedShutdownBehavior='terminate',
             DryRun=dryrun,
         )
@@ -409,7 +423,8 @@ def launch_instances(instance_count_per_region=None, dryrun=False):
 
     load_ami_image_ids()
 
-    instance_count_per_region = {rid: ctr for rid, ctr in instance_count_per_region.items() if ctr > 0}
+    instance_count_per_region = {
+        rid: ctr for rid, ctr in instance_count_per_region.items() if ctr > 0}
     running_by_region = instances.running.by_region(return_dict=True)
 
     to_launch = 0
@@ -423,9 +438,11 @@ def launch_instances(instance_count_per_region=None, dryrun=False):
         print(f"    {REGIONS[region] + ':': <41} {count: >3}")
 
     print()
-    print(f"number of currecly running instances:         {len(instances.running): >3}")
+    print(
+        f"number of currecly running instances:         {len(instances.running): >3}")
     print(f"total number of instance to launch:           {to_launch: >3}")
-    print(f"total number of instance after launch:        {len(instances.running) + to_launch: >3}")
+    print(
+        f"total number of instance after launch:        {len(instances.running) + to_launch: >3}")
     print()
     try:
         r = input("type 'confirm' and press enter to continue: ")
@@ -450,7 +467,8 @@ def launch_instances(instance_count_per_region=None, dryrun=False):
 def test_ssh_connection(what):
     what = lookup(what)
     if not all(i.dnsname for i in what):
-        raise ValueError("instance(s) in invalid state, dnsname(s) not available")
+        raise ValueError(
+            "instance(s) in invalid state, dnsname(s) not available")
     for i in what:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -475,14 +493,16 @@ def assign_security_group_to_all_instances(group_name):
 def create_or_update_security_groups():
     for region, region_name in REGIONS.items():
         for g in ec2[region].security_groups.all():
-            if g.group_name == 'hydrand':
-                print(f"{region_name}: deleting security group...", end='', flush=True)
+            if g.group_name == 'randchain':
+                print(f"{region_name}: deleting security group...",
+                      end='', flush=True)
                 g.delete()
                 print(" done")
 
-        print(f"{region_name}: creating new security group...", end='', flush=True)
+        print(f"{region_name}: creating new security group...",
+              end='', flush=True)
         g = ec2[region].create_security_group(
-            GroupName='hydrand', Description='hydrand security group (script generated)')
+            GroupName='randchain', Description='Randchain security group (script generated)')
         print(" done")
 
         print(f"{region_name}: updating permissions...", end='', flush=True)
@@ -533,10 +553,11 @@ def ssh_connect():
         return
 
     print()
-    print(f"connecting to {len(ssh_instances)} instance(s)... ", end='', flush=True)
+    print(
+        f"connecting to {len(ssh_instances)} instance(s)... ", end='', flush=True)
 
     if ssh is None:
-        ssh = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/hydrand.pem",
+        ssh = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
                                              keepalive_seconds=30, allow_agent=False)
     else:
         ssh.hosts = hosts
@@ -573,7 +594,8 @@ def ssh_run(command, raise_exception_on_failure=True, sudo=False, user=None, sto
     if raise_exception_on_failure and any(r.exit_code != 0 for r in results):
         for r in results:
             print(repr(r))
-        raise RuntimeError(f"execution of command '{command}' failed at least for one instance", command)
+        raise RuntimeError(
+            f"execution of command '{command}' failed at least for one instance", command)
     return results
 
 
@@ -599,7 +621,8 @@ def load_ami_image_ids():
         return
     print()
     for region in REGIONS:
-        print(f"{REGIONS[region] + ':': <41} search for amazon machine image... ", end="", flush=True)
+        print(
+            f"{REGIONS[region] + ':': <41} search for amazon machine image... ", end="", flush=True)
         images = ec2[region].images.filter(
             Owners=['amazon'],
             Filters=[{
@@ -611,22 +634,23 @@ def load_ami_image_ids():
         print(f"done ({image.id})")
 
 
-def update_hydrand(always_unpack=False):
+def update_version(always_unpack=False):
     if not ssh:
         ssh_connect()
         print()
 
-    update_hydrand_network_config()
+    update_network_config()
 
-    print("packing current hydrand version... ", end="", flush=True)
-    assert subprocess.call([PACK_SCRIPT_PATH], stdout=subprocess.DEVNULL) == 0, "packing script failed to run"
+    print("packing current RandChain version... ", end="", flush=True)
+    assert subprocess.call(
+        [PACK_SCRIPT_PATH], stdout=subprocess.DEVNULL) == 0, "packing script failed to run"
     print("done")
 
     all_hosts = [i.dnsname for i in instances.running]
     updated_hosts = set()
 
     ssh_run("cd /home/ec2-user")
-    for file in ["hydrand-base.zip", "hydrand.zip"]:
+    for file in ["randchain-base.zip", "randchain.zip"]:
         local_path = os.path.join(AWS_DIR, file)
         remote_path = f"/home/ec2-user/{file}"
 
@@ -639,19 +663,24 @@ def update_hydrand(always_unpack=False):
                 hosts_to_update.append(result.dnsname)
 
         if hosts_to_update:
-            print(f"({digest}) updating file {file: <16} on {len(hosts_to_update)} instance(s)... ", end="", flush=True)
+            print(
+                f"({digest}) updating file {file: <16} on {len(hosts_to_update)} instance(s)... ", end="", flush=True)
             ssh.hosts = hosts_to_update
-            gevent.joinall(ssh.scp_send(local_path, remote_path), raise_error=True)
+            gevent.joinall(ssh.scp_send(
+                local_path, remote_path), raise_error=True)
             ssh.hosts = all_hosts
             print("done")
         else:
-            print(f"({digest}) file {file: <16} already on current version on all instances")
+            print(
+                f"({digest}) file {file: <16} already on current version on all instances")
 
     updated_hosts = all_hosts if always_unpack else list(updated_hosts)
     if updated_hosts:
-        print(f"unpacking new verions on {len(updated_hosts)} instance(s)... ", end="", flush=True)
+        print(
+            f"unpacking new verions on {len(updated_hosts)} instance(s)... ", end="", flush=True)
         ssh.hosts = updated_hosts
-        ssh_run("rm -rf hydrand.py && unzip hydrand-base.zip && unzip hydrand.zip")
+        ssh_run(
+            "rm -rf randchain.py && unzip randchain-base.zip && unzip randchain.zip")
         ssh.hosts = all_hosts
         print("done")
         print("all instances updated to the newest version")
@@ -659,7 +688,7 @@ def update_hydrand(always_unpack=False):
         print("all instances already on the newest version")
 
 
-def update_hydrand_network_config():
+def update_network_config():
     try:
         with open(NETWORK_CONFIG_PATH, 'r') as f:
             cfg = f.read()
@@ -677,14 +706,14 @@ def update_hydrand_network_config():
             f.write(newcfg)
 
 
-hydrand_processes = None
+randchain_processes = None
 
 
 def cleanup_benchmark():
-    global hydrand_processes
-    if hydrand_processes:
+    global randchain_processes
+    if randchain_processes:
         print("stopping processes gracefully")
-        for x in hydrand_processes.values():
+        for x in randchain_processes.values():
             x.channel.close()
         print("wait for 5 seconds...")
         time.sleep(5)
@@ -700,8 +729,8 @@ def cleanup_benchmark():
         print("wait for 5 seconds...")
         time.sleep(5)
     else:
-        print("gracefull shutdown succeeded (or hydrand processes already stopped)")
-    hydrand_processes = None
+        print("gracefull shutdown succeeded (or randchain processes already stopped)")
+    randchain_processes = None
 
 
 run_args = None
@@ -711,7 +740,7 @@ def run_benchmark(num_nodes, num_rounds,
                   duration=2.0, propose_duration=None, acknowledge_duration=None, vote_duration=None,
                   startup_delay=60, connection_lead_time=20, simulate_adversary=False):
 
-    global hydrand_processes
+    global randchain_processes
     ssh_connect()
     cleanup_benchmark()
 
@@ -721,19 +750,23 @@ def run_benchmark(num_nodes, num_rounds,
     acknowledge_duration = acknowledge_duration or duration
     vote_duration = vote_duration or duration
 
-    tstart = datetime.utcnow().replace(microsecond=0) + timedelta(seconds=startup_delay)
-    tend = tstart + timedelta(seconds=num_rounds * (propose_duration + acknowledge_duration + vote_duration))
+    tstart = datetime.utcnow().replace(microsecond=0) + \
+        timedelta(seconds=startup_delay)
+    tend = tstart + timedelta(seconds=num_rounds *
+                              (propose_duration + acknowledge_duration + vote_duration))
     tend = tend.replace(microsecond=0)
 
     if simulate_adversary:
-        num_rounds_per_node = [random.randint(0, num_rounds - 1) for _ in range(math.ceil(num_nodes / 3) - 1)]
+        num_rounds_per_node = [random.randint(
+            0, num_rounds - 1) for _ in range(math.ceil(num_nodes / 3) - 1)]
         while len(num_rounds_per_node) != num_nodes:
             num_rounds_per_node.append(num_rounds)
         random.shuffle(num_rounds_per_node)
     else:
         num_rounds_per_node = [num_rounds for _ in range(num_nodes)]
 
-    num_rounds_per_node_dict = {dnsname: r for dnsname, r in zip(ssh.hosts, num_rounds_per_node)}
+    num_rounds_per_node_dict = {
+        dnsname: r for dnsname, r in zip(ssh.hosts, num_rounds_per_node)}
 
     global run_args
     run_args = {
@@ -750,7 +783,8 @@ def run_benchmark(num_nodes, num_rounds,
     print()
     print(f"starting protocol at:        {tstart}")
     print(f"protocol should complete at: {tend}")
-    print(f"total duration:              {(tend - tstart).total_seconds() / 60:.0f} min")
+    print(
+        f"total duration:              {(tend - tstart).total_seconds() / 60:.0f} min")
 
     print()
     pprint(run_args)
@@ -758,12 +792,13 @@ def run_benchmark(num_nodes, num_rounds,
 
     # input("press enter to confirm...")
 
-    ssh_run("pkill -f dstat; rm -f ~/stats.log", raise_exception_on_failure=False)
+    ssh_run("pkill -f dstat; rm -f ~/stats.log",
+            raise_exception_on_failure=False)
 
     cmd = ' '.join([
         f"dstat --integer --noupdate -T -n --tcp --cpu --mem --output ~/stats.log 1 &> /dev/null &",
-        f"cd /home/ec2-user/hydrand.py &&",
-        f"python3 -m hydrand",
+        f"cd /home/ec2-user/randchain.py &&",
+        f"python3 -m randchain",
         f"--sync-mode",
         f"--start-at '{tstart}'",
         f"--connection-lead-time {connection_lead_time}",
@@ -777,7 +812,8 @@ def run_benchmark(num_nodes, num_rounds,
 
     print()
 
-    hydrand_processes = ssh.run_command(cmd, use_pty=True, host_args=num_rounds_per_node)
+    randchain_processes = ssh.run_command(
+        cmd, use_pty=True, host_args=num_rounds_per_node)
 
     print()
     print("waiting for protocol run to complete...")
@@ -797,7 +833,7 @@ def run_benchmark(num_nodes, num_rounds,
 def collect_results(num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
                     tstart, tend, num_rounds_per_node_dict):
     print("collecting results...")
-    results = ssh_run("cat ~/hydrand.py/output/result")
+    results = ssh_run("cat ~/randchain.py/output/result")
 
     for i, v in enumerate(results):
         if v.stdout == "OK" and num_rounds_per_node_dict[v.dnsname] != num_rounds:
@@ -829,7 +865,8 @@ def collect_results(num_nodes, num_rounds, propose_duration, acknowledge_duratio
     print()
     print(f"##########################################################")
     print(f"### RESULT: {result}")
-    print(f"### OK returned by {ok_ctr} nodes (out of which {evil_ctr} aborted)")
+    print(
+        f"### OK returned by {ok_ctr} nodes (out of which {evil_ctr} aborted)")
     print(f"### FAILED returned by {failed_ctr} nodes")
     print(f"##########################################################")
     print()
@@ -839,16 +876,17 @@ def collect_logs(tstart, **kwargs):
     d = os.path.join(DATA_PATH, str(tstart))
     os.makedirs(d)
     for remote_path in ['/home/ec2-user/std.log', '/home/ec2-user/stats.log',
-                        '/home/ec2-user/hydrand.py/output/node.log']:
+                        '/home/ec2-user/randchain.py/output/node.log']:
         download_file(tstart, remote_path)
 
 
 def download_file(tstart, remote_path, instances=None):
     instances = instances or _instances.running
     for i, dnsname in enumerate([i.dnsname for i in instances]):
-        print(f"downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
+        print(
+            f"downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
         cmd = ' '.join([
-            f'rsync -z -e "ssh -i ~/.ssh/hydrand.pem -oStrictHostKeyChecking=accept-new"',
+            f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
             f'ec2-user@{dnsname}:{remote_path}',
             f'"{DATA_PATH}/{tstart}/{dnsname}_{remote_path.split("/")[-1]}"',
         ])
@@ -875,7 +913,7 @@ def download_file(tstart, remote_path, instances=None):
 #             os.rename(os.path.join(DATA_PATH, filename), os.path.join(DATA_PATH, newfilename))
 
 #     print("collecting node.log files...")
-#     e = ssh.scp_recv("/home/ec2-user/hydrand.py/output/node.log", os.path.join(DATA_PATH, "node.log"))
+#     e = ssh.scp_recv("/home/ec2-user/randchain.py/output/node.log", os.path.join(DATA_PATH, "node.log"))
 #     gevent.joinall(e, raise_error=True)
 #     for filename in os.listdir(DATA_PATH):
 #         if filename.startswith('node.log_'):
@@ -907,11 +945,11 @@ def download_file(tstart, remote_path, instances=None):
 
 # def collect_results():
 #     print("collecting result files...")
-#     results = ssh_run("cat ~/hydrand.py/output/result")
+#     results = ssh_run("cat ~/randchain.py/output/result")
 #     print("collecting stats.log files...")
 #     stats_logs = ssh_run("cat ~/stats.log")
 #     print("collecting node.log files...")
-#     node_logs = ssh_run("cat ~/hydrand.py/output/node.log")
+#     node_logs = ssh_run("cat ~/randchain.py/output/node.log")
 #     return results, stats_logs, node_logs
 
 
