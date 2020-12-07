@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Ethcore <admin@ethcore.io>"]
 
 [dependencies]
+clap = { package = "clap-v3", version = "3.0.0-beta.1" }  # todo: replace with official v3 when it's released to crates.io
 byteorder = "1.0"
 bigint = "1.0"
 heapsize = "0.4"
