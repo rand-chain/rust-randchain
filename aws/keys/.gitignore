@@ -1,5 +1,0 @@
-# Ignore everything in this directory
-*
-# Except this file
-!.gitignore
-!PUT_PUBLIC_KEYS_OF_REGIONS_HERE

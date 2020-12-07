@@ -1,5 +1,0 @@
-# Ignore everything in this directory
-*
-# Except this file
-!.gitignore
-!COPY_CONTENTS_OF_CODE_FOLDER_HERE
