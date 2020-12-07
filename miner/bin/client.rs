@@ -1,6 +1,8 @@
 extern crate clap;
+extern crate ecvrf;
 
 use clap::Clap;
+use ecvrf::{VrfPk, VrfSk};
 
 /// RandChain miner client
 #[derive(Clap)]
@@ -12,14 +14,14 @@ struct Opts {
 #[derive(Clap)]
 enum SubCommand {
     /// Generate a key pair
-    GenKey(GenkeyOpts),
+    KeyGen(KeyGenOpts),
     /// Connect to randchaind rpc port and mine with a key
     Mine(MineOpts),
 }
 
 /// A subcommand for ....
 #[derive(Clap)]
-struct GenkeyOpts {
+struct KeyGenOpts {
     /// Output public key file
     #[clap(short = "u", long = "pub", default_value = "pub.key")]
     pubkey: String,
@@ -42,8 +44,8 @@ struct MineOpts {
 fn main() {
     let opts: Opts = Opts::parse();
     match opts.command {
-        SubCommand::GenKey(o) => {
-            gen_key(o);
+        SubCommand::KeyGen(o) => {
+            key_gen(o);
         }
         SubCommand::Mine(o) => {
             mine(o);
@@ -51,8 +53,21 @@ fn main() {
     }
 }
 
-fn gen_key(opts: GenkeyOpts) {
-    unimplemented!();
+fn key_gen(opts: KeyGenOpts) {
+    if std::path::Path::new(&opts.prikey).exists() {
+        println!("{} existed", &opts.prikey);
+        return;
+    }
+    if std::path::Path::new(&opts.pubkey).exists() {
+        println!("{} existed", &opts.pubkey);
+        return;
+    }
+
+    let (sk, pk) = ecvrf::keygen();
+    std::fs::write(&opts.prikey, sk.to_bytes()).expect("save prikey error");
+    println!("PriKey saved to: {}", opts.prikey);
+    std::fs::write(&opts.pubkey, pk.to_bytes()).expect("save pubkey error");
+    println!("PubKey saved to: {}", opts.pubkey);
 }
 
 fn mine(opts: MineOpts) {
