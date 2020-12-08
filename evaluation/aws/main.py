@@ -20,37 +20,34 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 ################################################################
 # Parameters
 
-TESTING = False
+TESTING = True
+NUM_NODES = 3
 REFRESH_INTERVAL = 5.0
-NUM_NODES = 5
-REGIONS = {
-    "eu-west-3": "EU (Paris, eu-west-3)",
-    "us-east-1": "USA Ost (Nord-Virginia, us-east1)",
-    "us-west-1": "USA West (Nordkalifornien, us-west-1)",
-    "ap-southeast-1": "Asien-Pazifik (Singapur, ap-southeast-1)",
-    "ap-northeast-1": "Asien-Pazifik (Tokio, ap-northeast-1)",
-    "eu-west-1": "EU (Irland, eu-west-1)",
-    "ca-central-1": "Kanada (Central, ca-central-1)",
-    "eu-west-2": "EU (London, eu-west-2)",
 
-    # "ap-south-1": "Asien-Pazifik (Mumbai, ap-south-1)",             # limited to 10 micro
-    # "sa-east-1": "Südamerika (São Paulo, sa-east-1)",               # limited to 5 micro!
-    # "eu-central-1": "EU (Frankfurt, eu-central-1)",                 # limited to 10 micro
-    # "eu-north-1": "EU (Stockholm, eu-north-1)",        # instance configuration not supported
-    # "us-east-2": "USA Ost (Ohio, us-east-2)",
-    # "us-west-2": "USA West (Oregon, us-west-2)",
-    # "ap-northeast-2": "Asien-Pazifik (Seoul, ap-northeast-2)",
-    # "ap-southeast-2": "Asien-Pazifik (Sydney, ap-southeast-2)",       # limited to 5 micro
-    # "eu-west-2": "EU (London, eu-west-2)",
+REGIONS = {
+    'us-east-1': 'N. Virginia',
+    'us-west-1': 'N. California',
+    'ap-south-1': 'Mumbai',
+    'ap-northeast-2': 'Seoul',
+    'ap-southeast-2': 'Sydney',
+    'ap-northeast-1': 'Tokyo',
+    'ca-central-1': 'Canada',
+    'eu-west-1': 'Ireland',
+    'sa-east-1': 'Sao Paulo',
+    'us-west-2': 'Oregon',
+    'us-east-2': 'Ohio',
+    'ap-southeast-1': 'Singapore',
+    'eu-west-2': 'London',
+    'eu-central-1': 'Frankfurt',
 }
 
 if TESTING:
     REGIONS = {
-        "eu-central-1": "EU (Frankfurt, eu-central-1)",
-        "us-east-1": "USA Ost (Nord-Virginia, us-east1)",
-        "us-west-1": "USA West (Nordkalifornien, us-west-1)",
-        "ap-southeast-1": "Asien-Pazifik (Singapur, ap-southeast-1)",
-        "ap-northeast-1": "Asien-Pazifik (Tokio, ap-northeast-1)",
+        'us-east-1': 'N. Virginia',
+        'us-west-1': 'N. California',
+        'ap-south-1': 'Mumbai',
+        'ap-northeast-2': 'Seoul',
+        'ap-southeast-2': 'Sydney',
     }
 
 INSTANCE_COUNT_PER_REGION: Dict[str, int] = collections.defaultdict(int)
@@ -73,6 +70,34 @@ with open(SETUP_INSTANCE_SCRIPT_PATH, 'r') as f:
 
 DATA_PATH = os.path.join(AWS_DIR, '..', 'data')
 RESULTS_PATH = os.path.join(AWS_DIR, '..', 'data', 'results.csv')
+
+
+################################################################
+# utils
+
+def Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs):
+    p = subprocess.Popen(args, stdout=stdout, stderr=stderr, **kwargs)
+    output, _ = p.communicate()
+    assert p.returncode == 0, f"failed to execute {args}"
+    return output.decode().strip()
+
+
+def load_ami_image_ids():
+    if AMI_IMAGE_ID_PER_REGION:
+        return
+    print()
+    for region in REGIONS:
+        print(
+            f"{REGIONS[region] + ':': <41} search for amazon machine image... ", end="", flush=True)
+        images = ec2[region].images.filter(
+            Owners=['amazon'],
+            Filters=[{
+                'Name': 'name',
+                'Values': ['amzn2-ami-hvm-2.0.????????-x86_64-gp2'],
+            }])
+        image = sorted(images, key=lambda i: i.creation_date)[-1]
+        AMI_IMAGE_ID_PER_REGION[region] = image.id
+        print(f"done ({image.id})")
 
 
 class DryRunHandler:
@@ -127,7 +152,7 @@ class Instance:
     @state.setter
     def state(self, value):
         if value == InstanceState.RUNNING:
-            self.ssh_ok = self.ssh_ok or test_ssh_connection(self)
+            self.ssh_ok = self.ssh_ok
         else:
             self.ssh_ok = False
         self._state = value
@@ -151,7 +176,7 @@ class Instance:
 
 
 class Instances:
-    def __init__(self, instances_dict: Optional[Dict[str, Instance]] = None):
+    def __init__(self, instances_dict: Dict[str, Instance] = None):
         self._instances_dict: Dict[str, Instance] = instances_dict or {}
 
     @property
@@ -204,32 +229,6 @@ class Instances:
 
     def __repr__(self):
         return repr(list(self._instances_dict.values()))
-
-    @classmethod
-    def _create_instances(cls, region, num_instances=1, instance_type='t2.micro', dryrun=False):
-        assert instance_type in ['t2.nano',
-                                 't2.micro', 't2.small', 't2.medium']
-        assert num_instances <= 20, "check instance limits (10 for t2.micro, 20 for t2.small/t2.medium"
-
-        load_ami_image_ids()
-
-        print(
-            f"    {REGIONS[region] + ':': <41} launching {num_instances: >3} instances... ", end="", flush=True)
-        result = None
-        with DryRunHandler(dryrun):
-            result = ec2[region].create_instances(
-                ImageId=AMI_IMAGE_ID_PER_REGION[region],
-                InstanceType='t2.micro',
-                KeyName='randchaind',
-                MinCount=num_instances,
-                MaxCount=num_instances,
-                UserData=SETUP_INSTANCE_SCRIPT,
-                SecurityGroups=['randchain'],
-                InstanceInitiatedShutdownBehavior='terminate',
-                DryRun=dryrun,
-            )
-        print("done")
-        return result
 
     def get(self, key, default=None):
         return self._instances_dict.get(key, default)
@@ -312,8 +311,8 @@ class Instances:
         self.refresh_until(lambda: all(i.ssh_ok for i in what))
         print(" done")
 
-    def start_instances(self, what=None, dryrun=False):
-        what = _instances.stopped if what is None else self.lookup(what)
+    def start(self, what=None, dryrun=False):
+        what = self.stopped if what is None else self.lookup(what)
         if not all(i.state == InstanceState.STOPPED for i in what):
             raise ValueError("instance(s) in invalid state")
 
@@ -330,8 +329,8 @@ class Instances:
             self.refresh_until(lambda: all(i.ssh_ok for i in what))
         print(" done")
 
-    def stop_instances(self, what=None, dryrun=False):
-        what = _instances.running if what is None else self.lookup(what)
+    def stop(self, what=None, dryrun=False):
+        what = self.running if what is None else self.lookup(what)
         if not all(i.state == InstanceState.RUNNING for i in what):
             raise ValueError("instance(s) in invalid state")
         print(
@@ -348,10 +347,9 @@ class Instances:
                                                        InstanceState.TERMINATED] for i in what))
         print(" done")
 
-    def terminate_instances(self, what=None, dryrun=False):
+    def terminate(self, what=None, dryrun=False):
         if what is None:
-            what = [i for i in _instances if i.state !=
-                    InstanceState.TERMINATED]
+            what = [i for i in self if i.state != InstanceState.TERMINATED]
         what = self.lookup(what)
         print(
             f"terminating instance(s): {', '.join(what.ids)}...", end='', flush=True)
@@ -367,7 +365,7 @@ class Instances:
                 i.state == InstanceState.TERMINATED for i in what))
         print(" done")
 
-    def launch_instances(self, instance_count_per_region=None, dryrun=False):
+    def create(self, instance_count_per_region=None, dryrun=False):
         if instance_count_per_region is None:
             instance_count_per_region = INSTANCE_COUNT_PER_REGION
 
@@ -395,8 +393,8 @@ class Instances:
             f"total number of instance after launch:        {len(self.running) + to_launch: >3}")
         print()
         try:
-            r = input("type 'confirm' and press enter to continue: ")
-            if r != 'confirm':
+            r = input("type 'y' and press enter to continue: ")
+            if r != 'y':
                 print('aborted')
                 return
         except KeyboardInterrupt:
@@ -408,30 +406,56 @@ class Instances:
         print()
         for region, count in instance_count_per_region.items():
             if count > 0:
-                Instances._create_instances(region, count, dryrun=dryrun)
+                Instances._create(region, count, dryrun=dryrun)
 
         time.sleep(1)
         self.refresh()
 
-    def test_ssh_connection(self, what):
-        what = self.lookup(what)
-        if not all(i.dnsname for i in what):
-            raise ValueError(
-                "instance(s) in invalid state, dnsname(s) not available")
-        for i in what:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(REFRESH_INTERVAL)
-                s.connect((i.dnsname, 22))
-                s.shutdown(socket.SHUT_RDWR)
-            except socket.timeout:
-                return False
-            except ConnectionError as e:
-                print(e)
-                return False
-            finally:
-                s.close()
-        return True
+    @classmethod
+    def _create(cls, region, num_instances=1, instance_type='t2.micro', dryrun=False):
+        assert instance_type in ['t2.nano',
+                                 't2.micro', 't2.small', 't2.medium']
+        assert num_instances <= 20, "check instance limits (10 for t2.micro, 20 for t2.small/t2.medium"
+
+        load_ami_image_ids()
+
+        print(
+            f"    {REGIONS[region] + ':': <41} launching {num_instances: >3} instances... ", end="", flush=True)
+        result = None
+        with DryRunHandler(dryrun):
+            result = ec2[region].create_instances(
+                ImageId=AMI_IMAGE_ID_PER_REGION[region],
+                InstanceType='t2.micro',
+                KeyName='randchain',
+                MinCount=num_instances,
+                MaxCount=num_instances,
+                UserData=SETUP_INSTANCE_SCRIPT,
+                SecurityGroups=['randchain'],
+                InstanceInitiatedShutdownBehavior='terminate',
+                DryRun=dryrun,
+            )
+        print("done")
+        return result
+
+
+def test_ssh_connection(instances):
+    if not all(i.dnsname for i in instances):
+        raise ValueError(
+            "instance(s) in invalid state, dnsname(s) not available")
+    for i in instances:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(REFRESH_INTERVAL)
+            s.connect((i.dnsname, 22))
+            s.shutdown(socket.SHUT_RDWR)
+        except socket.timeout:
+            return False
+        except ConnectionError as e:
+            print(e)
+            return False
+        finally:
+            s.close()
+    return True
 
 
 ####################################################################################
@@ -473,8 +497,19 @@ def create_or_update_security_groups():
         print(" done")
 
 
+def import_key_pair():
+    for region, region_name in REGIONS.items():
+        print("Creating key pair for {}", region_name, sep=" ")
+        response = ec2_clients[region].import_key_pair(
+            DryRun=False,
+            KeyName='randchain',
+            PublicKeyMaterial=b'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCF/+C79/7Xg/kKt94dGD6UXA84LHSIKR1gM75Mt1afflfbBd64PCdjw6A5e2Kd/9P83hzNj4QzLOtpvbV8c7tCu6nh72cewGlfK03bX5ypAPov/TlnWh3/HEEE8X2QeiUOY4G2lcfFVkh57IwZ5PJbDq827aGSYFwKhcMMtp7pXezbir+mhG5g7k9CBQtkrO9UBNoWa4f+4QRz/Cgj28vSy0Fr8fLCL/ZQzLr25VdDs5hPcSEt/oDXMnUPMlQe5BKrxQVkzlUffniTgJo8Mo6MAXakw6nZIpU0xA6L1Q/i5eByMoZ7VYrYuVQp9W1IhRJnsWsfVhGncAW2cWd/jXN7',
+        )
+        print(response)
+
 ####################################################################################
 # SSH stuff
+
 
 @dataclasses.dataclass
 class SSHResult:
@@ -534,31 +569,6 @@ def ssh_run_raw(ssh_client, command, sudo=False, user=None, stop_on_errors=True,
                                     host_args, shell, encoding, timeout, greenlet_timeout)
     ssh_client.join(output)
     return output
-
-
-def Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs):
-    p = subprocess.Popen(args, stdout=stdout, stderr=stderr, **kwargs)
-    output, _ = p.communicate()
-    assert p.returncode == 0, f"failed to execute {args}"
-    return output.decode().strip()
-
-
-def load_ami_image_ids():
-    if AMI_IMAGE_ID_PER_REGION:
-        return
-    print()
-    for region in REGIONS:
-        print(
-            f"{REGIONS[region] + ':': <41} search for amazon machine image... ", end="", flush=True)
-        images = ec2[region].images.filter(
-            Owners=['amazon'],
-            Filters=[{
-                'Name': 'name',
-                'Values': ['amzn2-ami-hvm-2.0.????????-x86_64-gp2'],
-            }])
-        image = sorted(images, key=lambda i: i.creation_date)[-1]
-        AMI_IMAGE_ID_PER_REGION[region] = image.id
-        print(f"done ({image.id})")
 
 
 def ssh_connect(ssh_client, instances):
@@ -651,7 +661,7 @@ def update_network_config():
 
     dnsnames = [i.dnsname for i in instances.running]
     dnsnames.sort()
-    newcfg = ''.join(f"{dnsname}:5000\n" for dnsname in dnsnames)
+    newcfg = ''.join(f"{dnsname}:8333\n" for dnsname in dnsnames)
     if cfg != newcfg:
         print()
         print(f"updating {NETWORK_CONFIG_PATH} to currently running instances")
@@ -771,51 +781,6 @@ def run_benchmark(ssh_client, processes, instances, num_nodes, num_rounds, run_a
     print("killing dstat processes...", end="", flush=True)
     ssh_run("pkill -f dstat", instances, raise_exception_on_failure=False)
     print("done")
-
-    # collect_results(**run_args)
-    # # collect_logs(**run_args)
-
-
-# def collect_results(instances, num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
-#                     tstart, tend, num_rounds_per_node_dict):
-#     print("collecting results...")
-#     results = ssh_run("cat ~/randchain.py/output/result", instances)
-
-#     for i, v in enumerate(results):
-#         if v.stdout == "OK" and num_rounds_per_node_dict[v.dnsname] != num_rounds:
-#             v.stdout = "EVIL"
-
-#     results_str = ','.join(f"{v.dnsname},{v.stdout}" for v in results)
-#     result = 'OK'
-#     ok_ctr = 0
-#     evil_ctr = 0
-#     failed_ctr = 0
-#     for v in results:
-#         if v.stdout == 'FAILED':
-#             result = 'FAILED'
-#             failed_ctr += 1
-#         elif v.stdout == "EVIL":
-#             evil_ctr += 1
-#             ok_ctr += 1
-#         else:
-#             ok_ctr += 1
-
-#     with open(RESULTS_PATH, "a") as f:
-#         f.write(f"{num_nodes};{num_rounds};{propose_duration};{acknowledge_duration};{vote_duration};"
-#                 + f"{tstart};{tend};\"{results_str}\";{result}\n")
-
-#     print()
-#     for r in results:
-#         if r.stdout == 'FAILED':
-#             print(f"{r.dnsname}: failed")
-#     print()
-#     print(f"##########################################################")
-#     print(f"### RESULT: {result}")
-#     print(
-#         f"### OK returned by {ok_ctr} nodes (out of which {evil_ctr} aborted)")
-#     print(f"### FAILED returned by {failed_ctr} nodes")
-#     print(f"##########################################################")
-#     print()
 
 
 def collect_logs(tstart, **kwargs):
@@ -953,8 +918,15 @@ if __name__ == '__main__':
     # parallel ssh client from pssh library
     ssh_client: pssh.clients.ParallelSSHClient = None
 
+    # security group
+    # create_or_update_security_groups()
+    # import key pair
+    # import_key_pair()
+
     instances = Instances()
-    _instances = instances
+    # instances.create()
+    # instances.stop()
+    # instances.terminate()
 
     randchain_processes = None
     run_args = None
@@ -964,4 +936,5 @@ if __name__ == '__main__':
     # save_result(num_nodes, num_rounds, propose_duration, acknowledge_duration,
     #             vote_duration, tstart, tend, results, stats_logs, node_logs)
 
+    instances.refresh()
     instances.status()
