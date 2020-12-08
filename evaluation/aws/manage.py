@@ -16,21 +16,13 @@ from pprint import pprint
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
+
+################################################################
+# Parameters
+
 TESTING = False
-
 REFRESH_INTERVAL = 5.0
-
-# ordered in the order we want to place instances in
-
 NUM_NODES = 5
-
-print()
-print(sys.argv)
-if len(sys.argv) == 2:
-    NUM_NODES = int(sys.argv[1])
-print(f"setting NUM_NODES={NUM_NODES}")
-
-
 REGIONS = {
     "eu-west-3": "EU (Paris, eu-west-3)",
     "us-east-1": "USA Ost (Nord-Virginia, us-east1)",
@@ -82,12 +74,26 @@ with open(SETUP_INSTANCE_SCRIPT_PATH, 'r') as f:
 DATA_PATH = os.path.join(AWS_DIR, '..', 'data')
 RESULTS_PATH = os.path.join(AWS_DIR, '..', 'data', 'results.csv')
 
-ec2 = {region: boto3.resource("ec2", region_name=region) for region in REGIONS}
-ec2_clients = {region: boto3.client(
-    "ec2", region_name=region) for region in REGIONS}
 
-# parallel ssh client from pssh library
-ssh: pssh.clients.ParallelSSHClient = None
+class DryRunHandler:
+
+    def __init__(self, dryrun=False):
+        self.dryrun = dryrun
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        # returning False reraising any exception passed to this function
+        if exc_value is None:
+            assert not self.dryrun
+            return True
+        if self.dryrun:
+            return 'DryRunOperation' in str(exc_value)
+        return False
+
+################################################################
+# definitions on instances
 
 
 class InstanceState(enum.IntEnum):
@@ -104,7 +110,6 @@ class InstanceState(enum.IntEnum):
 
 
 class Instance:
-
     def __init__(self, id: str, region: str, dnsname: str = None, state: InstanceState = None):
         self.id = id
         self.region = region
@@ -146,17 +151,8 @@ class Instance:
 
 
 class Instances:
-
     def __init__(self, instances_dict: Optional[Dict[str, Instance]] = None):
         self._instances_dict: Dict[str, Instance] = instances_dict or {}
-
-    def by_region(self, return_dict=False):
-        d = collections.defaultdict(Instances)
-        for item in self._instances_dict.values():
-            d[item.region][item.id] = item
-        if return_dict:
-            return d
-        return d.items()
 
     @property
     def ids(self):
@@ -200,9 +196,6 @@ class Instances:
         else:
             return self._instances_dict[index_or_key]
 
-    def get(self, key, default=None):
-        return self._instances_dict.get(key, default)
-
     def __setitem__(self, key: str, value: Instance):
         if key in self._instances_dict:
             raise KeyError(
@@ -212,278 +205,237 @@ class Instances:
     def __repr__(self):
         return repr(list(self._instances_dict.values()))
 
+    @classmethod
+    def _create_instances(cls, region, num_instances=1, instance_type='t2.micro', dryrun=False):
+        assert instance_type in ['t2.nano',
+                                 't2.micro', 't2.small', 't2.medium']
+        assert num_instances <= 20, "check instance limits (10 for t2.micro, 20 for t2.small/t2.medium"
 
-instances = Instances()
-_instances = instances
+        load_ami_image_ids()
 
-
-class DryRunHandler:
-
-    def __init__(self, dryrun=False):
-        self.dryrun = dryrun
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        # returning False reraising any exception passed to this function
-        if exc_value is None:
-            assert not self.dryrun
-            return True
-        if self.dryrun:
-            return 'DryRunOperation' in str(exc_value)
-        return False
-
-# ec2-3-122-234-82.eu-central-1.compute.amazonaws.com
-
-
-def lookup(what) -> Instances:
-    if isinstance(what, Instances):
-        return what
-    if isinstance(what, Instance):
-        return Instances({what.id: what})
-    if isinstance(what, str) or isinstance(what, int):
-        i = instances[what]
-        return Instances({i.id: i})
-    if isinstance(what, Iterable):
-        d = {}
-        for x in what:
-            i = x if isinstance(x, Instance) else instances[x]
-            d[i.id] = i
-        return Instances(d)
-    raise TypeError()
-
-
-def get_instance_id(dnsname):
-    for i in instances:
-        if i.dnsname == dnsname:
-            return i.id
-    raise ValueError(f"no instance with dnsname {dnsname} found")
-
-
-def status():
-    refresh()
-    print()
-    for i in instances:
-        print(i)
-    print()
-    print(f"number of running instances: {len(instances.running)}")
-    for x, v in instances.running.by_region():
-        print(f"    {x} {REGIONS[x]}: {len(v)}")
-
-
-def refresh(what=None):
-    """ Uses the AWS API to refresh the information for all instances, considering all regions.
-        If the parameter 'what' is provided, only the specified instances are queried.
-    """
-    if what is None:
-        what = instances
-        grouped_instances = zip(REGIONS, itertools.repeat(None))
-    else:
-        what = lookup(what)
-        grouped_instances = what.by_region()
-
-    for region, instances_per_region in grouped_instances:
-        ids = [] if instances_per_region is None else instances_per_region.ids
-        infos = []
-        for reservation in ec2_clients[region].describe_instances(InstanceIds=ids)['Reservations']:
-            for i in reservation['Instances']:
-                infos.append(i)
-        statuses = {}
-        for status in ec2_clients[region].describe_instance_status(InstanceIds=ids)['InstanceStatuses']:
-            statuses[status['InstanceId']] = status
-        for info in infos:
-            i = what.get(info['InstanceId'])
-            if not i:
-                assert instances.get(
-                    info['InstanceId']) is None and what is instances
-                i = Instance(info['InstanceId'], region)
-                instances[i.id] = i
-            i.load_properties(info, statuses.get(i.id))
-
-
-def refresh_until(break_condition: Callable[[], bool], instances: Instances, verbose: bool = True):
-    while not break_condition():
-        time.sleep(REFRESH_INTERVAL)
-        refresh(instances)
-        if verbose:
-            print(end=".", flush=True)
-
-
-def wait_for_startup(what=None):
-    what = instances if what is None else lookup(what)
-    print(f"waiting for startup...", end='', flush=True)
-    refresh_until(lambda: all(i.ssh_ok for i in what), instances=what)
-    print(" done")
-
-
-def start_instances(what=None, dryrun=False):
-    what = _instances.stopped if what is None else lookup(what)
-    if not all(i.state == InstanceState.STOPPED for i in what):
-        raise ValueError("instance(s) in invalid state")
-
-    print(
-        f"starting instance(s): {', '.join(what.ids)}...", end='', flush=True)
-    for region, instances in what.by_region():
+        print(
+            f"    {REGIONS[region] + ':': <41} launching {num_instances: >3} instances... ", end="", flush=True)
+        result = None
         with DryRunHandler(dryrun):
-            ec2_clients[region].start_instances(
-                InstanceIds=instances.ids, DryRun=dryrun)
+            result = ec2[region].create_instances(
+                ImageId=AMI_IMAGE_ID_PER_REGION[region],
+                InstanceType='t2.micro',
+                KeyName='randchaind',
+                MinCount=num_instances,
+                MaxCount=num_instances,
+                UserData=SETUP_INSTANCE_SCRIPT,
+                SecurityGroups=['randchain'],
+                InstanceInitiatedShutdownBehavior='terminate',
+                DryRun=dryrun,
+            )
+        print("done")
+        return result
+
+    def get(self, key, default=None):
+        return self._instances_dict.get(key, default)
+
+    def by_region(self, return_dict=False):
+        d = collections.defaultdict(Instances)
+        for item in self._instances_dict.values():
+            d[item.region][item.id] = item
+        if return_dict:
+            return d
+        return d.items()
+
+    def lookup(self, what):
+        if isinstance(what, Instances):
+            return what
+        if isinstance(what, Instance):
+            return Instances({what.id: what})
+        if isinstance(what, str) or isinstance(what, int):
+            i = self[what]
+            return Instances({i.id: i})
+        if isinstance(what, Iterable):
+            d = {}
+            for x in what:
+                i = x if isinstance(x, Instance) else self[x]
+                d[i.id] = i
+            return Instances(d)
+        raise TypeError()
+
+    def get_id(self, dnsname):
+        for i in self:
+            if i.dnsname == dnsname:
+                return i.id
+        raise ValueError(f"no instance with dnsname {dnsname} found")
+
+    def status(self):
+        self.refresh()
+        print(f"number of running instances: {len(self.running)}")
+        for x, v in self.running.by_region():
+            print(f"    {x} {REGIONS[x]}: {len(v)}")
+
+    def refresh(self, what=None):
+        """ Uses the AWS API to refresh the information for all instances, considering all regions.
+            If the parameter 'what' is provided, only the specified instances are queried.
+        """
+        if what is None:
+            what = self
+            grouped_instances = zip(REGIONS, itertools.repeat(None))
+        else:
+            what = self.lookup(what)
+            grouped_instances = what.by_region()
+
+        for region, instances_per_region in grouped_instances:
+            ids = [] if instances_per_region is None else instances_per_region.ids
+            infos = []
+            for reservation in ec2_clients[region].describe_instances(InstanceIds=ids)['Reservations']:
+                for i in reservation['Instances']:
+                    infos.append(i)
+            statuses = {}
+            for status in ec2_clients[region].describe_instance_status(InstanceIds=ids)['InstanceStatuses']:
+                statuses[status['InstanceId']] = status
+            for info in infos:
+                i = what.get(info['InstanceId'])
+                if not i:
+                    assert self.get(info['InstanceId']
+                                    ) is None and what is self
+                    i = Instance(info['InstanceId'], region)
+                    self[i.id] = i
+                i.load_properties(info, statuses.get(i.id))
+
+    def refresh_until(self, break_condition: Callable[[], bool], verbose: bool = True):
+        while not break_condition():
+            time.sleep(REFRESH_INTERVAL)
+            self.refresh()
+            if verbose:
+                print(end=".", flush=True)
+
+    def wait_for_startup(self, what=None):
+        what = self if what is None else self.lookup(what)
+        print(f"waiting for startup...", end='', flush=True)
+        self.refresh_until(lambda: all(i.ssh_ok for i in what))
+        print(" done")
+
+    def start_instances(self, what=None, dryrun=False):
+        what = _instances.stopped if what is None else self.lookup(what)
+        if not all(i.state == InstanceState.STOPPED for i in what):
+            raise ValueError("instance(s) in invalid state")
+
+        print(
+            f"starting instance(s): {', '.join(what.ids)}...", end='', flush=True)
+        for region, self in what.by_region():
+            with DryRunHandler(dryrun):
+                ec2_clients[region].start_instances(
+                    InstanceIds=self.ids, DryRun=dryrun)
+            if not dryrun:
+                for i in self:
+                    i.state = InstanceState.PENDING
         if not dryrun:
-            for i in instances:
-                i.state = InstanceState.PENDING
-    if not dryrun:
-        refresh_until(lambda: all(i.ssh_ok for i in what), instances=what)
-    print(" done")
+            self.refresh_until(lambda: all(i.ssh_ok for i in what))
+        print(" done")
 
-
-def stop_instances(what=None, dryrun=False):
-    what = _instances.running if what is None else lookup(what)
-    if not all(i.state == InstanceState.RUNNING for i in what):
-        raise ValueError("instance(s) in invalid state")
-    print(
-        f"stopping instance(s): {', '.join(what.ids)}...", end='', flush=True)
-    for region, instances in what.by_region():
-        with DryRunHandler(dryrun):
-            ec2_clients[region].stop_instances(
-                InstanceIds=instances.ids, DryRun=dryrun)
+    def stop_instances(self, what=None, dryrun=False):
+        what = _instances.running if what is None else self.lookup(what)
+        if not all(i.state == InstanceState.RUNNING for i in what):
+            raise ValueError("instance(s) in invalid state")
+        print(
+            f"stopping instance(s): {', '.join(what.ids)}...", end='', flush=True)
+        for region, self in what.by_region():
+            with DryRunHandler(dryrun):
+                ec2_clients[region].stop_instances(
+                    InstanceIds=self.ids, DryRun=dryrun)
+            if not dryrun:
+                for i in self:
+                    i.state = InstanceState.STOPPING
         if not dryrun:
-            for i in instances:
-                i.state = InstanceState.STOPPING
-    if not dryrun:
-        refresh_until(lambda: all(i.state in [InstanceState.STOPPED,
-                                              InstanceState.TERMINATED] for i in what), instances=what)
-    print(" done")
+            self.refresh_until(lambda: all(i.state in [InstanceState.STOPPED,
+                                                       InstanceState.TERMINATED] for i in what))
+        print(" done")
 
-
-def terminate_instances(what=None, dryrun=False):
-    if what is None:
-        what = [i for i in _instances if i.state != InstanceState.TERMINATED]
-    what = lookup(what)
-    print(
-        f"terminating instance(s): {', '.join(what.ids)}...", end='', flush=True)
-    for region, instances in what.by_region():
-        with DryRunHandler(dryrun):
-            ec2_clients[region].terminate_instances(
-                InstanceIds=instances.ids, DryRun=dryrun)
+    def terminate_instances(self, what=None, dryrun=False):
+        if what is None:
+            what = [i for i in _instances if i.state !=
+                    InstanceState.TERMINATED]
+        what = self.lookup(what)
+        print(
+            f"terminating instance(s): {', '.join(what.ids)}...", end='', flush=True)
+        for region, self in what.by_region():
+            with DryRunHandler(dryrun):
+                ec2_clients[region].terminate_instances(
+                    InstanceIds=self.ids, DryRun=dryrun)
+            if not dryrun:
+                for i in self:
+                    i.state = InstanceState.SHUTTING_DOWN
         if not dryrun:
-            for i in instances:
-                i.state = InstanceState.SHUTTING_DOWN
-    if not dryrun:
-        refresh_until(lambda: all(
-            i.state == InstanceState.TERMINATED for i in what), instances=what)
-    print(" done")
+            self.refresh_until(lambda: all(
+                i.state == InstanceState.TERMINATED for i in what))
+        print(" done")
 
+    def launch_instances(self, instance_count_per_region=None, dryrun=False):
+        if instance_count_per_region is None:
+            instance_count_per_region = INSTANCE_COUNT_PER_REGION
 
-def reboot_instances(what=None, dryrun=False):
-    what = _instances.running if what is None else lookup(what)
-    if not all(i.state == InstanceState.RUNNING for i in what):
-        raise ValueError("instance(s) in invalid state")
-    print(
-        f"rebooting instance(s): {', '.join(what.ids)}...", end='', flush=True)
-    for region, instances in what.by_region():
-        with DryRunHandler(dryrun):
-            ec2_clients[region].reboot_instances(
-                InstanceIds=instances.ids, DryRun=dryrun)
-        if not dryrun:
-            for i in instances:
-                i.state = InstanceState.PENDING
-    if not dryrun:
-        refresh_until(lambda: all(i.ssh_ok for i in what), instances=what)
-    print(" done")
+        load_ami_image_ids()
 
+        instance_count_per_region = {
+            rid: ctr for rid, ctr in instance_count_per_region.items() if ctr > 0}
+        running_by_region = self.running.by_region(return_dict=True)
 
-def _create_instances(region, num_instances=1, instance_type='t2.micro', dryrun=False):
-    assert instance_type in ['t2.nano', 't2.micro', 't2.small', 't2.medium']
-    assert num_instances <= 20, "check instance limits (10 for t2.micro, 20 for t2.small/t2.medium"
+        to_launch = 0
+        print()
+        print("launch initiated, aiming to launch the following instances:")
+        for region in instance_count_per_region:
+            count = instance_count_per_region[region]
+            count = max(0, count - len(running_by_region.get(region, [])))
+            to_launch += count
+            instance_count_per_region[region] = count
+            print(f"    {REGIONS[region] + ':': <41} {count: >3}")
 
-    load_ami_image_ids()
-
-    print(
-        f"    {REGIONS[region] + ':': <41} launching {num_instances: >3} instances... ", end="", flush=True)
-    result = None
-    with DryRunHandler(dryrun):
-        result = ec2[region].create_instances(
-            ImageId=AMI_IMAGE_ID_PER_REGION[region],
-            InstanceType='t2.micro',
-            KeyName='randchaind',
-            MinCount=num_instances,
-            MaxCount=num_instances,
-            UserData=SETUP_INSTANCE_SCRIPT,
-            SecurityGroups=['randchain'],
-            InstanceInitiatedShutdownBehavior='terminate',
-            DryRun=dryrun,
-        )
-    print("done")
-    return result
-
-
-def launch_instances(instance_count_per_region=None, dryrun=False):
-    if instance_count_per_region is None:
-        instance_count_per_region = INSTANCE_COUNT_PER_REGION
-
-    load_ami_image_ids()
-
-    instance_count_per_region = {
-        rid: ctr for rid, ctr in instance_count_per_region.items() if ctr > 0}
-    running_by_region = instances.running.by_region(return_dict=True)
-
-    to_launch = 0
-    print()
-    print("launch initiated, aiming to launch the following instances:")
-    for region in instance_count_per_region:
-        count = instance_count_per_region[region]
-        count = max(0, count - len(running_by_region.get(region, [])))
-        to_launch += count
-        instance_count_per_region[region] = count
-        print(f"    {REGIONS[region] + ':': <41} {count: >3}")
-
-    print()
-    print(
-        f"number of currecly running instances:         {len(instances.running): >3}")
-    print(f"total number of instance to launch:           {to_launch: >3}")
-    print(
-        f"total number of instance after launch:        {len(instances.running) + to_launch: >3}")
-    print()
-    try:
-        r = input("type 'confirm' and press enter to continue: ")
-        if r != 'confirm':
-            print('aborted')
-            return
-    except KeyboardInterrupt:
-        print('\naborted')
-        return
-    print()
-
-    print("performing launch...")
-    print()
-    for region, count in instance_count_per_region.items():
-        if count > 0:
-            _create_instances(region, count, dryrun=dryrun)
-
-    time.sleep(1)
-    refresh()
-
-
-def test_ssh_connection(what):
-    what = lookup(what)
-    if not all(i.dnsname for i in what):
-        raise ValueError(
-            "instance(s) in invalid state, dnsname(s) not available")
-    for i in what:
+        print()
+        print(
+            f"number of currecly running instances:         {len(self.running): >3}")
+        print(f"total number of instance to launch:           {to_launch: >3}")
+        print(
+            f"total number of instance after launch:        {len(self.running) + to_launch: >3}")
+        print()
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(REFRESH_INTERVAL)
-            s.connect((i.dnsname, 22))
-            s.shutdown(socket.SHUT_RDWR)
-        except socket.timeout:
-            return False
-        except ConnectionError as e:
-            print(e)
-            return False
-        finally:
-            s.close()
-    return True
+            r = input("type 'confirm' and press enter to continue: ")
+            if r != 'confirm':
+                print('aborted')
+                return
+        except KeyboardInterrupt:
+            print('\naborted')
+            return
 
+        print()
+        print("performing launch...")
+        print()
+        for region, count in instance_count_per_region.items():
+            if count > 0:
+                Instances._create_instances(region, count, dryrun=dryrun)
+
+        time.sleep(1)
+        self.refresh()
+
+    def test_ssh_connection(self, what):
+        what = self.lookup(what)
+        if not all(i.dnsname for i in what):
+            raise ValueError(
+                "instance(s) in invalid state, dnsname(s) not available")
+        for i in what:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(REFRESH_INTERVAL)
+                s.connect((i.dnsname, 22))
+                s.shutdown(socket.SHUT_RDWR)
+            except socket.timeout:
+                return False
+            except ConnectionError as e:
+                print(e)
+                return False
+            finally:
+                s.close()
+        return True
+
+
+####################################################################################
+# Security group stuff
 
 def assign_security_group_to_all_instances(group_name):
     # directly set at launch of instance for now
@@ -513,13 +465,16 @@ def create_or_update_security_groups():
             CidrIp='0.0.0.0/0',
         )
         g.authorize_ingress(
-            FromPort=5000,
-            ToPort=5000,
+            FromPort=8333,
+            ToPort=8333,
             IpProtocol='tcp',
             CidrIp='0.0.0.0/0',
         )
         print(" done")
 
+
+####################################################################################
+# SSH stuff
 
 @dataclasses.dataclass
 class SSHResult:
@@ -540,35 +495,7 @@ class SSHResult:
         return f"SSHResult({repr(self.id)}, {repr(str(self))})"
 
 
-def ssh_connect():
-    global ssh
-    ssh_instances = instances.running
-
-    hosts = [i.dnsname for i in ssh_instances]
-    ids = [i.id for i in ssh_instances]
-    fmtlen = max(len(i) for i in ids) + 1
-
-    if not hosts:
-        print("no hosts to connect to, aborting")
-        return
-
-    print()
-    print(
-        f"connecting to {len(ssh_instances)} instance(s)... ", end='', flush=True)
-
-    if ssh is None:
-        ssh = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
-                                             keepalive_seconds=30, allow_agent=False)
-    else:
-        ssh.hosts = hosts
-
-    results = ssh_run("date")
-    print("done")
-    for result in results:
-        print(f"connected to {result.id+':': <{fmtlen}} {result.stdout}")
-
-
-def ssh_run(command, raise_exception_on_failure=True, sudo=False, user=None, stop_on_errors=True,
+def ssh_run(command, instances, raise_exception_on_failure=True, sudo=False, user=None, stop_on_errors=True,
             use_pty=False, host_args=None, shell=None,
             encoding='utf-8', timeout=None, greenlet_timeout=None):
 
@@ -579,14 +506,14 @@ def ssh_run(command, raise_exception_on_failure=True, sudo=False, user=None, sto
                                   stop_on_errors, use_pty, host_args, shell, encoding, greenlet_timeout)
         return last_result
 
-    output = ssh.run_command(command, sudo, user, stop_on_errors, use_pty,
-                             host_args, shell, encoding, timeout, greenlet_timeout)
-    ssh.join(output)
+    output = ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
+                                    host_args, shell, encoding, timeout, greenlet_timeout)
+    ssh_client.join(output)
 
     results = []
     for k, v in output.items():
         results.append(
-            SSHResult(id=get_instance_id(k), dnsname=k, exit_code=v.exit_code, error=v.exception,
+            SSHResult(id=instances.get_id(k), dnsname=k, exit_code=v.exit_code, error=v.exception,
                       stdout='\n'.join(list(v.stdout)),
                       stderr='\n'.join(list(v.stderr)),
                       stdin=v.stdin))
@@ -599,13 +526,13 @@ def ssh_run(command, raise_exception_on_failure=True, sudo=False, user=None, sto
     return results
 
 
-def ssh_run_raw(command, sudo=False, user=None, stop_on_errors=True,
+def ssh_run_raw(ssh_client, command, sudo=False, user=None, stop_on_errors=True,
                 use_pty=False, host_args=None, shell=None,
                 encoding='utf-8', timeout=None, greenlet_timeout=None):
 
-    output = ssh.run_command(command, sudo, user, stop_on_errors, use_pty,
-                             host_args, shell, encoding, timeout, greenlet_timeout)
-    ssh.join(output)
+    output = ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
+                                    host_args, shell, encoding, timeout, greenlet_timeout)
+    ssh_client.join(output)
     return output
 
 
@@ -634,9 +561,36 @@ def load_ami_image_ids():
         print(f"done ({image.id})")
 
 
-def update_version(always_unpack=False):
-    if not ssh:
-        ssh_connect()
+def ssh_connect(ssh_client, instances):
+    running_instances = instances.running
+
+    hosts = [i.dnsname for i in running_instances]
+    ids = [i.id for i in running_instances]
+    fmtlen = max(len(i) for i in ids) + 1
+
+    if not hosts:
+        print("no hosts to connect to, aborting")
+        return
+
+    print()
+    print(
+        f"connecting to {len(running_instances)} out of {len(instances)} instance(s)... ", end='', flush=True)
+
+    if ssh_client is None:
+        ssh_client = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
+                                                    keepalive_seconds=30, allow_agent=False)
+    else:
+        ssh_client.hosts = hosts
+
+    results = ssh_run("date", running_instances)
+    print("done")
+    for result in results:
+        print(f"connected to {result.id+':': <{fmtlen}} {result.stdout}")
+
+
+def update_version(ssh_client, instances, always_unpack=False):
+    if not ssh_client:
+        ssh_connect(ssh_client, instances)
         print()
 
     update_network_config()
@@ -649,7 +603,7 @@ def update_version(always_unpack=False):
     all_hosts = [i.dnsname for i in instances.running]
     updated_hosts = set()
 
-    ssh_run("cd /home/ec2-user")
+    ssh_run("cd /home/ec2-user", instances)
     for file in ["randchain-base.zip", "randchain.zip"]:
         local_path = os.path.join(AWS_DIR, file)
         remote_path = f"/home/ec2-user/{file}"
@@ -657,7 +611,7 @@ def update_version(always_unpack=False):
         digest = Popen(['sha1sum', local_path]).split()[0]
 
         hosts_to_update = []
-        for result in ssh_run(f'[ -f {file} ] && sha1sum {file} || echo ""'):
+        for result in ssh_run(f'[ -f {file} ] && sha1sum {file} || echo ""', instances):
             if not result.stdout or result.stdout.split()[0] != digest:
                 updated_hosts.add(result.dnsname)
                 hosts_to_update.append(result.dnsname)
@@ -665,10 +619,10 @@ def update_version(always_unpack=False):
         if hosts_to_update:
             print(
                 f"({digest}) updating file {file: <16} on {len(hosts_to_update)} instance(s)... ", end="", flush=True)
-            ssh.hosts = hosts_to_update
-            gevent.joinall(ssh.scp_send(
+            ssh_client.hosts = hosts_to_update
+            gevent.joinall(ssh_client.scp_send(
                 local_path, remote_path), raise_error=True)
-            ssh.hosts = all_hosts
+            ssh_client.hosts = all_hosts
             print("done")
         else:
             print(
@@ -678,10 +632,10 @@ def update_version(always_unpack=False):
     if updated_hosts:
         print(
             f"unpacking new verions on {len(updated_hosts)} instance(s)... ", end="", flush=True)
-        ssh.hosts = updated_hosts
+        ssh_client.hosts = updated_hosts
         ssh_run(
-            "rm -rf randchain.py && unzip randchain-base.zip && unzip randchain.zip")
-        ssh.hosts = all_hosts
+            "rm -rf randchain.py && unzip randchain-base.zip && unzip randchain.zip", instances)
+        ssh_client.hosts = all_hosts
         print("done")
         print("all instances updated to the newest version")
     else:
@@ -706,20 +660,17 @@ def update_network_config():
             f.write(newcfg)
 
 
-randchain_processes = None
-
-
-def cleanup_benchmark():
-    global randchain_processes
-    if randchain_processes:
+def cleanup_benchmark(processes, instances):
+    if processes:
         print("stopping processes gracefully")
-        for x in randchain_processes.values():
+        for x in processes.values():
             x.channel.close()
         print("wait for 5 seconds...")
         time.sleep(5)
 
     print("checking for running python processes (and killing them)")
-    results = ssh_run("pkill -9 python3", raise_exception_on_failure=False)
+    results = ssh_run("pkill -9 python3", instances,
+                      raise_exception_on_failure=False)
     processed_killed = False
     for r in results:
         if r.exit_code == 0:
@@ -730,19 +681,15 @@ def cleanup_benchmark():
         time.sleep(5)
     else:
         print("gracefull shutdown succeeded (or randchain processes already stopped)")
-    randchain_processes = None
+    processes = None
 
 
-run_args = None
-
-
-def run_benchmark(num_nodes, num_rounds,
+def run_benchmark(ssh_client, processes, instances, num_nodes, num_rounds, run_args=None,
                   duration=2.0, propose_duration=None, acknowledge_duration=None, vote_duration=None,
                   startup_delay=60, connection_lead_time=20, simulate_adversary=False):
 
-    global randchain_processes
-    ssh_connect()
-    cleanup_benchmark()
+    ssh_connect(ssh_client, instances)
+    cleanup_benchmark(processes, instances)
 
     assert num_nodes == len(instances.running)
 
@@ -766,9 +713,8 @@ def run_benchmark(num_nodes, num_rounds,
         num_rounds_per_node = [num_rounds for _ in range(num_nodes)]
 
     num_rounds_per_node_dict = {
-        dnsname: r for dnsname, r in zip(ssh.hosts, num_rounds_per_node)}
+        dnsname: r for dnsname, r in zip(ssh_client.hosts, num_rounds_per_node)}
 
-    global run_args
     run_args = {
         'num_nodes': num_nodes,
         'num_rounds': num_rounds,
@@ -792,7 +738,7 @@ def run_benchmark(num_nodes, num_rounds,
 
     # input("press enter to confirm...")
 
-    ssh_run("pkill -f dstat; rm -f ~/stats.log",
+    ssh_run("pkill -f dstat; rm -f ~/stats.log", instances,
             raise_exception_on_failure=False)
 
     cmd = ' '.join([
@@ -812,7 +758,7 @@ def run_benchmark(num_nodes, num_rounds,
 
     print()
 
-    randchain_processes = ssh.run_command(
+    processes = ssh_client.run_command(
         cmd, use_pty=True, host_args=num_rounds_per_node)
 
     print()
@@ -823,53 +769,53 @@ def run_benchmark(num_nodes, num_rounds,
     time.sleep(10)
 
     print("killing dstat processes...", end="", flush=True)
-    ssh_run("pkill -f dstat", raise_exception_on_failure=False)
+    ssh_run("pkill -f dstat", instances, raise_exception_on_failure=False)
     print("done")
 
-    collect_results(**run_args)
-    # collect_logs(**run_args)
+    # collect_results(**run_args)
+    # # collect_logs(**run_args)
 
 
-def collect_results(num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
-                    tstart, tend, num_rounds_per_node_dict):
-    print("collecting results...")
-    results = ssh_run("cat ~/randchain.py/output/result")
+# def collect_results(instances, num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
+#                     tstart, tend, num_rounds_per_node_dict):
+#     print("collecting results...")
+#     results = ssh_run("cat ~/randchain.py/output/result", instances)
 
-    for i, v in enumerate(results):
-        if v.stdout == "OK" and num_rounds_per_node_dict[v.dnsname] != num_rounds:
-            v.stdout = "EVIL"
+#     for i, v in enumerate(results):
+#         if v.stdout == "OK" and num_rounds_per_node_dict[v.dnsname] != num_rounds:
+#             v.stdout = "EVIL"
 
-    results_str = ','.join(f"{v.dnsname},{v.stdout}" for v in results)
-    result = 'OK'
-    ok_ctr = 0
-    evil_ctr = 0
-    failed_ctr = 0
-    for v in results:
-        if v.stdout == 'FAILED':
-            result = 'FAILED'
-            failed_ctr += 1
-        elif v.stdout == "EVIL":
-            evil_ctr += 1
-            ok_ctr += 1
-        else:
-            ok_ctr += 1
+#     results_str = ','.join(f"{v.dnsname},{v.stdout}" for v in results)
+#     result = 'OK'
+#     ok_ctr = 0
+#     evil_ctr = 0
+#     failed_ctr = 0
+#     for v in results:
+#         if v.stdout == 'FAILED':
+#             result = 'FAILED'
+#             failed_ctr += 1
+#         elif v.stdout == "EVIL":
+#             evil_ctr += 1
+#             ok_ctr += 1
+#         else:
+#             ok_ctr += 1
 
-    with open(RESULTS_PATH, "a") as f:
-        f.write(f"{num_nodes};{num_rounds};{propose_duration};{acknowledge_duration};{vote_duration};"
-                + f"{tstart};{tend};\"{results_str}\";{result}\n")
+#     with open(RESULTS_PATH, "a") as f:
+#         f.write(f"{num_nodes};{num_rounds};{propose_duration};{acknowledge_duration};{vote_duration};"
+#                 + f"{tstart};{tend};\"{results_str}\";{result}\n")
 
-    print()
-    for r in results:
-        if r.stdout == 'FAILED':
-            print(f"{r.dnsname}: failed")
-    print()
-    print(f"##########################################################")
-    print(f"### RESULT: {result}")
-    print(
-        f"### OK returned by {ok_ctr} nodes (out of which {evil_ctr} aborted)")
-    print(f"### FAILED returned by {failed_ctr} nodes")
-    print(f"##########################################################")
-    print()
+#     print()
+#     for r in results:
+#         if r.stdout == 'FAILED':
+#             print(f"{r.dnsname}: failed")
+#     print()
+#     print(f"##########################################################")
+#     print(f"### RESULT: {result}")
+#     print(
+#         f"### OK returned by {ok_ctr} nodes (out of which {evil_ctr} aborted)")
+#     print(f"### FAILED returned by {failed_ctr} nodes")
+#     print(f"##########################################################")
+#     print()
 
 
 def collect_logs(tstart, **kwargs):
@@ -895,102 +841,127 @@ def download_file(tstart, remote_path, instances=None):
     print()
 
 
-# def collect_log_files(tstart, **kwargs):
-#     d = os.path.join(DATA_PATH, str(tstart))
-#     os.makedirs(d)
+def collect_log_files(ssh_client, tstart, **kwargs):
+    d = os.path.join(DATA_PATH, str(tstart))
+    os.makedirs(d)
 
-#     thosts = ssh.hosts
-#     ssh.hosts = random.sample(ssh.hosts, min(len(ssh.hosts), 16))
-#     print(
-#         f"modified ssh.hosts to only copy log files from {len(ssh.hosts)} nodes. (check that ssh_hosts is restored!)")
+    thosts = ssh_client.hosts
+    ssh_client.hosts = random.sample(
+        ssh_client.hosts, min(len(ssh_client.hosts), 16))
+    print(
+        f"modified ssh_client.hosts to only copy log files from {len(ssh_client.hosts)} nodes. (check that ssh_hosts is restored!)")
 
-#     print("collecting stats.log files...")
-#     e = ssh.scp_recv("/home/ec2-user/stats.log", os.path.join(DATA_PATH, "stats.log"))
-#     gevent.joinall(e, raise_error=True)
-#     for filename in os.listdir(DATA_PATH):
-#         if filename.startswith('stats.log_'):
-#             newfilename = filename.replace('stats.log_', '') + '_stats.log'
-#             os.rename(os.path.join(DATA_PATH, filename), os.path.join(DATA_PATH, newfilename))
+    print("collecting stats.log files...")
+    e = ssh_client.scp_recv("/home/ec2-user/stats.log",
+                            os.path.join(DATA_PATH, "stats.log"))
+    gevent.joinall(e, raise_error=True)
+    for filename in os.listdir(DATA_PATH):
+        if filename.startswith('stats.log_'):
+            newfilename = filename.replace('stats.log_', '') + '_stats.log'
+            os.rename(os.path.join(DATA_PATH, filename),
+                      os.path.join(DATA_PATH, newfilename))
 
-#     print("collecting node.log files...")
-#     e = ssh.scp_recv("/home/ec2-user/randchain.py/output/node.log", os.path.join(DATA_PATH, "node.log"))
-#     gevent.joinall(e, raise_error=True)
-#     for filename in os.listdir(DATA_PATH):
-#         if filename.startswith('node.log_'):
-#             newfilename = filename.replace('node.log_', '') + '_node.log'
-#             os.rename(os.path.join(DATA_PATH, filename), os.path.join(DATA_PATH, newfilename))
+    print("collecting node.log files...")
+    e = ssh_client.scp_recv("/home/ec2-user/randchain.py/output/node.log",
+                            os.path.join(DATA_PATH, "node.log"))
+    gevent.joinall(e, raise_error=True)
+    for filename in os.listdir(DATA_PATH):
+        if filename.startswith('node.log_'):
+            newfilename = filename.replace('node.log_', '') + '_node.log'
+            os.rename(os.path.join(DATA_PATH, filename),
+                      os.path.join(DATA_PATH, newfilename))
 
-#     ssh.hosts = thosts
-#     print("restored ssh.hosts")
-
-
-# def collect_and_save_results():
-#     results, stats_logs, node_logs = collect_results()
-#     save_result(results=results, stats_logs=stats_logs, node_logs=node_logs, **run_args)
-#     print("logs files writen")
-#     print()
-#     print(f"#################################")
-#     print(f"### RESULT: {result}")
-#     print(f"### OK returned by {ok_ctr} nodes")
-#     print(f"### FAILED returned by {failed_ctr} nodes")
-#     print(f"#################################")
-#     print()
+    ssh_client.hosts = thosts
+    print("restored ssh_client.hosts")
 
 
-# collect_and_save_results()
+def collect_and_save_results(instances):
+    results, stats_logs, node_logs = collect_logs(instances)
+    save_result(results=results, stats_logs=stats_logs,
+                node_logs=node_logs, **run_args)
+    print("logs files writen")
+    print()
+    print(f"#################################")
+    print(f"### RESULT: {result}")
+    print(f"### OK returned by {ok_ctr} nodes")
+    print(f"### FAILED returned by {failed_ctr} nodes")
+    print(f"#################################")
+    print()
+
+
+def collect_logs(instances):
+    print("collecting result files...")
+    results = ssh_run("cat ~/randchain.py/output/result", instances)
+    print("collecting stats.log files...")
+    stats_logs = ssh_run("cat ~/stats.log", instances)
+    print("collecting node.log files...")
+    node_logs = ssh_run("cat ~/randchain.py/output/node.log", instances)
+    return results, stats_logs, node_logs
+
+
+def collect_and_save_results():
+    results, stats_logs, node_logs = collect_logs(instances)
+    save_result(results=results, stats_logs=stats_logs,
+                node_logs=node_logs, **run_args)
+
+
+def save_result(num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
+                tstart, tend, results, stats_logs, node_logs):
+    results_str = ','.join(f"{v.dnsname},{v.stdout}" for v in results)
+    result = 'OK'
+    ok_ctr = 0
+    failed_ctr = 0
+    for v in results:
+        if v.stdout == 'FAILED':
+            result = 'FAILED'
+            failed_ctr += 1
+        else:
+            ok_ctr += 1
+
+    with open(RESULTS_PATH, "a") as f:
+        f.write(f"{num_nodes};{num_rounds};{propose_duration};{acknowledge_duration};{vote_duration};"
+                + f"{tstart};{tend};\"{results_str}\";{result}\n")
+
+    d = os.path.join(DATA_PATH, str(tstart))
+    os.makedirs(d)
+    for s, n in zip(stats_logs, node_logs):
+        with open(os.path.join(d, f"{s.dnsname}_stats.log"), 'w') as f:
+            f.write(s.stdout)
+        with open(os.path.join(d, f"{n.dnsname}_node.log"), 'w') as f:
+            f.write(n.stdout)
+
+    print("logs files writen")
+    print()
+    print(f"#################################")
+    print(f"### RESULT: {result}")
+    print(f"### OK returned by {ok_ctr} nodes")
+    print(f"### FAILED returned by {failed_ctr} nodes")
+    print(f"#################################")
+    print()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 2:
+        NUM_NODES = int(sys.argv[1])
+    print(f"setting NUM_NODES={NUM_NODES}")
+
+    ec2 = {region: boto3.resource("ec2", region_name=region)
+           for region in REGIONS}
+    ec2_clients = {region: boto3.client(
+        "ec2", region_name=region) for region in REGIONS}
+
+    # parallel ssh client from pssh library
+    ssh_client: pssh.clients.ParallelSSHClient = None
+
+    instances = Instances()
+    _instances = instances
+
+    randchain_processes = None
+    run_args = None
+
+    # collect_and_save_results()
     # results, stats_logs, node_logs = collect_results()
     # save_result(num_nodes, num_rounds, propose_duration, acknowledge_duration,
     #             vote_duration, tstart, tend, results, stats_logs, node_logs)
 
-
-# def collect_results():
-#     print("collecting result files...")
-#     results = ssh_run("cat ~/randchain.py/output/result")
-#     print("collecting stats.log files...")
-#     stats_logs = ssh_run("cat ~/stats.log")
-#     print("collecting node.log files...")
-#     node_logs = ssh_run("cat ~/randchain.py/output/node.log")
-#     return results, stats_logs, node_logs
-
-
-# def collect_and_save_results():
-#     results, stats_logs, node_logs = collect_results()
-#     save_result(results=results, stats_logs=stats_logs, node_logs=node_logs, **run_args)
-
-
-# def save_result(num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
-#                 tstart, tend, results, stats_logs, node_logs):
-#     results_str = ','.join(f"{v.dnsname},{v.stdout}" for v in results)
-#     result = 'OK'
-#     ok_ctr = 0
-#     failed_ctr = 0
-#     for v in results:
-#         if v.stdout == 'FAILED':
-#             result = 'FAILED'
-#             failed_ctr += 1
-#         else:
-#             ok_ctr += 1
-
-#     with open(RESULTS_PATH, "a") as f:
-#         f.write(f"{num_nodes};{num_rounds};{propose_duration};{acknowledge_duration};{vote_duration};"
-#                 + f"{tstart};{tend};\"{results_str}\";{result}\n")
-
-#     d = os.path.join(DATA_PATH, str(tstart))
-#     os.makedirs(d)
-#     for s, n in zip(stats_logs, node_logs):
-#         with open(os.path.join(d, f"{s.dnsname}_stats.log"), 'w') as f:
-#             f.write(s.stdout)
-#         with open(os.path.join(d, f"{n.dnsname}_node.log"), 'w') as f:
-#             f.write(n.stdout)
-
-#     print("logs files writen")
-#     print()
-#     print(f"#################################")
-#     print(f"### RESULT: {result}")
-#     print(f"### OK returned by {ok_ctr} nodes")
-#     print(f"### FAILED returned by {failed_ctr} nodes")
-#     print(f"#################################")
-#     print()
-
-
-status()
+    instances.status()
