@@ -46,8 +46,6 @@ if TESTING:
         'us-east-1': 'N. Virginia',
         'us-west-1': 'N. California',
         'ap-south-1': 'Mumbai',
-        'ap-northeast-2': 'Seoul',
-        'ap-southeast-2': 'Sydney',
     }
 
 INSTANCE_COUNT_PER_REGION: Dict[str, int] = collections.defaultdict(int)
@@ -62,7 +60,7 @@ while _t_num_nodes:
 AMI_IMAGE_ID_PER_REGION: Dict[str, str] = {}
 
 AWS_DIR = os.path.abspath(os.path.dirname(__file__))
-NETWORK_CONFIG_PATH = os.path.abspath(os.path.join(AWS_DIR, 'nodes.txt'))
+NODES_PATH = os.path.abspath(os.path.join(AWS_DIR, 'nodes.txt'))
 PACK_SCRIPT_PATH = os.path.join(AWS_DIR, "pack.sh")
 SETUP_INSTANCE_SCRIPT_PATH = os.path.join(AWS_DIR, "setup-instance.sh")
 with open(SETUP_INSTANCE_SCRIPT_PATH, 'r') as f:
@@ -343,8 +341,10 @@ class Instances:
                 for i in self:
                     i.state = InstanceState.STOPPING
         if not dryrun:
-            self.refresh_until(lambda: all(i.state in [InstanceState.STOPPED,
-                                                       InstanceState.TERMINATED] for i in what))
+            self.refresh_until(
+                lambda: all(
+                    i.state in [InstanceState.STOPPED, InstanceState.TERMINATED] for i in what)
+            )
         print(" done")
 
     def terminate(self, what=None, dryrun=False):
@@ -415,7 +415,7 @@ class Instances:
     def _create(cls, region, num_instances=1, instance_type='t2.micro', dryrun=False):
         assert instance_type in ['t2.nano',
                                  't2.micro', 't2.small', 't2.medium']
-        assert num_instances <= 20, "check instance limits (10 for t2.micro, 20 for t2.small/t2.medium"
+        # assert num_instances <= 20, "check instance limits (10 for t2.micro, 20 for t2.small/t2.medium"
 
         load_ami_image_ids()
 
@@ -459,7 +459,7 @@ def test_ssh_connection(instances):
 
 
 ####################################################################################
-# Security group and key pair stuff
+# Security group, key pair and node list stuff
 
 def assign_security_group_to_all_instances(group_name):
     # directly set at launch of instance for now
@@ -497,19 +497,27 @@ def create_or_update_security_groups():
         print(" done")
 
 
-def import_key_pair():
-    for region, region_name in REGIONS.items():
-        print("Creating key pair for {}", region_name, sep=" ")
-        response = ec2_clients[region].import_key_pair(
-            DryRun=False,
-            KeyName='randchain',
-            PublicKeyMaterial=b'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCF/+C79/7Xg/kKt94dGD6UXA84LHSIKR1gM75Mt1afflfbBd64PCdjw6A5e2Kd/9P83hzNj4QzLOtpvbV8c7tCu6nh72cewGlfK03bX5ypAPov/TlnWh3/HEEE8X2QeiUOY4G2lcfFVkh57IwZ5PJbDq827aGSYFwKhcMMtp7pXezbir+mhG5g7k9CBQtkrO9UBNoWa4f+4QRz/Cgj28vSy0Fr8fLCL/ZQzLr25VdDs5hPcSEt/oDXMnUPMlQe5BKrxQVkzlUffniTgJo8Mo6MAXakw6nZIpU0xA6L1Q/i5eByMoZ7VYrYuVQp9W1IhRJnsWsfVhGncAW2cWd/jXN7',
-        )
-        print(response)
+def update_nodes_list():
+    try:
+        with open(NODES_PATH, 'r') as f:
+            cfg = f.read()
+    except FileNotFoundError:
+        cfg = ''
+
+    dnsnames = [i.dnsname for i in instances.running]
+    dnsnames.sort()
+    newcfg = ''.join(f"{dnsname}:8333\n" for dnsname in dnsnames)
+    if cfg != newcfg:
+        print()
+        print(f"updating {NODES_PATH} to currently running instances")
+        print()
+        with open(NODES_PATH, 'w') as f:
+            f.write(newcfg)
 
 
 ####################################################################################
 # SSH stuff
+
 
 @dataclasses.dataclass
 class SSHResult:
@@ -530,258 +538,225 @@ class SSHResult:
         return f"SSHResult({repr(self.id)}, {repr(str(self))})"
 
 
-def ssh_run(ssh_client, command, instances, raise_exception_on_failure=True, sudo=False, user=None, stop_on_errors=True,
-            use_pty=False, host_args=None, shell=None,
-            encoding='utf-8', timeout=None, greenlet_timeout=None):
+class Operator:
+    def __init__(self):
+        self.ssh_client: pssh.clients.ParallelSSHClient = None
 
-    if isinstance(command, list):
-        last_result = None
-        for c in command:
-            last_result = ssh_run(c, raise_exception_on_failure, sudo, user, raise_exception_on_failure, sudo, user,
-                                  stop_on_errors, use_pty, host_args, shell, encoding, greenlet_timeout)
-        return last_result
+    def _ssh_run(self, command, instances, raise_exception_on_failure=True, sudo=False, user=None, stop_on_errors=True,
+                 use_pty=False, host_args=None, shell=None,
+                 encoding='utf-8', timeout=None, greenlet_timeout=None):
+        if isinstance(command, list):
+            last_result = None
+            for c in command:
+                last_result = self._ssh_run(c, raise_exception_on_failure, sudo, user, raise_exception_on_failure, sudo, user,
+                                            stop_on_errors, use_pty, host_args, shell, encoding, greenlet_timeout)
+            return last_result
 
-    output = ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
-                                    host_args, shell, encoding, timeout, greenlet_timeout)
-    ssh_client.join(output)
+        outputs = self.ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
+                                              host_args, shell, encoding, timeout, greenlet_timeout)
+        self.ssh_client.join(outputs)
 
-    results = []
-    for k, v in output.items():
-        results.append(
-            SSHResult(id=instances.get_id(k), dnsname=k, exit_code=v.exit_code, error=v.exception,
-                      stdout='\n'.join(list(v.stdout)),
-                      stderr='\n'.join(list(v.stderr)),
-                      stdin=v.stdin))
+        results = []
+        for v in outputs:
+            results.append(
+                SSHResult(id=instances.get_id(v.host), dnsname=v.host, exit_code=v.exit_code, error=v.exception,
+                          stdout='\n'.join(list(v.stdout)),
+                          stderr='\n'.join(list(v.stderr)),
+                          stdin=v.stdin))
 
-    if raise_exception_on_failure and any(r.exit_code != 0 for r in results):
-        for r in results:
-            print(repr(r))
-        raise RuntimeError(
-            f"execution of command '{command}' failed at least for one instance", command)
-    return results
+        if raise_exception_on_failure and any(r.exit_code != 0 for r in results):
+            for r in results:
+                print(repr(r))
+            raise RuntimeError(
+                f"execution of command '{command}' failed at least for one instance", command)
+        return results
 
+    def ssh_connect(self, instances):
+        running_instances = instances.running
 
-# def ssh_run_raw(ssh_client, command, sudo=False, user=None, stop_on_errors=True,
-#                 use_pty=False, host_args=None, shell=None,
-#                 encoding='utf-8', timeout=None, greenlet_timeout=None):
+        hosts = [i.dnsname for i in running_instances]
+        ids = [i.id for i in running_instances]
+        fmtlen = max(len(i) for i in ids) + 1
 
-#     output = ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
-#                                     host_args, shell, encoding, timeout, greenlet_timeout)
-#     ssh_client.join(output)
-#     return output
+        if not hosts:
+            print("no hosts to connect to, aborting")
+            return
 
-
-def ssh_connect(ssh_client, instances):
-    running_instances = instances.running
-
-    hosts = [i.dnsname for i in running_instances]
-    ids = [i.id for i in running_instances]
-    fmtlen = max(len(i) for i in ids) + 1
-
-    if not hosts:
-        print("no hosts to connect to, aborting")
-        return
-
-    print()
-    print(
-        f"connecting to {len(running_instances)} out of {len(instances)} instance(s)... ", end='', flush=True)
-
-    if ssh_client is None:
-        ssh_client = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
-                                                    keepalive_seconds=30, allow_agent=False)
-    else:
-        ssh_client.hosts = hosts
-
-    results = ssh_run(ssh_client, "date", running_instances)
-    print("done")
-    for result in results:
-        print(f"connected to {result.id+':': <{fmtlen}} {result.stdout}")
-
-
-def update_version(ssh_client, instances, always_unpack=False):
-    if not ssh_client:
-        ssh_connect(ssh_client, instances)
         print()
-
-    update_network_config()
-
-    print("packing current RandChain version... ", end="", flush=True)
-    assert subprocess.call(
-        [PACK_SCRIPT_PATH], stdout=subprocess.DEVNULL) == 0, "packing script failed to run"
-    print("done")
-
-    all_hosts = [i.dnsname for i in instances.running]
-    updated_hosts = set()
-
-    ssh_run(ssh_client, "cd /home/ec2-user", instances)
-    for file in ["randchain-base.zip", "randchain.zip"]:
-        local_path = os.path.join(AWS_DIR, file)
-        remote_path = f"/home/ec2-user/{file}"
-
-        digest = Popen(['sha1sum', local_path]).split()[0]
-
-        hosts_to_update = []
-        for result in ssh_run(ssh_client, f'[ -f {file} ] && sha1sum {file} || echo ""', instances):
-            if not result.stdout or result.stdout.split()[0] != digest:
-                updated_hosts.add(result.dnsname)
-                hosts_to_update.append(result.dnsname)
-
-        if hosts_to_update:
-            print(
-                f"({digest}) updating file {file: <16} on {len(hosts_to_update)} instance(s)... ", end="", flush=True)
-            ssh_client.hosts = hosts_to_update
-            gevent.joinall(ssh_client.scp_send(
-                local_path, remote_path), raise_error=True)
-            ssh_client.hosts = all_hosts
-            print("done")
-        else:
-            print(
-                f"({digest}) file {file: <16} already on current version on all instances")
-
-    updated_hosts = all_hosts if always_unpack else list(updated_hosts)
-    if updated_hosts:
         print(
-            f"unpacking new verions on {len(updated_hosts)} instance(s)... ", end="", flush=True)
-        ssh_client.hosts = updated_hosts
-        ssh_run(ssh_client,
-                "rm -rf randchain.py && unzip randchain-base.zip && unzip randchain.zip", instances)
-        ssh_client.hosts = all_hosts
+            f"connecting to {len(running_instances)} out of {len(instances)} instance(s)... ", end='', flush=True)
+
+        if self.ssh_client is None:
+            self.ssh_client = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
+                                                             keepalive_seconds=30, allow_agent=False)
+        else:
+            self.ssh_client.hosts = hosts
+
+        results = self._ssh_run("date", running_instances)
         print("done")
-        print("all instances updated to the newest version")
-    else:
-        print("all instances already on the newest version")
+        for result in results:
+            print(f"connected to {result.id+':': <{fmtlen}} {result.stdout}")
 
+    def update_version(self, instances, always_unpack=False):
+        update_nodes_list()
 
-def update_network_config():
-    try:
-        with open(NETWORK_CONFIG_PATH, 'r') as f:
-            cfg = f.read()
-    except FileNotFoundError:
-        cfg = ''
+        print("packing current RandChain version... ", end="", flush=True)
+        assert subprocess.call(
+            [PACK_SCRIPT_PATH], stdout=subprocess.DEVNULL) == 0, "packing script failed to run"
+        print("done")
 
-    dnsnames = [i.dnsname for i in instances.running]
-    dnsnames.sort()
-    newcfg = ''.join(f"{dnsname}:8333\n" for dnsname in dnsnames)
-    if cfg != newcfg:
+        all_hosts = [i.dnsname for i in instances.running]
+        updated_hosts = set()
+
+        self._ssh_run(self.ssh_client, "cd /home/ec2-user", instances)
+        for file in ["randchain-base.zip", "randchain.zip"]:
+            local_path = os.path.join(AWS_DIR, file)
+            remote_path = f"/home/ec2-user/{file}"
+
+            digest = Popen(['sha1sum', local_path]).split()[0]
+
+            hosts_to_update = []
+            for result in self._ssh_run(self.ssh_client, f'[ -f {file} ] && sha1sum {file} || echo ""', instances):
+                if not result.stdout or result.stdout.split()[0] != digest:
+                    updated_hosts.add(result.dnsname)
+                    hosts_to_update.append(result.dnsname)
+
+            if hosts_to_update:
+                print(
+                    f"({digest}) updating file {file: <16} on {len(hosts_to_update)} instance(s)... ", end="", flush=True)
+                self.ssh_client.hosts = hosts_to_update
+                gevent.joinall(self.ssh_client.scp_send(
+                    local_path, remote_path), raise_error=True)
+                self.ssh_client.hosts = all_hosts
+                print("done")
+            else:
+                print(
+                    f"({digest}) file {file: <16} already on current version on all instances")
+
+        updated_hosts = all_hosts if always_unpack else list(updated_hosts)
+        if updated_hosts:
+            print(
+                f"unpacking new verions on {len(updated_hosts)} instance(s)... ", end="", flush=True)
+            self.ssh_client.hosts = updated_hosts
+            self._ssh_run(
+                "rm -rf randchain.py && unzip randchain-base.zip && unzip randchain.zip", instances)
+            self.ssh_client.hosts = all_hosts
+            print("done")
+            print("all instances updated to the newest version")
+        else:
+            print("all instances already on the newest version")
+
+    def cleanup_benchmark(self, processes, instances):
+        if processes:
+            print("stopping processes gracefully")
+            for x in processes.values():
+                x.channel.close()
+            print("wait for 5 seconds...")
+            time.sleep(5)
+
+        print("checking for running python processes (and killing them)")
+        results = self._ssh_run("pkill -9 python3", instances,
+                                raise_exception_on_failure=False)
+        processed_killed = False
+        for r in results:
+            if r.exit_code == 0:
+                processed_killed = True
+        if processed_killed:
+            print("forced killed at least one running process")
+            print("wait for 5 seconds...")
+            time.sleep(5)
+        else:
+            print("gracefull shutdown succeeded (or randchain processes already stopped)")
+        processes = None
+
+    def run_benchmark(self, processes, instances, num_nodes, num_rounds, run_args=None,
+                      duration=2.0, propose_duration=None, acknowledge_duration=None, vote_duration=None,
+                      startup_delay=60, connection_lead_time=20, simulate_adversary=False):
+
+        self.ssh_connect(instances)
+        self.cleanup_benchmark(processes, instances)
+
+        assert num_nodes == len(instances.running)
+
+        propose_duration = propose_duration or duration
+        acknowledge_duration = acknowledge_duration or duration
+        vote_duration = vote_duration or duration
+
+        tstart = datetime.utcnow().replace(microsecond=0) + \
+            timedelta(seconds=startup_delay)
+        tend = tstart + timedelta(seconds=num_rounds *
+                                  (propose_duration + acknowledge_duration + vote_duration))
+        tend = tend.replace(microsecond=0)
+
+        if simulate_adversary:
+            num_rounds_per_node = [random.randint(
+                0, num_rounds - 1) for _ in range(math.ceil(num_nodes / 3) - 1)]
+            while len(num_rounds_per_node) != num_nodes:
+                num_rounds_per_node.append(num_rounds)
+            random.shuffle(num_rounds_per_node)
+        else:
+            num_rounds_per_node = [num_rounds for _ in range(num_nodes)]
+
+        num_rounds_per_node_dict = {
+            dnsname: r for dnsname, r in zip(self.ssh_client.hosts, num_rounds_per_node)}
+
+        run_args = {
+            'num_nodes': num_nodes,
+            'num_rounds': num_rounds,
+            'propose_duration': propose_duration,
+            'acknowledge_duration': acknowledge_duration,
+            'vote_duration': vote_duration,
+            'tstart': str(tstart),
+            'tend': str(tend),
+            # 'num_rounds_per_node': num_rounds_per_node,
+            'num_rounds_per_node_dict': num_rounds_per_node_dict
+        }
         print()
-        print(f"updating {NETWORK_CONFIG_PATH} to currently running instances")
+        print(f"starting protocol at:        {tstart}")
+        print(f"protocol should complete at: {tend}")
+        print(
+            f"total duration:              {(tend - tstart).total_seconds() / 60:.0f} min")
+
         print()
-        with open(NETWORK_CONFIG_PATH, 'w') as f:
-            f.write(newcfg)
+        pprint(run_args)
+        print()
 
+        # input("press enter to confirm...")
 
-def cleanup_benchmark(ssh_client, processes, instances):
-    if processes:
-        print("stopping processes gracefully")
-        for x in processes.values():
-            x.channel.close()
-        print("wait for 5 seconds...")
-        time.sleep(5)
-
-    print("checking for running python processes (and killing them)")
-    results = ssh_run(ssh_client, "pkill -9 python3", instances,
+        self._ssh_run("pkill -f dstat; rm -f ~/stats.log", instances,
                       raise_exception_on_failure=False)
-    processed_killed = False
-    for r in results:
-        if r.exit_code == 0:
-            processed_killed = True
-    if processed_killed:
-        print("forced killed at least one running process")
-        print("wait for 5 seconds...")
-        time.sleep(5)
-    else:
-        print("gracefull shutdown succeeded (or randchain processes already stopped)")
-    processes = None
 
+        cmd = ' '.join([
+            f"dstat --integer --noupdate -T -n --tcp --cpu --mem --output ~/stats.log 1 &> /dev/null &",
+            f"cd /home/ec2-user/randchain.py &&",
+            f"python3 -m randchain",
+            f"--sync-mode",
+            f"--start-at '{tstart}'",
+            f"--connection-lead-time {connection_lead_time}",
+            f"--propose-duration {propose_duration}",
+            f"--acknowledge-duration {acknowledge_duration}",
+            f"--vote-duration {vote_duration}",
+            f"--num-rounds %d",
+            "> /home/ec2-user/std.log 2>&1"
+        ])
+        print(cmd)
 
-def run_benchmark(ssh_client, processes, instances, num_nodes, num_rounds, run_args=None,
-                  duration=2.0, propose_duration=None, acknowledge_duration=None, vote_duration=None,
-                  startup_delay=60, connection_lead_time=20, simulate_adversary=False):
+        print()
 
-    ssh_connect(ssh_client, instances)
-    cleanup_benchmark(ssh_client, processes, instances)
+        processes = self.ssh_client.run_command(
+            cmd, use_pty=True, host_args=num_rounds_per_node)
 
-    assert num_nodes == len(instances.running)
+        print()
+        print("waiting for protocol run to complete...")
+        while datetime.utcnow() < tend:
+            time.sleep(1)
+        print("protocol run should be finished now, waiting for 10 more seconds")
+        time.sleep(10)
 
-    propose_duration = propose_duration or duration
-    acknowledge_duration = acknowledge_duration or duration
-    vote_duration = vote_duration or duration
-
-    tstart = datetime.utcnow().replace(microsecond=0) + \
-        timedelta(seconds=startup_delay)
-    tend = tstart + timedelta(seconds=num_rounds *
-                              (propose_duration + acknowledge_duration + vote_duration))
-    tend = tend.replace(microsecond=0)
-
-    if simulate_adversary:
-        num_rounds_per_node = [random.randint(
-            0, num_rounds - 1) for _ in range(math.ceil(num_nodes / 3) - 1)]
-        while len(num_rounds_per_node) != num_nodes:
-            num_rounds_per_node.append(num_rounds)
-        random.shuffle(num_rounds_per_node)
-    else:
-        num_rounds_per_node = [num_rounds for _ in range(num_nodes)]
-
-    num_rounds_per_node_dict = {
-        dnsname: r for dnsname, r in zip(ssh_client.hosts, num_rounds_per_node)}
-
-    run_args = {
-        'num_nodes': num_nodes,
-        'num_rounds': num_rounds,
-        'propose_duration': propose_duration,
-        'acknowledge_duration': acknowledge_duration,
-        'vote_duration': vote_duration,
-        'tstart': str(tstart),
-        'tend': str(tend),
-        # 'num_rounds_per_node': num_rounds_per_node,
-        'num_rounds_per_node_dict': num_rounds_per_node_dict
-    }
-    print()
-    print(f"starting protocol at:        {tstart}")
-    print(f"protocol should complete at: {tend}")
-    print(
-        f"total duration:              {(tend - tstart).total_seconds() / 60:.0f} min")
-
-    print()
-    pprint(run_args)
-    print()
-
-    # input("press enter to confirm...")
-
-    ssh_run(ssh_client, "pkill -f dstat; rm -f ~/stats.log", instances,
-            raise_exception_on_failure=False)
-
-    cmd = ' '.join([
-        f"dstat --integer --noupdate -T -n --tcp --cpu --mem --output ~/stats.log 1 &> /dev/null &",
-        f"cd /home/ec2-user/randchain.py &&",
-        f"python3 -m randchain",
-        f"--sync-mode",
-        f"--start-at '{tstart}'",
-        f"--connection-lead-time {connection_lead_time}",
-        f"--propose-duration {propose_duration}",
-        f"--acknowledge-duration {acknowledge_duration}",
-        f"--vote-duration {vote_duration}",
-        f"--num-rounds %d",
-        "> /home/ec2-user/std.log 2>&1"
-    ])
-    print(cmd)
-
-    print()
-
-    processes = ssh_client.run_command(
-        cmd, use_pty=True, host_args=num_rounds_per_node)
-
-    print()
-    print("waiting for protocol run to complete...")
-    while datetime.utcnow() < tend:
-        time.sleep(1)
-    print("protocol run should be finished now, waiting for 10 more seconds")
-    time.sleep(10)
-
-    print("killing dstat processes...", end="", flush=True)
-    ssh_run(ssh_client, "pkill -f dstat", instances,
-            raise_exception_on_failure=False)
-    print("done")
+        print("killing dstat processes...", end="", flush=True)
+        self._ssh_run("pkill -f dstat", instances,
+                      raise_exception_on_failure=False)
+        print("done")
 
 
 def collect_logs(tstart, **kwargs):
@@ -856,12 +831,12 @@ def download_file(tstart, remote_path, instances=None):
 
 # def collect_logs(ssh_client, instances):
 #     print("collecting result files...")
-#     results = ssh_run(
+#     results = _ssh_run(
 #         ssh_client, "cat ~/randchain.py/output/result", instances)
 #     print("collecting stats.log files...")
-#     stats_logs = ssh_run(ssh_client, "cat ~/stats.log", instances)
+#     stats_logs = _ssh_run(ssh_client, "cat ~/stats.log", instances)
 #     print("collecting node.log files...")
-#     node_logs = ssh_run(
+#     node_logs = _ssh_run(
 #         ssh_client, "cat ~/randchain.py/output/node.log", instances)
 #     return results, stats_logs, node_logs
 
@@ -912,10 +887,12 @@ if __name__ == '__main__':
         NUM_NODES = int(sys.argv[1])
     print(f"setting NUM_NODES={NUM_NODES}")
 
-    ec2 = {region: boto3.resource("ec2", region_name=region)
-           for region in REGIONS}
-    ec2_clients = {region: boto3.client(
-        "ec2", region_name=region) for region in REGIONS}
+    ec2 = {
+        region: boto3.resource("ec2", region_name=region) for region in REGIONS
+    }
+    ec2_clients = {
+        region: boto3.client("ec2", region_name=region) for region in REGIONS
+    }
 
     # parallel ssh client from pssh library
     ssh_client: pssh.clients.ParallelSSHClient = None
@@ -923,11 +900,11 @@ if __name__ == '__main__':
     # security group
     # create_or_update_security_groups()
 
-    # import key pair
-    # import_key_pair()
-
     instances = Instances()
     # instances.create()
+
+    update_nodes_list()
+
     # instances.stop()
     # instances.terminate()
 
@@ -938,3 +915,5 @@ if __name__ == '__main__':
 
     instances.refresh()
     instances.status()
+
+    op = Operator()
