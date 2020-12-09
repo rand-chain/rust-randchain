@@ -5,6 +5,7 @@ authors = ["Ethcore <admin@ethcore.io>"]
 
 [dependencies]
 clap = { package = "clap-v3", version = "3.0.0-beta.1" }  # todo: replace with official v3 when it's released to crates.io
+ureq = { version = "1.5.4", features = ["json", "charset"] }
 log = "0.4"
 env_logger = "0.5"
 byteorder = "1.0"

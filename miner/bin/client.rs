@@ -2,13 +2,15 @@ extern crate clap;
 extern crate ecvrf;
 extern crate env_logger;
 extern crate rustc_hex as hex;
+extern crate ureq;
 #[macro_use]
 extern crate log;
+
+use std::io::prelude::*;
 
 use clap::Clap;
 use ecvrf::VrfPk;
 use hex::{FromHex, ToHex};
-use std::io::prelude::*;
 
 /// RandChain miner client
 #[derive(Clap)]
@@ -42,9 +44,9 @@ struct MineOpts {
     /// Output public key file
     #[clap(short = "u", long = "pub", default_value = "pub.key")]
     pubkey: String,
-    /// randchaind rpc port
-    #[clap(short = "p", long = "port", default_value = "8333")]
-    port: u16,
+    /// randchaind rpc endpoint
+    #[clap(short = "r", long = "rpc", default_value = "http://127.0.0.1:8332/")]
+    endpoint: String,
 }
 
 fn main() {
@@ -96,6 +98,15 @@ fn load_pk(filename: &str) -> VrfPk {
 fn mine(opts: MineOpts) {
     let pubkey = load_pk(&opts.pubkey);
 
-    log::info!("connecting to port: {}", opts.port);
+    let resp = ureq::post(&opts.endpoint)
+        .set("X-My-Header", "Secret")
+        .send_json(ureq::json!({
+        "jsonrpc": "2.0",
+        "method": "getblocktemplate",
+        "id":1
+         }));
+
+    log::info!("recieved: {:?}", resp.into_string().unwrap());
+
     unimplemented!();
 }
