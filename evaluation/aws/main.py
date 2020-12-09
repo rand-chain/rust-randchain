@@ -894,9 +894,6 @@ if __name__ == '__main__':
         region: boto3.client("ec2", region_name=region) for region in REGIONS
     }
 
-    # parallel ssh client from pssh library
-    ssh_client: pssh.clients.ParallelSSHClient = None
-
     # security group
     # create_or_update_security_groups()
 
