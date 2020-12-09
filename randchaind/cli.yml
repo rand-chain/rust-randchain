@@ -9,11 +9,15 @@ args:
     - regtest:
         long: regtest
         help: Use a private network for regression tests.
-    - connect:
-        short: c
-        long: connect
+    - peers:
+        short: p
+        long: peers
         value_name: IP
         help: Connect only to the specified nodes (ip:port,ip:port,...).
+        takes_value: true
+    - peers-file:
+        long: peers-file
+        help: Connect to nodes specified in the file
         takes_value: true
     - host:
         short: h

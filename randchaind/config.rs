@@ -17,7 +17,7 @@ pub struct Config {
     pub network: Network,
     pub services: Services,
     pub port: u16,
-    pub connect: Vec<net::SocketAddr>,
+    pub peers: Vec<net::SocketAddr>,
     pub host: net::IpAddr,
     pub seednodes: Vec<String>,
     pub quiet: bool,
@@ -81,7 +81,8 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         None => network.port(),
     };
 
-    let connect = match matches.value_of("connect") {
+    // construct nodes needed to be connected
+    let peers = match matches.value_of("peers") {
         Some(addrs_raw) => {
             let addrs_str_vec = addrs_raw.split(",");
             let mut addrs_vec: Vec<net::SocketAddr> = vec![];
@@ -163,7 +164,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         network: network,
         services: services,
         port: port,
-        connect: connect,
+        peers: peers,
         host: host,
         seednodes: seednodes,
         inbound_connections: in_connections,
