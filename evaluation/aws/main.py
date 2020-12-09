@@ -459,7 +459,7 @@ def test_ssh_connection(instances):
 
 
 ####################################################################################
-# Security group stuff
+# Security group and key pair stuff
 
 def assign_security_group_to_all_instances(group_name):
     # directly set at launch of instance for now
@@ -507,9 +507,9 @@ def import_key_pair():
         )
         print(response)
 
+
 ####################################################################################
 # SSH stuff
-
 
 @dataclasses.dataclass
 class SSHResult:
@@ -530,7 +530,7 @@ class SSHResult:
         return f"SSHResult({repr(self.id)}, {repr(str(self))})"
 
 
-def ssh_run(command, instances, raise_exception_on_failure=True, sudo=False, user=None, stop_on_errors=True,
+def ssh_run(ssh_client, command, instances, raise_exception_on_failure=True, sudo=False, user=None, stop_on_errors=True,
             use_pty=False, host_args=None, shell=None,
             encoding='utf-8', timeout=None, greenlet_timeout=None):
 
@@ -561,14 +561,14 @@ def ssh_run(command, instances, raise_exception_on_failure=True, sudo=False, use
     return results
 
 
-def ssh_run_raw(ssh_client, command, sudo=False, user=None, stop_on_errors=True,
-                use_pty=False, host_args=None, shell=None,
-                encoding='utf-8', timeout=None, greenlet_timeout=None):
+# def ssh_run_raw(ssh_client, command, sudo=False, user=None, stop_on_errors=True,
+#                 use_pty=False, host_args=None, shell=None,
+#                 encoding='utf-8', timeout=None, greenlet_timeout=None):
 
-    output = ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
-                                    host_args, shell, encoding, timeout, greenlet_timeout)
-    ssh_client.join(output)
-    return output
+#     output = ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
+#                                     host_args, shell, encoding, timeout, greenlet_timeout)
+#     ssh_client.join(output)
+#     return output
 
 
 def ssh_connect(ssh_client, instances):
@@ -592,7 +592,7 @@ def ssh_connect(ssh_client, instances):
     else:
         ssh_client.hosts = hosts
 
-    results = ssh_run("date", running_instances)
+    results = ssh_run(ssh_client, "date", running_instances)
     print("done")
     for result in results:
         print(f"connected to {result.id+':': <{fmtlen}} {result.stdout}")
@@ -613,7 +613,7 @@ def update_version(ssh_client, instances, always_unpack=False):
     all_hosts = [i.dnsname for i in instances.running]
     updated_hosts = set()
 
-    ssh_run("cd /home/ec2-user", instances)
+    ssh_run(ssh_client, "cd /home/ec2-user", instances)
     for file in ["randchain-base.zip", "randchain.zip"]:
         local_path = os.path.join(AWS_DIR, file)
         remote_path = f"/home/ec2-user/{file}"
@@ -621,7 +621,7 @@ def update_version(ssh_client, instances, always_unpack=False):
         digest = Popen(['sha1sum', local_path]).split()[0]
 
         hosts_to_update = []
-        for result in ssh_run(f'[ -f {file} ] && sha1sum {file} || echo ""', instances):
+        for result in ssh_run(ssh_client, f'[ -f {file} ] && sha1sum {file} || echo ""', instances):
             if not result.stdout or result.stdout.split()[0] != digest:
                 updated_hosts.add(result.dnsname)
                 hosts_to_update.append(result.dnsname)
@@ -643,8 +643,8 @@ def update_version(ssh_client, instances, always_unpack=False):
         print(
             f"unpacking new verions on {len(updated_hosts)} instance(s)... ", end="", flush=True)
         ssh_client.hosts = updated_hosts
-        ssh_run(
-            "rm -rf randchain.py && unzip randchain-base.zip && unzip randchain.zip", instances)
+        ssh_run(ssh_client,
+                "rm -rf randchain.py && unzip randchain-base.zip && unzip randchain.zip", instances)
         ssh_client.hosts = all_hosts
         print("done")
         print("all instances updated to the newest version")
@@ -670,7 +670,7 @@ def update_network_config():
             f.write(newcfg)
 
 
-def cleanup_benchmark(processes, instances):
+def cleanup_benchmark(ssh_client, processes, instances):
     if processes:
         print("stopping processes gracefully")
         for x in processes.values():
@@ -679,7 +679,7 @@ def cleanup_benchmark(processes, instances):
         time.sleep(5)
 
     print("checking for running python processes (and killing them)")
-    results = ssh_run("pkill -9 python3", instances,
+    results = ssh_run(ssh_client, "pkill -9 python3", instances,
                       raise_exception_on_failure=False)
     processed_killed = False
     for r in results:
@@ -699,7 +699,7 @@ def run_benchmark(ssh_client, processes, instances, num_nodes, num_rounds, run_a
                   startup_delay=60, connection_lead_time=20, simulate_adversary=False):
 
     ssh_connect(ssh_client, instances)
-    cleanup_benchmark(processes, instances)
+    cleanup_benchmark(ssh_client, processes, instances)
 
     assert num_nodes == len(instances.running)
 
@@ -748,7 +748,7 @@ def run_benchmark(ssh_client, processes, instances, num_nodes, num_rounds, run_a
 
     # input("press enter to confirm...")
 
-    ssh_run("pkill -f dstat; rm -f ~/stats.log", instances,
+    ssh_run(ssh_client, "pkill -f dstat; rm -f ~/stats.log", instances,
             raise_exception_on_failure=False)
 
     cmd = ' '.join([
@@ -779,7 +779,8 @@ def run_benchmark(ssh_client, processes, instances, num_nodes, num_rounds, run_a
     time.sleep(10)
 
     print("killing dstat processes...", end="", flush=True)
-    ssh_run("pkill -f dstat", instances, raise_exception_on_failure=False)
+    ssh_run(ssh_client, "pkill -f dstat", instances,
+            raise_exception_on_failure=False)
     print("done")
 
 
@@ -792,7 +793,6 @@ def collect_logs(tstart, **kwargs):
 
 
 def download_file(tstart, remote_path, instances=None):
-    instances = instances or _instances.running
     for i, dnsname in enumerate([i.dnsname for i in instances]):
         print(
             f"downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
@@ -806,103 +806,105 @@ def download_file(tstart, remote_path, instances=None):
     print()
 
 
-def collect_log_files(ssh_client, tstart, **kwargs):
-    d = os.path.join(DATA_PATH, str(tstart))
-    os.makedirs(d)
+# def collect_log_files(ssh_client, tstart, **kwargs):
+#     d = os.path.join(DATA_PATH, str(tstart))
+#     os.makedirs(d)
 
-    thosts = ssh_client.hosts
-    ssh_client.hosts = random.sample(
-        ssh_client.hosts, min(len(ssh_client.hosts), 16))
-    print(
-        f"modified ssh_client.hosts to only copy log files from {len(ssh_client.hosts)} nodes. (check that ssh_hosts is restored!)")
+#     thosts = ssh_client.hosts
+#     ssh_client.hosts = random.sample(
+#         ssh_client.hosts, min(len(ssh_client.hosts), 16))
+#     print(
+#         f"modified ssh_client.hosts to only copy log files from {len(ssh_client.hosts)} nodes. (check that ssh_hosts is restored!)")
 
-    print("collecting stats.log files...")
-    e = ssh_client.scp_recv("/home/ec2-user/stats.log",
-                            os.path.join(DATA_PATH, "stats.log"))
-    gevent.joinall(e, raise_error=True)
-    for filename in os.listdir(DATA_PATH):
-        if filename.startswith('stats.log_'):
-            newfilename = filename.replace('stats.log_', '') + '_stats.log'
-            os.rename(os.path.join(DATA_PATH, filename),
-                      os.path.join(DATA_PATH, newfilename))
+#     print("collecting stats.log files...")
+#     e = ssh_client.scp_recv("/home/ec2-user/stats.log",
+#                             os.path.join(DATA_PATH, "stats.log"))
+#     gevent.joinall(e, raise_error=True)
+#     for filename in os.listdir(DATA_PATH):
+#         if filename.startswith('stats.log_'):
+#             newfilename = filename.replace('stats.log_', '') + '_stats.log'
+#             os.rename(os.path.join(DATA_PATH, filename),
+#                       os.path.join(DATA_PATH, newfilename))
 
-    print("collecting node.log files...")
-    e = ssh_client.scp_recv("/home/ec2-user/randchain.py/output/node.log",
-                            os.path.join(DATA_PATH, "node.log"))
-    gevent.joinall(e, raise_error=True)
-    for filename in os.listdir(DATA_PATH):
-        if filename.startswith('node.log_'):
-            newfilename = filename.replace('node.log_', '') + '_node.log'
-            os.rename(os.path.join(DATA_PATH, filename),
-                      os.path.join(DATA_PATH, newfilename))
+#     print("collecting node.log files...")
+#     e = ssh_client.scp_recv("/home/ec2-user/randchain.py/output/node.log",
+#                             os.path.join(DATA_PATH, "node.log"))
+#     gevent.joinall(e, raise_error=True)
+#     for filename in os.listdir(DATA_PATH):
+#         if filename.startswith('node.log_'):
+#             newfilename = filename.replace('node.log_', '') + '_node.log'
+#             os.rename(os.path.join(DATA_PATH, filename),
+#                       os.path.join(DATA_PATH, newfilename))
 
-    ssh_client.hosts = thosts
-    print("restored ssh_client.hosts")
-
-
-def collect_and_save_results(instances):
-    results, stats_logs, node_logs = collect_logs(instances)
-    save_result(results=results, stats_logs=stats_logs,
-                node_logs=node_logs, **run_args)
-    print("logs files writen")
-    print()
-    print(f"#################################")
-    print(f"### RESULT: {result}")
-    print(f"### OK returned by {ok_ctr} nodes")
-    print(f"### FAILED returned by {failed_ctr} nodes")
-    print(f"#################################")
-    print()
+#     ssh_client.hosts = thosts
+#     print("restored ssh_client.hosts")
 
 
-def collect_logs(instances):
-    print("collecting result files...")
-    results = ssh_run("cat ~/randchain.py/output/result", instances)
-    print("collecting stats.log files...")
-    stats_logs = ssh_run("cat ~/stats.log", instances)
-    print("collecting node.log files...")
-    node_logs = ssh_run("cat ~/randchain.py/output/node.log", instances)
-    return results, stats_logs, node_logs
+# def collect_and_save_results(instances):
+#     results, stats_logs, node_logs = collect_logs(instances)
+#     save_result(results=results, stats_logs=stats_logs,
+#                 node_logs=node_logs, **run_args)
+#     print("logs files writen")
+#     print()
+#     print(f"#################################")
+#     print(f"### RESULT: {result}")
+#     print(f"### OK returned by {ok_ctr} nodes")
+#     print(f"### FAILED returned by {failed_ctr} nodes")
+#     print(f"#################################")
+#     print()
 
 
-def collect_and_save_results():
-    results, stats_logs, node_logs = collect_logs(instances)
-    save_result(results=results, stats_logs=stats_logs,
-                node_logs=node_logs, **run_args)
+# def collect_logs(ssh_client, instances):
+#     print("collecting result files...")
+#     results = ssh_run(
+#         ssh_client, "cat ~/randchain.py/output/result", instances)
+#     print("collecting stats.log files...")
+#     stats_logs = ssh_run(ssh_client, "cat ~/stats.log", instances)
+#     print("collecting node.log files...")
+#     node_logs = ssh_run(
+#         ssh_client, "cat ~/randchain.py/output/node.log", instances)
+#     return results, stats_logs, node_logs
 
 
-def save_result(num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
-                tstart, tend, results, stats_logs, node_logs):
-    results_str = ','.join(f"{v.dnsname},{v.stdout}" for v in results)
-    result = 'OK'
-    ok_ctr = 0
-    failed_ctr = 0
-    for v in results:
-        if v.stdout == 'FAILED':
-            result = 'FAILED'
-            failed_ctr += 1
-        else:
-            ok_ctr += 1
+# def collect_and_save_results():
+#     results, stats_logs, node_logs = collect_logs(instances)
+#     save_result(results=results, stats_logs=stats_logs,
+#                 node_logs=node_logs, **run_args)
 
-    with open(RESULTS_PATH, "a") as f:
-        f.write(f"{num_nodes};{num_rounds};{propose_duration};{acknowledge_duration};{vote_duration};"
-                + f"{tstart};{tend};\"{results_str}\";{result}\n")
 
-    d = os.path.join(DATA_PATH, str(tstart))
-    os.makedirs(d)
-    for s, n in zip(stats_logs, node_logs):
-        with open(os.path.join(d, f"{s.dnsname}_stats.log"), 'w') as f:
-            f.write(s.stdout)
-        with open(os.path.join(d, f"{n.dnsname}_node.log"), 'w') as f:
-            f.write(n.stdout)
+# def save_result(num_nodes, num_rounds, propose_duration, acknowledge_duration, vote_duration,
+#                 tstart, tend, results, stats_logs, node_logs):
+#     results_str = ','.join(f"{v.dnsname},{v.stdout}" for v in results)
+#     result = 'OK'
+#     ok_ctr = 0
+#     failed_ctr = 0
+#     for v in results:
+#         if v.stdout == 'FAILED':
+#             result = 'FAILED'
+#             failed_ctr += 1
+#         else:
+#             ok_ctr += 1
 
-    print("logs files writen")
-    print()
-    print(f"#################################")
-    print(f"### RESULT: {result}")
-    print(f"### OK returned by {ok_ctr} nodes")
-    print(f"### FAILED returned by {failed_ctr} nodes")
-    print(f"#################################")
-    print()
+#     with open(RESULTS_PATH, "a") as f:
+#         f.write(f"{num_nodes};{num_rounds};{propose_duration};{acknowledge_duration};{vote_duration};"
+#                 + f"{tstart};{tend};\"{results_str}\";{result}\n")
+
+#     d = os.path.join(DATA_PATH, str(tstart))
+#     os.makedirs(d)
+#     for s, n in zip(stats_logs, node_logs):
+#         with open(os.path.join(d, f"{s.dnsname}_stats.log"), 'w') as f:
+#             f.write(s.stdout)
+#         with open(os.path.join(d, f"{n.dnsname}_node.log"), 'w') as f:
+#             f.write(n.stdout)
+
+#     print("logs files writen")
+#     print()
+#     print(f"#################################")
+#     print(f"### RESULT: {result}")
+#     print(f"### OK returned by {ok_ctr} nodes")
+#     print(f"### FAILED returned by {failed_ctr} nodes")
+#     print(f"#################################")
+#     print()
 
 
 if __name__ == '__main__':
@@ -920,6 +922,7 @@ if __name__ == '__main__':
 
     # security group
     # create_or_update_security_groups()
+
     # import key pair
     # import_key_pair()
 
@@ -927,9 +930,6 @@ if __name__ == '__main__':
     # instances.create()
     # instances.stop()
     # instances.terminate()
-
-    randchain_processes = None
-    run_args = None
 
     # collect_and_save_results()
     # results, stats_logs, node_logs = collect_results()
