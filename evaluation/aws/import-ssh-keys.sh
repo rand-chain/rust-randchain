@@ -19,5 +19,5 @@ AWS_REGIONS=(
 
 for each in ${AWS_REGIONS}
 do
-aws ec2 import-key-pair --key-name randchain --public-key-material file://~/.ssh/randchain.pub --region $each
+    aws ec2 import-key-pair --key-name randchain --public-key-material file://~/.ssh/randchain.pub --region $each
 done
