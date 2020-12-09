@@ -23,6 +23,3 @@ tmp/
 
 # idea ide
 .idea
-
-# default mining key files
-*.key
