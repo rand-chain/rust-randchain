@@ -12,10 +12,11 @@ args:
     - peers:
         short: p
         long: peers
-        value_name: IP
-        help: Connect only to the specified nodes (ip:port,ip:port,...).
+        value_name: IP:PORT,IP:PORT,...
+        help: Connect only to the specified nodes.
         takes_value: true
     - peers-file:
+        short: P
         long: peers-file
         help: Connect to nodes specified in the file
         takes_value: true
@@ -28,7 +29,7 @@ args:
     - seednode:
         short: s
         long: seednode
-        value_name: IP
+        value_name: IP:PORT
         help: Connect to a seed-node to retrieve peer addresses, and disconnect.
         takes_value: true
     - port:
