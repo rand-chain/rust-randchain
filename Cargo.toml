@@ -12,22 +12,17 @@ app_dirs = { git = "https://github.com/paritytech/app-dirs-rs" }
 libc = "0.2"
 clap = { version = "2", features = ["yaml"] }
 chain = { path = "chain" }
-bitcrypto = { path = "crypto" }
-db = { path = "db" }
-logs = { path = "logs" }
 message = { path = "message" }
-miner = { path = "miner" }
 network = { path = "network" }
+miner = { path = "miner" }
 p2p = { path = "p2p" }
-primitives = { path = "primitives" }
-rpc = { path = "rpc" }
-serialization = { path = "serialization" }
-serialization_derive = { path = "serialization_derive" }
 storage = { path = "storage" }
-sync = { path = "sync" }
-test-data = { path = "test-data" }
-vdf = { path = "vdf" }
+db = { path = "db" }
 verification = { path = "verification" }
+sync = { path = "sync" }
+logs = { path = "logs" }
+rpc = { path = "rpc" }
+primitives = { path = "primitives" }
 
 [profile.dev]
 debug = true
@@ -45,22 +40,4 @@ path = "randchaind/main.rs"
 name = "randchaind"
 
 [workspace]
-members = [
-			"chain",
-			"crypto",
-			"db",
-			"logs",
-			"message",
-			"miner",
-			"network",
-			"p2p",
-			"primitives",
-			"rpc",
-			"serialization",
-			"serialization_derive",
-			"storage",
-			"sync",
-			"test-data",
-			"vdf",
-			"verification",
-		]
+members = ["bencher"]
