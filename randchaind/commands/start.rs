@@ -91,6 +91,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
     init_db(&cfg)?;
 
     let nodes_path = node_table_path(&cfg);
+    let peers = cfg.connect;
 
     let p2p_cfg = p2p::Config {
         threads: cfg.p2p_threads,
@@ -107,7 +108,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
             relay: true,
             network: cfg.network,
         },
-        peers: cfg.connect.map_or_else(|| vec![], |x| vec![x]),
+        peers: peers,
         seeds: cfg.seednodes,
         node_table_path: nodes_path,
         preferable_services: cfg.services,

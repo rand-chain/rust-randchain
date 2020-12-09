@@ -17,7 +17,7 @@ pub struct Config {
     pub network: Network,
     pub services: Services,
     pub port: u16,
-    pub connect: Option<net::SocketAddr>,
+    pub connect: Vec<net::SocketAddr>,
     pub host: net::IpAddr,
     pub seednodes: Vec<String>,
     pub quiet: bool,
@@ -78,19 +78,29 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
 
     let port = match matches.value_of("port") {
         Some(port) => port.parse().map_err(|_| "Invalid port".to_owned())?,
-        // TODO:
         None => network.port(),
     };
 
     let connect = match matches.value_of("connect") {
-        Some(s) => Some(match s.parse::<net::SocketAddr>() {
-            Err(_) => s
-                .parse::<net::IpAddr>()
-                .map(|ip| net::SocketAddr::new(ip, network.port()))
-                .map_err(|_| "Invalid connect".to_owned()),
-            Ok(a) => Ok(a),
-        }?),
-        None => None,
+        Some(addrs_raw) => {
+            let addrs_str_vec = addrs_raw.split(",");
+            let mut addrs_vec: Vec<net::SocketAddr> = vec![];
+            for addr_str in addrs_str_vec {
+                match addr_str.parse::<net::SocketAddr>() {
+                    Err(_) => {
+                        // without port, enforce the default port
+                        let addr = addr_str
+                            .parse::<net::IpAddr>()
+                            .map(|ip| net::SocketAddr::new(ip, network.port()))
+                            .unwrap();
+                        addrs_vec.push(addr);
+                    }
+                    Ok(a) => addrs_vec.push(a), // with port
+                }
+            }
+            addrs_vec
+        }
+        None => vec![],
     };
 
     let seednodes: Vec<String> = match matches.value_of("seednode") {

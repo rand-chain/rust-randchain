@@ -4,6 +4,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
+    command: ["-c", "10.0.0.2:8333,10.0.0.3:8333,10.0.0.4:8333,10.0.0.5:8333"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
@@ -17,7 +18,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-c", "10.0.0.2"]
+    command: ["-c", "10.0.0.2:8333,10.0.0.3:8333,10.0.0.4:8333,10.0.0.5:8333"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
@@ -33,7 +34,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-c", "10.0.0.2"]
+    command: ["-c", "10.0.0.2:8333,10.0.0.3:8333,10.0.0.4:8333,10.0.0.5:8333"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
@@ -49,7 +50,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-c", "10.0.0.2"]
+    command: ["-c", "10.0.0.2:8333,10.0.0.3:8333,10.0.0.4:8333,10.0.0.5:8333"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace

@@ -13,7 +13,7 @@ args:
         short: c
         long: connect
         value_name: IP
-        help: Connect only to the specified node.
+        help: Connect only to the specified nodes (ip:port,ip:port,...).
         takes_value: true
     - host:
         short: h
