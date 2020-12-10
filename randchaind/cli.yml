@@ -12,12 +12,13 @@ args:
     - peers:
         short: p
         long: peers
-        value_name: IP:PORT,IP:PORT,...
+        value_name: IP[:PORT],IP:[:PORT],...
         help: Connect only to the specified nodes.
         takes_value: true
     - peers-file:
         short: P
         long: peers-file
+        value_name: PATH
         help: Connect to nodes specified in the file
         takes_value: true
     - host:
@@ -26,10 +27,10 @@ args:
         value_name: HOST
         help: Listen for connections on HOST.
         takes_value: true
-    - seednode:
+    - seednodes:
         short: s
-        long: seednode
-        value_name: IP:PORT
+        long: seednodes
+        value_name: IP:[:PORT],IP:[:PORT],...
         help: Connect to a seed-node to retrieve peer addresses, and disconnect.
         takes_value: true
     - port:

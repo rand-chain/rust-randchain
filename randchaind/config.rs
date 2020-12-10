@@ -6,6 +6,7 @@ use primitives::hash::H256;
 use rpc::HttpConfiguration as RpcHttpConfig;
 use rpc_apis::ApiSet;
 use seednodes::{mainnet_seednodes, testnet_seednodes};
+use std::fs;
 use std::net;
 use storage;
 use sync::VerificationParameters;
@@ -19,7 +20,7 @@ pub struct Config {
     pub port: u16,
     pub peers: Vec<net::SocketAddr>,
     pub host: net::IpAddr,
-    pub seednodes: Vec<String>,
+    pub seednodes: Vec<String>, // we use String rather than SocketAddr as DNS resolver takes String
     pub quiet: bool,
     pub inbound_connections: u32,
     pub outbound_connections: u32,
@@ -82,7 +83,8 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     };
 
     // construct nodes needed to be connected
-    let peers = match matches.value_of("peers") {
+    // both --peers and --peers-file can be used for specifying peers
+    let mut peers = match matches.value_of("peers") {
         Some(addrs_raw) => {
             let addrs_str_vec = addrs_raw.split(",");
             let mut addrs_vec: Vec<net::SocketAddr> = vec![];
@@ -103,9 +105,39 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         }
         None => vec![],
     };
+    if let Some(peers_file_path) = matches.value_of("peers-file") {
+        peers = vec![];
+        let content: String =
+            fs::read_to_string(peers_file_path).expect("Something went wrong reading the file");
+        let addrs_raw = content.to_string();
+        let addrs_str_vec = addrs_raw.split('\n');
+        for addr_str in addrs_str_vec {
+            match addr_str.parse::<net::SocketAddr>() {
+                Err(_) => {
+                    // without port, enforce the default port
+                    let addr = addr_str
+                        .parse::<net::IpAddr>()
+                        .map(|ip| net::SocketAddr::new(ip, network.port()))
+                        .unwrap();
+                    peers.push(addr);
+                }
+                Ok(a) => peers.push(a), // with port
+            }
+        }
+    }
 
     let seednodes: Vec<String> = match matches.value_of("seednode") {
-        Some(s) => vec![s.parse().map_err(|_| "Invalid seednode".to_owned())?],
+        Some(addrs_raw) => {
+            let addrs_str_vec = addrs_raw.split(",");
+            let mut addrs_vec: Vec<String> = vec![];
+            for addr_str in addrs_str_vec {
+                match addr_str.parse::<net::SocketAddr>() {
+                    Err(_) => addrs_vec.push(format!("{}:{}", addr_str, network.dns_port())), // no port
+                    Ok(_) => addrs_vec.push(addr_str.to_owned()), // with port
+                }
+            }
+            addrs_vec
+        }
         None => match network {
             Network::Mainnet => mainnet_seednodes().into_iter().map(Into::into).collect(),
             Network::Testnet => testnet_seednodes().into_iter().map(Into::into).collect(),
