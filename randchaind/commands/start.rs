@@ -1,10 +1,14 @@
 use super::super::rpc;
+use chain::{Block, BlockHeader, IndexedBlock};
+use ecvrf;
+use miner;
 use primitives::hash::H256;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Arc;
 use std::thread;
+use storage::BlockRef;
 use sync::{
     create_local_sync_node, create_sync_connection_factory, create_sync_peers, SyncListener,
 };
@@ -128,18 +132,51 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
         local_sync_node.install_sync_listener(Box::new(BlockNotifier::new(block_notify_command)));
     }
 
+    // start P2P server
     let p2p =
         p2p::P2P::new(p2p_cfg, sync_connection_factory, el.handle()).map_err(|x| x.to_string())?;
+    p2p.run().map_err(|_| "Failed to start p2p module")?;
+
+    // start RPC server
     let rpc_deps = rpc::Dependencies {
         network: cfg.network,
-        storage: cfg.db,
-        local_sync_node: local_sync_node,
+        storage: cfg.db.clone(),
+        local_sync_node: local_sync_node.clone(),
         p2p_context: p2p.context().clone(),
         remote: el.remote(),
     };
     let _rpc_server = rpc::new_http(cfg.rpc_config, rpc_deps)?;
 
-    p2p.run().map_err(|_| "Failed to start p2p module")?;
+    // Miner
+    let (sk, pk) = ecvrf::keygen();
+    let (num_nodes, blocktime, db_cloned) = (cfg.num_nodes, cfg.blocktime, cfg.db.clone());
+    thread::spawn(move || {
+        let mut iters = 0;
+        loop {
+            let blktpl = local_sync_node.clone().get_block_template();
+            if let Some(solution) =
+                miner::find_solution_mock(&blktpl, &pk.clone(), iters, num_nodes, blocktime)
+            {
+                trace!("Mined a block!");
+                let blk = chain::Block {
+                    block_header: BlockHeader {
+                        version: 1,
+                        previous_header_hash: blktpl.previous_header_hash,
+                        time: 4,
+                        bits: 5.into(),
+                        pubkey: pk.clone(),
+                        iterations: solution.iterations,
+                        randomness: solution.randomness,
+                    },
+                    proof: solution.proof,
+                };
+                db_cloned.insert(IndexedBlock::from(blk));
+                iters = 0;
+            }
+        }
+    });
+
+    // Keep the main process running forever
     el.run(p2p::forever()).unwrap();
     Ok(())
 }

@@ -32,6 +32,8 @@ pub struct Config {
     pub block_notify_command: Option<String>,
     pub verification_params: VerificationParameters,
     pub db: storage::SharedStore,
+    pub num_nodes: u16,
+    pub blocktime: u16,
 }
 
 pub const DEFAULT_DB_CACHE: usize = 512;
@@ -148,6 +150,16 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         _ => network.default_verification_edge(),
     };
 
+    let num_nodes = match matches.value_of("num-nodes") {
+        Some(s) => s.parse().map_err(|_| "Invalid num_nodes".to_owned())?,
+        None => 4,
+    };
+
+    let blocktime = match matches.value_of("blocktime") {
+        Some(s) => s.parse().map_err(|_| "Invalid blocktime".to_owned())?,
+        None => 10, // 1 minute
+    };
+
     let config = Config {
         quiet: quiet,
         network: network,
@@ -170,6 +182,8 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
             verification_edge: verification_edge,
         },
         db: db,
+        num_nodes: num_nodes,
+        blocktime: blocktime,
     };
 
     Ok(config)

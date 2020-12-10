@@ -10,8 +10,10 @@ extern crate libc;
 
 extern crate chain;
 extern crate db;
+extern crate ecvrf;
 extern crate logs;
 extern crate message;
+extern crate miner;
 extern crate network;
 extern crate p2p;
 extern crate primitives;

@@ -70,43 +70,41 @@ pub struct Solution {
 pub fn find_solution_mock(
     block: &BlockTemplate,
     pubkey: &VrfPk,
+    mut iterations: u64,
     num_nodes: u16,
     blocktime: u16,
 ) -> Option<Solution> {
+    // INJECT find_solution to somewhere
+    thread::sleep(time::Duration::from_secs(1));
     let g = h_g_blk(block, pubkey);
-    let mut iterations = 0u64;
-    loop {
-        // TODO: START FROM HERE
-        // INJECT find_solution to somewhere
-        thread::sleep(time::Duration::from_secs(1));
-        iterations += STEP as u64;
-        if iterations > (u32::max_value() as u64) {
-            return None;
-        }
-
-        let mut rng = rand::thread_rng();
-        let r: f32 = rng.gen(); // generates a float between 0 and 1
-
-        if r * (num_nodes as f32) * (blocktime as f32) <= 1f32 {
-            let mut r_bytes = Bytes::from(r.to_ne_bytes().to_vec());
-            let y = h_g(&r_bytes, pubkey);
-            let block_header_hash = dhash256(&serialize(&BlockHeader {
-                version: block.version,
-                previous_header_hash: block.previous_header_hash,
-                time: block.time,
-                bits: block.bits,
-                pubkey: pubkey.clone(),
-                iterations: iterations as u32,
-                randomness: y.clone(),
-            }));
-
-            let solution = Solution {
-                iterations: iterations as u32,
-                randomness: y.clone(),
-                proof: vdf::prove(&g, &y, iterations as u32),
-            };
-
-            return Some(solution);
-        }
+    iterations += STEP as u64;
+    if iterations > (u32::max_value() as u64) {
+        return None;
     }
+
+    let mut rng = rand::thread_rng();
+    let r: f32 = rng.gen(); // generates a float between 0 and 1
+
+    if r * (num_nodes as f32) * (blocktime as f32) <= 1f32 {
+        let mut r_bytes = Bytes::from(r.to_ne_bytes().to_vec());
+        let y = h_g(&r_bytes, pubkey);
+        let block_header_hash = dhash256(&serialize(&BlockHeader {
+            version: block.version,
+            previous_header_hash: block.previous_header_hash,
+            time: block.time,
+            bits: block.bits,
+            pubkey: pubkey.clone(),
+            iterations: iterations as u32,
+            randomness: y.clone(),
+        }));
+
+        let solution = Solution {
+            iterations: iterations as u32,
+            randomness: y.clone(),
+            proof: vdf::prove(&g, &y, iterations as u32),
+        };
+
+        return Some(solution);
+    }
+    return None;
 }
