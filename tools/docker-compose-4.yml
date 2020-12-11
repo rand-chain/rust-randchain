@@ -4,6 +4,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
+    command: ["--verification-level", "none"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
@@ -17,7 +18,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-c", "10.0.0.2"]
+    command: ["-c", "10.0.0.2", "--verification-level", "none"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
@@ -33,7 +34,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-c", "10.0.0.2"]
+    command: ["-c", "10.0.0.2", "--verification-level", "none"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
@@ -49,7 +50,7 @@ services:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-c", "10.0.0.2"]
+    command: ["-c", "10.0.0.2", "--verification-level", "none"]
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace

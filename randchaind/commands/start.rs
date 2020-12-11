@@ -152,8 +152,9 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
     let (num_nodes, blocktime, db_cloned) = (cfg.num_nodes, cfg.blocktime, cfg.db.clone());
     thread::spawn(move || {
         let mut iters = 0;
+        let lsn_cloned = local_sync_node.clone();
         loop {
-            let blktpl = local_sync_node.clone().get_block_template();
+            let blktpl = lsn_cloned.get_block_template();
             if let Some(solution) =
                 miner::find_solution_mock(&blktpl, &pk.clone(), iters, num_nodes, blocktime)
             {
@@ -170,7 +171,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
                     proof: solution.proof,
                 };
                 trace!("Mined a block {}!", blk.hash());
-                db_cloned.insert(IndexedBlock::from(blk));
+                lsn_cloned.on_block(0, IndexedBlock::from(blk));
                 iters = 0;
             }
         }
