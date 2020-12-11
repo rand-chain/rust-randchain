@@ -171,6 +171,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
                     proof: solution.proof,
                 };
                 trace!("Mined a block {}!", blk.hash());
+                // Let's use PeerIndex=0 to identify the node itself
                 lsn_cloned.on_block(0, IndexedBlock::from(blk));
                 iters = 0;
             }
