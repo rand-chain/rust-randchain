@@ -157,7 +157,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
 
     let blocktime = match matches.value_of("blocktime") {
         Some(s) => s.parse().map_err(|_| "Invalid blocktime".to_owned())?,
-        None => 10, // 1 minute
+        None => 10, // 10s
     };
 
     let config = Config {
