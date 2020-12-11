@@ -157,7 +157,6 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
             if let Some(solution) =
                 miner::find_solution_mock(&blktpl, &pk.clone(), iters, num_nodes, blocktime)
             {
-                trace!("Mined a block!");
                 let blk = chain::Block {
                     block_header: BlockHeader {
                         version: 1,
@@ -170,6 +169,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
                     },
                     proof: solution.proof,
                 };
+                trace!("Mined a block {}!", blk.hash());
                 db_cloned.insert(IndexedBlock::from(blk));
                 iters = 0;
             }
