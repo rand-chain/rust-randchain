@@ -96,7 +96,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
                             .parse::<net::IpAddr>()
                             .map(|ip| net::SocketAddr::new(ip, network.port()))
                             .unwrap();
-                        peers.push(addr);
+                        addrs.push(addr);
                     }
                     Ok(a) => addrs.push(a), // with port given
                 }
@@ -107,9 +107,9 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     };
     if let Some(peers_file_path) = matches.value_of("peers-file") {
         peers = vec![];
-        let content: String =
+        let addrs_cfg: String =
             fs::read_to_string(peers_file_path).expect("Something went wrong reading peers-file");
-        let addrs_cfg = content.to_string();
+        // let addrs_cfg = content.to_string();
         for addr_str in addrs_cfg.split('\n') {
             match addr_str.parse::<net::SocketAddr>() {
                 Err(_) => {
