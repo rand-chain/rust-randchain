@@ -86,22 +86,22 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     // both --peers and --peers-file can be used for specifying peers
     let mut peers = match matches.value_of("peers") {
         Some(addrs_raw) => {
-            let addrs_str_vec = addrs_raw.split(",");
-            let mut addrs_vec: Vec<net::SocketAddr> = vec![];
-            for addr_str in addrs_str_vec {
+            let mut addrs: Vec<net::SocketAddr> = vec![];
+            for addr_str in addrs_raw.split(",") {
                 match addr_str.parse::<net::SocketAddr>() {
                     Err(_) => {
                         // without port, enforce the default port
-                        let addr = addr_str
-                            .parse::<net::IpAddr>()
-                            .map(|ip| net::SocketAddr::new(ip, network.port()))
-                            .unwrap();
-                        addrs_vec.push(addr);
+                        addrs.push(
+                            addr_str
+                                .parse::<net::IpAddr>()
+                                .map(|ip| net::SocketAddr::new(ip, network.port()))
+                                .unwrap(),
+                        );
                     }
-                    Ok(a) => addrs_vec.push(a), // with port
+                    Ok(a) => addrs.push(a), // with port
                 }
             }
-            addrs_vec
+            addrs
         }
         None => vec![],
     };
