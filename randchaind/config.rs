@@ -128,15 +128,14 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
 
     let seednodes: Vec<String> = match matches.value_of("seednode") {
         Some(addrs_raw) => {
-            let addrs_str_vec = addrs_raw.split(",");
-            let mut addrs_vec: Vec<String> = vec![];
-            for addr_str in addrs_str_vec {
+            let mut addrs: Vec<String> = vec![];
+            for addr_str in addrs_raw.split(",") {
                 match addr_str.parse::<net::SocketAddr>() {
-                    Err(_) => addrs_vec.push(format!("{}:{}", addr_str, network.dns_port())), // no port
-                    Ok(_) => addrs_vec.push(addr_str.to_owned()), // with port
+                    Err(_) => addrs.push(format!("{}:{}", addr_str, network.dns_port())), // no port
+                    Ok(_) => addrs.push(addr_str.to_owned()), // with port
                 }
             }
-            addrs_vec
+            addrs
         }
         None => match network {
             Network::Mainnet => mainnet_seednodes().into_iter().map(Into::into).collect(),
