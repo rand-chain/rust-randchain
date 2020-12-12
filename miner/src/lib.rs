@@ -18,9 +18,8 @@ extern crate verification;
 
 mod block_assembler;
 mod cpu_miner;
-mod mock_miner;
+pub mod mock;
 
 pub use block_assembler::{BlockAssembler, BlockTemplate};
 pub use cpu_miner::{find_solution, Solution};
-pub use mock_miner::find_solution_mock;
 pub use primitives::hash;

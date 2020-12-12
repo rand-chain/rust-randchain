@@ -1,5 +1,5 @@
 use super::super::rpc;
-use chain::{Block, BlockHeader, IndexedBlock};
+use chain::{BlockHeader, IndexedBlock};
 use ecvrf;
 use miner;
 use primitives::hash::H256;
@@ -8,7 +8,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Arc;
 use std::thread;
-use storage::BlockRef;
 use sync::{
     create_local_sync_node, create_sync_connection_factory, create_sync_peers, SyncListener,
 };
@@ -148,15 +147,15 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
     let _rpc_server = rpc::new_http(cfg.rpc_config, rpc_deps)?;
 
     // Miner
-    let (sk, pk) = ecvrf::keygen();
-    let (num_nodes, blocktime, db_cloned) = (cfg.num_nodes, cfg.blocktime, cfg.db.clone());
+    let (_, pk) = ecvrf::keygen();
+    let network_target: u32 = (cfg.num_nodes * cfg.blocktime).into();
     thread::spawn(move || {
         let mut iters = 0;
         let lsn_cloned = local_sync_node.clone();
         loop {
             let blktpl = lsn_cloned.get_block_template();
             if let Some(solution) =
-                miner::find_solution_mock(&blktpl, &pk.clone(), iters, num_nodes, blocktime)
+                miner::mock::try_solve_one_shot(&blktpl, &pk.clone(), iters, network_target)
             {
                 let blk = chain::Block {
                     block_header: BlockHeader {

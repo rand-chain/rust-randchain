@@ -6,7 +6,6 @@ use rug::{integer::Order, Integer};
 use sha2::{Digest, Sha256};
 
 use block_assembler::BlockTemplate;
-use chain::BlockHeader;
 use cpu_miner::Solution;
 use crypto::dhash256;
 use primitives::bytes::Bytes;
@@ -47,14 +46,12 @@ fn h_g_inner(data: &Bytes, _pubkey: &VrfPk) -> Integer {
 }
 
 /// Simple randchain cpu miner.
-pub fn find_solution_mock(
+pub fn try_solve_one_shot(
     block: &BlockTemplate,
     pubkey: &VrfPk,
     mut iterations: u64,
-    num_nodes: u16,
-    blocktime: u16,
+    network_target: u32,
 ) -> Option<Solution> {
-    // INJECT find_solution to somewhere
     thread::sleep(time::Duration::from_secs(1));
     let g = h_g(block, pubkey);
     iterations += STEP as u64;
@@ -64,8 +61,7 @@ pub fn find_solution_mock(
 
     let mut rng = rand::thread_rng();
     let r: f32 = rng.gen(); // generates a float between 0 and 1
-
-    if r * (num_nodes as f32) * (blocktime as f32) <= 1f32 {
+    if r <= (1f32) / (network_target as f32) {
         let y = h_g_inner(&Bytes::from(r.to_ne_bytes().to_vec()), pubkey);
         let solution = Solution {
             iterations: iterations as u32,
