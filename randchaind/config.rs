@@ -84,21 +84,21 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
 
     // construct nodes needed to be connected
     // both --peers and --peers-file can be used for specifying peers
+    // if <peers-file> is given, <peers> will be ignored
     let mut peers = match matches.value_of("peers") {
-        Some(addrs_raw) => {
+        Some(addrs_cfg) => {
             let mut addrs: Vec<net::SocketAddr> = vec![];
-            for addr_str in addrs_raw.split(",") {
+            for addr_str in addrs_cfg.split(",") {
                 match addr_str.parse::<net::SocketAddr>() {
                     Err(_) => {
-                        // without port, enforce the default port
-                        addrs.push(
-                            addr_str
-                                .parse::<net::IpAddr>()
-                                .map(|ip| net::SocketAddr::new(ip, network.port()))
-                                .unwrap(),
-                        );
+                        // no port given, enforce the default port
+                        let addr = addr_str
+                            .parse::<net::IpAddr>()
+                            .map(|ip| net::SocketAddr::new(ip, network.port()))
+                            .unwrap();
+                        peers.push(addr);
                     }
-                    Ok(a) => addrs.push(a), // with port
+                    Ok(a) => addrs.push(a), // with port given
                 }
             }
             addrs
@@ -108,31 +108,30 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     if let Some(peers_file_path) = matches.value_of("peers-file") {
         peers = vec![];
         let content: String =
-            fs::read_to_string(peers_file_path).expect("Something went wrong reading the file");
-        let addrs_raw = content.to_string();
-        let addrs_str_vec = addrs_raw.split('\n');
-        for addr_str in addrs_str_vec {
+            fs::read_to_string(peers_file_path).expect("Something went wrong reading peers-file");
+        let addrs_cfg = content.to_string();
+        for addr_str in addrs_cfg.split('\n') {
             match addr_str.parse::<net::SocketAddr>() {
                 Err(_) => {
-                    // without port, enforce the default port
+                    // no port given, enforce the default port
                     let addr = addr_str
                         .parse::<net::IpAddr>()
                         .map(|ip| net::SocketAddr::new(ip, network.port()))
                         .unwrap();
                     peers.push(addr);
                 }
-                Ok(a) => peers.push(a), // with port
+                Ok(a) => peers.push(a), // with port given
             }
         }
     }
 
     let seednodes: Vec<String> = match matches.value_of("seednode") {
-        Some(addrs_raw) => {
+        Some(addrs_cfg) => {
             let mut addrs: Vec<String> = vec![];
-            for addr_str in addrs_raw.split(",") {
+            for addr_str in addrs_cfg.split(",") {
                 match addr_str.parse::<net::SocketAddr>() {
-                    Err(_) => addrs.push(format!("{}:{}", addr_str, network.dns_port())), // no port
-                    Ok(_) => addrs.push(addr_str.to_owned()), // with port
+                    Err(_) => addrs.push(format!("{}:{}", addr_str, network.dns_port())), // no port given, enforce the default port
+                    Ok(_) => addrs.push(addr_str.to_owned()), // with port given
                 }
             }
             addrs
