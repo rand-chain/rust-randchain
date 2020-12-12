@@ -1,20 +1,21 @@
-use block_assembler::BlockTemplate;
-use chain::BlockHeader;
-use crypto::dhash256;
-use ecvrf::VrfPk;
-use primitives::bytes::Bytes;
-use rand::prelude::*;
-use rug::{integer::Order, Integer};
-use ser::Stream;
-use sha2::{Digest, Sha256};
 use std::{thread, time};
 
+use ecvrf::VrfPk;
+use rand::prelude::*;
+use rug::{integer::Order, Integer};
+use sha2::{Digest, Sha256};
+
+use block_assembler::BlockTemplate;
+use chain::BlockHeader;
 use cpu_miner::Solution;
+use crypto::dhash256;
+use primitives::bytes::Bytes;
+use ser::Stream;
 
 const STEP: u32 = 1024;
 
 // consistent with verification/src/verify_block.rs
-fn h_g_blk(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
+fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
     let mut stream = Stream::default();
     stream
         .append(&block.version)
@@ -23,11 +24,11 @@ fn h_g_blk(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
         .append(&block.bits)
         .append(&Bytes::from(pubkey.to_bytes().to_vec()));
 
-    h_g(&stream.out(), pubkey)
+    h_g_inner(&stream.out(), pubkey)
 }
 
 // consistent with verification/src/verify_block.rs
-fn h_g(data: &Bytes, _pubkey: &VrfPk) -> Integer {
+fn h_g_inner(data: &Bytes, _pubkey: &VrfPk) -> Integer {
     let seed = dhash256(&data);
     let prefix = "residue_part_".as_bytes();
     // concat 8 sha256 to a 2048-bit hash
@@ -55,7 +56,7 @@ pub fn find_solution_mock(
 ) -> Option<Solution> {
     // INJECT find_solution to somewhere
     thread::sleep(time::Duration::from_secs(1));
-    let g = h_g_blk(block, pubkey);
+    let g = h_g(block, pubkey);
     iterations += STEP as u64;
     if iterations > (u32::max_value() as u64) {
         return None;
@@ -65,7 +66,7 @@ pub fn find_solution_mock(
     let r: f32 = rng.gen(); // generates a float between 0 and 1
 
     if r * (num_nodes as f32) * (blocktime as f32) <= 1f32 {
-        let y = h_g(&Bytes::from(r.to_ne_bytes().to_vec()), pubkey);
+        let y = h_g_inner(&Bytes::from(r.to_ne_bytes().to_vec()), pubkey);
         let solution = Solution {
             iterations: iterations as u32,
             randomness: y.clone(),
