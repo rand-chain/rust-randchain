@@ -5,9 +5,11 @@ use ecvrf::VrfPk;
 use primitives::bytes::Bytes;
 use rand::prelude::*;
 use rug::{integer::Order, Integer};
-use ser::{serialize, Stream};
+use ser::Stream;
 use sha2::{Digest, Sha256};
 use std::{thread, time};
+
+use cpu_miner::Solution;
 
 const STEP: u32 = 1024;
 
@@ -25,7 +27,7 @@ fn h_g_blk(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
 }
 
 // consistent with verification/src/verify_block.rs
-fn h_g(data: &Bytes, pubkey: &VrfPk) -> Integer {
+fn h_g(data: &Bytes, _pubkey: &VrfPk) -> Integer {
     let seed = dhash256(&data);
     let prefix = "residue_part_".as_bytes();
     // concat 8 sha256 to a 2048-bit hash
@@ -41,13 +43,6 @@ fn h_g(data: &Bytes, pubkey: &VrfPk) -> Integer {
         .collect();
     let result = Integer::from_digits(&all_2048, Order::Lsf);
     result.div_rem_floor(vdf::MODULUS.clone()).1
-}
-
-/// Cpu miner solution.
-pub struct Solution {
-    pub iterations: u32,
-    pub randomness: Integer,
-    pub proof: vdf::Proof,
 }
 
 /// Simple randchain cpu miner.
@@ -70,18 +65,7 @@ pub fn find_solution_mock(
     let r: f32 = rng.gen(); // generates a float between 0 and 1
 
     if r * (num_nodes as f32) * (blocktime as f32) <= 1f32 {
-        let mut r_bytes = Bytes::from(r.to_ne_bytes().to_vec());
-        let y = h_g(&r_bytes, pubkey);
-        let block_header_hash = dhash256(&serialize(&BlockHeader {
-            version: block.version,
-            previous_header_hash: block.previous_header_hash,
-            time: block.time,
-            bits: block.bits,
-            pubkey: pubkey.clone(),
-            iterations: iterations as u32,
-            randomness: y.clone(),
-        }));
-
+        let y = h_g(&Bytes::from(r.to_ne_bytes().to_vec()), pubkey);
         let solution = Solution {
             iterations: iterations as u32,
             randomness: y.clone(),
