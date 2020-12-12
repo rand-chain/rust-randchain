@@ -1,5 +1,4 @@
 use block_assembler::BlockTemplate;
-use byteorder::BigEndian;
 use chain::BlockHeader;
 use crypto::dhash256;
 use ecvrf::VrfPk;
@@ -9,7 +8,6 @@ use rug::{integer::Order, Integer};
 use ser::{serialize, Stream};
 use sha2::{Digest, Sha256};
 use std::{thread, time};
-use verification::is_valid_proof_of_work_hash;
 
 const STEP: u32 = 1024;
 
