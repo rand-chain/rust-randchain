@@ -45,7 +45,7 @@ fn h_g_inner(data: &Bytes, _pubkey: &VrfPk) -> Integer {
     result.div_rem_floor(vdf::MODULUS.clone()).1
 }
 
-/// Simple randchain cpu miner.
+/// Simple mocking randchain cpu miner.
 pub fn try_solve_one_shot(
     block: &BlockTemplate,
     pubkey: &VrfPk,
