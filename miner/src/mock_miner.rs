@@ -22,22 +22,8 @@ fn h_g_blk(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
         .append(&block.time)
         .append(&block.bits)
         .append(&Bytes::from(pubkey.to_bytes().to_vec()));
-    let data = stream.out();
-    let seed = dhash256(&data);
-    let prefix = "residue_part_".as_bytes();
-    // concat 8 sha256 to a 2048-bit hash
-    let all_2048: Vec<u8> = (0..((2048 / 256) as u8))
-        .map(|index| {
-            let mut hasher = Sha256::new();
-            hasher.update(prefix);
-            hasher.update(vec![index]);
-            hasher.update(<[u8; 32]>::from(seed));
-            hasher.finalize()
-        })
-        .flatten()
-        .collect();
-    let result = Integer::from_digits(&all_2048, Order::Lsf);
-    result.div_rem_floor(vdf::MODULUS.clone()).1
+
+    h_g(&stream.out(), pubkey)
 }
 
 // consistent with verification/src/verify_block.rs
