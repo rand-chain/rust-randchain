@@ -10,6 +10,8 @@ pub struct MinerClient<T: MinerClientCoreApi> {
 
 pub trait MinerClientCoreApi: Send + Sync + 'static {
     fn get_block_template(&self) -> miner::BlockTemplate;
+
+    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse;
 }
 
 pub struct MinerClientCore {
@@ -28,6 +30,10 @@ impl MinerClientCoreApi for MinerClientCore {
     fn get_block_template(&self) -> miner::BlockTemplate {
         self.local_sync_node.get_block_template()
     }
+    
+    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse;
+        self.local_sync_node.submit_block(block)
+    }
 }
 
 impl<T> MinerClient<T>
@@ -45,6 +51,10 @@ where
 {
     fn get_block_template(&self, _request: BlockTemplateRequest) -> Result<BlockTemplate, Error> {
         Ok(self.core.get_block_template().into())
+    }
+
+    fn submit_block(&self, block: SubmitBlockRequest) -> Result<SubmitBlockResponse, Error> {
+        Ok(self.core.submit_block(block).into())
     }
 }
 
