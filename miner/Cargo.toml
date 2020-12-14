@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Ethcore <admin@ethcore.io>"]
 
 [dependencies]
-byteorder = "1.0"
+rand = "0.7.3"
 bigint = "1.0"
 heapsize = "0.4"
 ecvrf = "0.4.2"

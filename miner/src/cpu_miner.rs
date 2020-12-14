@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 use block_assembler::BlockTemplate;
 use chain::BlockHeader;
 use crypto::dhash256;
@@ -45,11 +47,17 @@ pub struct Solution {
 }
 
 /// Simple randchain cpu miner.
-pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> {
+pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -> Option<Solution> {
+    let start_time = Instant::now();
+
     let g = h_g(block, pubkey);
     let mut cur_y = g.clone();
     let mut iterations = 0u64;
     loop {
+        if timeout != Duration::new(0, 0) && start_time.elapsed() > timeout {
+            return None;
+        }
+
         iterations += STEP as u64;
         if iterations > (u32::max_value() as u64) {
             return None;
@@ -86,6 +94,7 @@ mod tests {
     use block_assembler::BlockTemplate;
     use ecvrf::VrfPk;
     use primitives::bigint::{Uint, U256};
+    use std::time::Duration;
 
     #[test]
     fn test_cpu_miner_low_difficulty() {
@@ -99,7 +108,7 @@ mod tests {
 
         // generate or load key
         let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
-        let solution = find_solution(&block_template, &pubkey);
+        let solution = find_solution(&block_template, &pubkey, Duration::from_secs(0));
         assert!(solution.is_some());
     }
 }
