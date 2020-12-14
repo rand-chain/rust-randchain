@@ -110,7 +110,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
             relay: true,
             network: cfg.network,
         },
-        peers: cfg.connect.map_or_else(|| vec![], |x| vec![x]),
+        peers: cfg.peers,
         seeds: cfg.seednodes,
         node_table_path: nodes_path,
         preferable_services: cfg.services,

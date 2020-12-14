@@ -75,6 +75,10 @@ impl Network {
         }
     }
 
+    pub fn dns_port(&self) -> u16 {
+        53u16
+    }
+
     pub fn rpc_port(&self) -> u16 {
         match *self {
             Network::Mainnet | Network::Other(_) => 8332,

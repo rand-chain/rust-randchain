@@ -20,6 +20,7 @@ FROM rust:1.45 as runtime
 LABEL authors="Haoyu Lin and Runchao Han"
 WORKDIR /app
 COPY --from=builder /app/target/release/randchaind /bin/randchaind
+COPY --from=builder /app/tools/ /randchain-tools/
 # show backtraces
 ENV RUST_BACKTRACE=full
 ENV RUST_LOG=trace
