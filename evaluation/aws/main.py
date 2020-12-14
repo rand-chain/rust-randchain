@@ -1,4 +1,5 @@
 import boto3
+import socket
 import collections
 import dataclasses
 import enum
@@ -20,10 +21,9 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 ################################################################
 # Parameters
 
-TESTING = True
-NUM_NODES = 3
-REFRESH_INTERVAL = 5.0
 
+NUM_NODES = 1000
+REFRESH_INTERVAL = 5.0
 REGIONS = {
     'us-east-1': 'N. Virginia',
     'us-west-1': 'N. California',
@@ -41,12 +41,19 @@ REGIONS = {
     'eu-central-1': 'Frankfurt',
 }
 
-if TESTING:
+TESTING = 1
+if TESTING == 1:
     REGIONS = {
         'us-east-1': 'N. Virginia',
         'us-west-1': 'N. California',
         'ap-south-1': 'Mumbai',
     }
+    NUM_NODES = 3
+elif TESTING == 2:
+    REGIONS = {
+        'us-east-1': 'N. Virginia',
+    }
+    NUM_NODES = 32
 
 INSTANCE_COUNT_PER_REGION: Dict[str, int] = collections.defaultdict(int)
 _t_num_nodes = NUM_NODES
@@ -137,12 +144,13 @@ class Instance:
     def __init__(self, id: str, region: str, dnsname: str = None, state: InstanceState = None):
         self.id = id
         self.region = region
-        self.dnsname = dnsname or None
         self.ssh_ok = False
         self.status = None
         self.state = state
         self.raw_info = None
         self.raw_status = None
+        self.dnsname = dnsname or None
+        self.public_ip = None
 
     @property
     def state(self):
@@ -304,6 +312,10 @@ class Instances:
             if verbose:
                 print(end=".", flush=True)
 
+    def load_ips(self):
+        for i in self.running:
+            i.public_ip = socket.gethostbyname(i.dnsname)
+
     def wait_for_startup(self, what=None):
         what = self if what is None else self.lookup(what)
         print(f"waiting for startup...", end='', flush=True)
@@ -367,7 +379,7 @@ class Instances:
         print(" done")
 
     def get_peers(self):
-        return [f"{i.dnsname}:8333" for i in self.running]
+        return [f"{i.public_ip}:8333" for i in self.running]
 
     def create(self, instance_count_per_region=None, dryrun=False):
         if instance_count_per_region is None:
@@ -601,18 +613,17 @@ class Operator:
         for result in results:
             print(f"connected to {result.id+':': <{fmtlen}} {result.stdout}")
 
-    def deploy(self, instances):
-        update_nodes_list()
-        self._ssh_run("cd /home/ec2-user", instances)
-        results = self._ssh_run(
-            f'wget https://randchain-dev.s3-us-west-1.amazonaws.com/randchaind', instances)
-        for r in results:
-            if not r.stdout:
-                print('Deployed RandChain on host %s' % r.dnsname)
+    # def deploy(self, instances):
+    #     self._ssh_run("cd /home/ec2-user", instances)
+    #     results = self._ssh_run(
+    #         f'wget https://randchain-dev.s3-us-west-1.amazonaws.com/randchaind', instances)
+    #     for r in results:
+    #         if not r.stdout:
+    #             print('Deployed RandChain on host %s' % r.dnsname)
 
     def clean(self, instances):
         print("Killing randchaind processes and removing logs")
-        results = self._ssh_run("pkill -9 -f randchaind; rm -f ~/stats.log; rm -f ~/randchaind.log",
+        results = self._ssh_run("pkill -9 -f randchaind; rm -f ~/stats.log ~/randchaind.log",
                                 instances, raise_exception_on_failure=False)
         for r in results:
             if r.exit_code == 0:
@@ -632,6 +643,7 @@ class Operator:
             f"cd /home/ec2-user/ &&",
             f"chmod +x ./randchaind &&",
             f"nohup ./randchaind",
+            f"--verification-level none",
             f"--num-nodes {len(instances.running)}",
             f"--blocktime 60",
             f"-p {peers_str}",
@@ -689,15 +701,12 @@ if __name__ == '__main__':
     # instances.stop()
     # instances.terminate()
 
-    # collect_and_save_results()
-    # results, stats_logs, node_logs = collect_results()
-    # save_result(num_nodes, num_rounds, propose_duration, acknowledge_duration,
-    #             vote_duration, tstart, tend, results, stats_logs, node_logs)
-
     instances.refresh()
     instances.status()
+    instances.load_ips()
 
     op = Operator()
 
     # op.ssh_connect(instances)
-    # op.deploy(instances)
+    # op.run_benchmark(instances)
+    # op.collect_logs(instances)
