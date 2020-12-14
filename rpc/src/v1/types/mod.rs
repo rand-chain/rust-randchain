@@ -14,4 +14,5 @@ pub use self::bytes::Bytes;
 pub use self::get_block_response::{GetBlockResponse, VerboseBlock};
 pub use self::hash::{H160, H256};
 pub use self::nodes::{AddNodeOperation, NodeInfo};
+pub use self::submit_block::{SubmitBlockRequest, SubmitBlockResponse};
 pub use self::uint::U256;

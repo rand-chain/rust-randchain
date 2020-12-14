@@ -1,6 +1,6 @@
 use jsonrpc_core::Error;
 
-use v1::types::{BlockTemplate, BlockTemplateRequest};
+use v1::types::{BlockTemplate, BlockTemplateRequest, SubmitBlockRequest, SubmitBlockResponse};
 
 build_rpc_trait! {
     /// Parity-randchain miner data interface.
@@ -10,7 +10,7 @@ build_rpc_trait! {
         #[rpc(name = "getblocktemplate")]
         fn get_block_template(&self, BlockTemplateRequest) -> Result<BlockTemplate, Error>;
 
-		/// Submit mined block.
+        /// Submit mined block.
         /// TODO: @curl-example:
         #[rpc(name = "submitblock")]
         fn submit_block(&self, SubmitBlockRequest) -> Result<SubmitBlockResponse, Error>;

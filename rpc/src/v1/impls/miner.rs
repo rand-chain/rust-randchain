@@ -2,7 +2,7 @@ use jsonrpc_core::Error;
 use miner;
 use sync;
 use v1::traits::Miner;
-use v1::types::{BlockTemplate, BlockTemplateRequest};
+use v1::types::{BlockTemplate, BlockTemplateRequest, SubmitBlockRequest, SubmitBlockResponse};
 
 pub struct MinerClient<T: MinerClientCoreApi> {
     core: T,
@@ -30,9 +30,10 @@ impl MinerClientCoreApi for MinerClientCore {
     fn get_block_template(&self) -> miner::BlockTemplate {
         self.local_sync_node.get_block_template()
     }
-    
-    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse;
-        self.local_sync_node.submit_block(block)
+
+    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse {
+        unimplemented!();
+        // self.local_sync_node.submit_block(block)
     }
 }
 
