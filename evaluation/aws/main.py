@@ -315,6 +315,11 @@ class Instances:
     def load_ips(self):
         for i in self.running:
             i.public_ip = socket.gethostbyname(i.dnsname)
+        print("Now we have the following peers:")
+        print(self.get_peers())
+
+    def get_peers(self):
+        return [f"{i.public_ip}:8333" for i in self.running]
 
     def wait_for_startup(self, what=None):
         what = self if what is None else self.lookup(what)
@@ -377,9 +382,6 @@ class Instances:
             self.refresh_until(lambda: all(
                 i.state == InstanceState.TERMINATED for i in what))
         print(" done")
-
-    def get_peers(self):
-        return [f"{i.public_ip}:8333" for i in self.running]
 
     def create(self, instance_count_per_region=None, dryrun=False):
         if instance_count_per_region is None:
@@ -622,9 +624,11 @@ class Operator:
     #             print('Deployed RandChain on host %s' % r.dnsname)
 
     def clean(self, instances):
+        self.ssh_connect(instances)
+
         print("Killing randchaind processes and removing logs")
-        results = self._ssh_run("pkill -9 -f randchaind; rm -f ~/stats.log ~/randchaind.log",
-                                instances, raise_exception_on_failure=False)
+        results = self._ssh_run("pkill -9 randchaind dstat & rm -rf /home/ec2-user/stats.log /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/",
+                                instances.running)
         for r in results:
             if r.exit_code == 0:
                 print("Done at %s" % r.dnsname)
@@ -632,23 +636,22 @@ class Operator:
                 print("Error (or already done)")
 
     def run_benchmark(self, instances, dryrun=False):
-        self.ssh_connect(instances)
-        self.clean(instances)
+        if dryrun == False:
+            self.ssh_connect(instances)
+            self.clean(instances)
 
         peers_str = ','.join(instances.get_peers())
-
-        cmd = ' '.join([
-            f"export RUST_LOG=trace &",
-            f"dstat --integer --noupdate -T -n --tcp --cpu --mem --output ~/stats.log &",
-            f"cd /home/ec2-user/ &&",
-            f"chmod +x ./randchaind &&",
-            f"nohup ./randchaind",
-            f"--verification-level none",
-            f"--num-nodes {len(instances.running)}",
-            f"--blocktime 60",
-            f"-p {peers_str}",
-            "> /home/ec2-user/randchaind.log &"
-        ])
+        cmd = f'/home/ec2-user/main.sh 60 {len(instances.running)} {peers_str}'
+        # cmd = ' '.join([
+        #     f"dstat --integer --noupdate -T -n --tcp --cpu --mem --output /home/ec2-user/stats.log &",
+        #     f"RUST_LOG=trace",
+        #     f"nohup randchaind",
+        #     f"--verification-level none",
+        #     f"--num-nodes {len(instances.running)}",
+        #     f"--blocktime 60",
+        #     f"-p {peers_str}",
+        #     "> /home/ec2-user/main.log &"
+        # ])
 
         print("Starting randchaind with command:\n %s" % cmd)
         print()
@@ -660,8 +663,8 @@ class Operator:
 
     def collect_logs(self, instances):
         os.makedirs(LOG_PATH)
-        for remote_path in ['/home/ec2-user/randchaind.log', '/home/ec2-user/stats.log']:
-            self._download_file(remote_path, instances)
+        for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.log']:
+            self._download_file(remote_path, instances.running)
 
     def _download_file(self, remote_path, instances):
         for i, dnsname in enumerate([i.dnsname for i in instances]):
@@ -696,17 +699,16 @@ if __name__ == '__main__':
     instances = Instances()
     # instances.create()
 
-    update_nodes_list()
-
-    # instances.stop()
-    # instances.terminate()
-
     instances.refresh()
     instances.status()
     instances.load_ips()
+    # instances.running
 
     op = Operator()
 
     # op.ssh_connect(instances)
     # op.run_benchmark(instances)
     # op.collect_logs(instances)
+
+    # instances.stop()
+    # instances.terminate()

@@ -44,6 +44,7 @@ pub const LOG_INFO: &'static str = "sync=info";
 fn main() {
     // Always print backtrace on panic.
     ::std::env::set_var("RUST_BACKTRACE", "1");
+    ::std::env::set_var("RUST_LOG", "trace");
 
     if let Err(err) = run() {
         println!("{}", err);
