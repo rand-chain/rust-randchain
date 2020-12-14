@@ -101,3 +101,15 @@ args:
         help: Non-default verification-level is applied until a block with given hash is met.
         takes_value: true
         value_name: BLOCK
+    - num-nodes:
+        long: num-nodes
+        short: n
+        help: Number of nodes in the network
+        takes_value: true
+        value_name: NUMBER
+    - blocktime:
+        long: blocktime
+        short: b
+        help: Time for each block
+        takes_value: true
+        value_name: NUMBER

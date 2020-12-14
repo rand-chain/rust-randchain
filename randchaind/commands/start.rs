@@ -1,4 +1,7 @@
 use super::super::rpc;
+use chain::{BlockHeader, IndexedBlock};
+use ecvrf;
+use miner;
 use primitives::hash::H256;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -128,18 +131,53 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
         local_sync_node.install_sync_listener(Box::new(BlockNotifier::new(block_notify_command)));
     }
 
+    // start P2P server
     let p2p =
         p2p::P2P::new(p2p_cfg, sync_connection_factory, el.handle()).map_err(|x| x.to_string())?;
+    p2p.run().map_err(|_| "Failed to start p2p module")?;
+
+    // start RPC server
     let rpc_deps = rpc::Dependencies {
         network: cfg.network,
-        storage: cfg.db,
-        local_sync_node: local_sync_node,
+        storage: cfg.db.clone(),
+        local_sync_node: local_sync_node.clone(),
         p2p_context: p2p.context().clone(),
         remote: el.remote(),
     };
     let _rpc_server = rpc::new_http(cfg.rpc_config, rpc_deps)?;
 
-    p2p.run().map_err(|_| "Failed to start p2p module")?;
+    // Miner
+    let (_, pk) = ecvrf::keygen();
+    let network_target: u32 = (cfg.num_nodes * cfg.blocktime).into();
+    thread::spawn(move || {
+        let mut iters = 0;
+        let lsn_cloned = local_sync_node.clone();
+        loop {
+            let blktpl = lsn_cloned.get_block_template();
+            if let Some(solution) =
+                miner::mock::try_solve_one_shot(&blktpl, &pk.clone(), iters, network_target)
+            {
+                let blk = chain::Block {
+                    block_header: BlockHeader {
+                        version: 1,
+                        previous_header_hash: blktpl.previous_header_hash,
+                        time: 4,
+                        bits: 5.into(),
+                        pubkey: pk.clone(),
+                        iterations: solution.iterations,
+                        randomness: solution.randomness,
+                    },
+                    proof: solution.proof,
+                };
+                trace!("Mined a block {}!", blk.hash());
+                // Let's use PeerIndex=0 to identify the node itself
+                lsn_cloned.on_block(0, IndexedBlock::from(blk));
+                iters = 0;
+            }
+        }
+    });
+
+    // Keep the main process running forever
     el.run(p2p::forever()).unwrap();
     Ok(())
 }
