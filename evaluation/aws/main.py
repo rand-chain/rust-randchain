@@ -702,8 +702,9 @@ if __name__ == '__main__':
 
     instances.refresh()
     instances.status()
-    instances.load_ips()
     # instances.running
+
+    # Here you need to wait for some time (e.g., 1 min) until `setup-instance.sh` is executed on all instances
 
     op = Operator()
 
