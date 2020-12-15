@@ -304,7 +304,7 @@ class Instances:
                     i = Instance(info['InstanceId'], region)
                     self[i.id] = i
                 i.load_properties(info, statuses.get(i.id))
-        self.load_ips()
+        self.load_peers()
 
     def refresh_until(self, break_condition: Callable[[], bool], verbose: bool = True):
         while not break_condition():
@@ -313,11 +313,9 @@ class Instances:
             if verbose:
                 print(end=".", flush=True)
 
-    def load_ips(self):
+    def load_peers(self):
         for i in self.running:
             i.public_ip = socket.gethostbyname(i.dnsname)
-        print("Now we have the following peers:")
-        print(self.get_peers())
 
     def get_peers(self):
         return [f"{i.public_ip}:8333" for i in self.running]
@@ -516,22 +514,22 @@ def create_or_update_security_groups():
         print(" done")
 
 
-def update_nodes_list():
-    try:
-        with open(NODES_PATH, 'r') as f:
-            cfg = f.read()
-    except FileNotFoundError:
-        cfg = ''
+# def update_nodes_list():
+#     try:
+#         with open(NODES_PATH, 'r') as f:
+#             cfg = f.read()
+#     except FileNotFoundError:
+#         cfg = ''
 
-    dnsnames = [i.dnsname for i in instances.running]
-    dnsnames.sort()
-    newcfg = "\n".join(f"{dnsname}:8333" for dnsname in dnsnames)
-    if cfg != newcfg:
-        print()
-        print(f"updating {NODES_PATH} to currently running instances")
-        print()
-        with open(NODES_PATH, 'w') as f:
-            f.write(newcfg)
+#     dnsnames = [i.dnsname for i in instances.running]
+#     dnsnames.sort()
+#     newcfg = "\n".join(f"{dnsname}:8333" for dnsname in dnsnames)
+#     if cfg != newcfg:
+#         print()
+#         print(f"updating {NODES_PATH} to currently running instances")
+#         print()
+#         with open(NODES_PATH, 'w') as f:
+#             f.write(newcfg)
 
 
 ####################################################################################
@@ -594,16 +592,13 @@ class Operator:
         running_instances = instances.running
 
         hosts = [i.dnsname for i in running_instances]
-        ids = [i.id for i in running_instances]
-        fmtlen = max(len(i) for i in ids) + 1
 
         if not hosts:
             print("no hosts to connect to, aborting")
             return
 
-        print()
         print(
-            f"connecting to {len(running_instances)} out of {len(instances)} instance(s)... ", end='', flush=True)
+            f"Connecting to {len(running_instances)} out of {len(instances)} instances... ", end='', flush=True)
 
         if self.ssh_client is None:
             self.ssh_client = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
@@ -614,45 +609,30 @@ class Operator:
         results = self._ssh_run("date", running_instances)
         print("done")
         for result in results:
-            print(f"connected to {result.id+':': <{fmtlen}} {result.stdout}")
+            print(
+                f"Connected to {result.dnsname}: {result.stdout}")
+        print()
 
-    # def deploy(self, instances):
-    #     self._ssh_run("cd /home/ec2-user", instances)
-    #     results = self._ssh_run(
-    #         f'wget https://randchain-dev.s3-us-west-1.amazonaws.com/randchaind', instances)
-    #     for r in results:
-    #         if not r.stdout:
-    #             print('Deployed RandChain on host %s' % r.dnsname)
-
-    def clean(self, instances):
+    def if_deployed(self, instances):
         self.ssh_connect(instances)
-
-        print("Killing randchaind processes and removing logs")
-        results = self._ssh_run("pkill -9 randchaind dstat & rm -rf /home/ec2-user/stats.log /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/",
-                                instances.running)
-        for r in results:
-            if r.exit_code == 0:
-                print("Done at %s" % r.dnsname)
+        results = self._ssh_run("ls /home/ec2-user/main.sh",
+                                instances.running, raise_exception_on_failure=False)
+        print(
+            f"Deployment status of {len(instances.running)} out of {len(instances)} instances:")
+        for result in results:
+            if result.exit_code == 0:
+                print(f"{result.dnsname}: Deployed")
             else:
-                print("Error (or already done)")
+                print(f"{result.dnsname}: Not deployed yet, please wait")
+        print()
 
     def run_benchmark(self, instances, dryrun=False):
         if dryrun == False:
-            self.ssh_connect(instances)
-            self.clean(instances)
+            self.stop_benchmark(instances)
+            self.clean_logs(instances)
 
         peers_str = ','.join(instances.get_peers())
         cmd = f'/home/ec2-user/main.sh 60 {len(instances.running)} {peers_str}'
-        # cmd = ' '.join([
-        #     f"dstat --integer --noupdate -T -n --tcp --cpu --mem --output /home/ec2-user/stats.log &",
-        #     f"RUST_LOG=trace",
-        #     f"nohup randchaind",
-        #     f"--verification-level none",
-        #     f"--num-nodes {len(instances.running)}",
-        #     f"--blocktime 60",
-        #     f"-p {peers_str}",
-        #     "> /home/ec2-user/main.log &"
-        # ])
 
         print("Starting randchaind with command:\n %s" % cmd)
         print()
@@ -662,15 +642,42 @@ class Operator:
 
         print("done")
 
+    def stop_benchmark(self, instances):
+        self.ssh_connect(instances)
+
+        print("Killing randchaind processes")
+        results = self._ssh_run(
+            "pkill -9 -f randchaind & pkill -9 -f dstat", instances.running)
+        for r in results:
+            if r.exit_code == 0:
+                print("Done at %s" % r.dnsname)
+            else:
+                print("Error (or already done)")
+
     def collect_logs(self, instances):
-        os.makedirs(LOG_PATH)
-        for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.log']:
+        os.makedirs(LOG_PATH, exist_ok=True)
+        self.ssh_connect(instances)
+        print("Collecting logs")
+        for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
             self._download_file(remote_path, instances.running)
+
+    def clean_logs(self, instances):
+        self.ssh_connect(instances)
+
+        print("Removing logs")
+        results = self._ssh_run("pkill -9 randchaind dstat & rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/",
+                                instances.running)
+        for r in results:
+            if r.exit_code == 0:
+                print("Done at %s" % r.dnsname)
+            else:
+                print("Error (or already done)")
+        print()
 
     def _download_file(self, remote_path, instances):
         for i, dnsname in enumerate([i.dnsname for i in instances]):
             print(
-                f"downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
+                f"Downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
             cmd = ' '.join([
                 f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
                 f'ec2-user@{dnsname}:{remote_path}',
