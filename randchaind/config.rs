@@ -34,6 +34,7 @@ pub struct Config {
     pub verification_params: VerificationParameters,
     pub db: storage::SharedStore,
     pub num_nodes: u16,
+    pub num_miners: u16,
     pub blocktime: u16,
 }
 
@@ -195,6 +196,11 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         None => 4,
     };
 
+    let num_miners = match matches.value_of("num-miners") {
+        Some(s) => s.parse().map_err(|_| "Invalid num_miners".to_owned())?,
+        None => 1,
+    };
+
     let blocktime = match matches.value_of("blocktime") {
         Some(s) => s.parse().map_err(|_| "Invalid blocktime".to_owned())?,
         None => 10, // 10s
@@ -223,6 +229,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         },
         db: db,
         num_nodes: num_nodes,
+        num_miners: num_miners,
         blocktime: blocktime,
     };
 

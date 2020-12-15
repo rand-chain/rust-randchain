@@ -1,6 +1,7 @@
 use super::super::rpc;
 use chain::{BlockHeader, IndexedBlock};
 use ecvrf;
+use hex;
 use miner;
 use primitives::hash::H256;
 use std::net::SocketAddr;
@@ -147,35 +148,41 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
     let _rpc_server = rpc::new_http(cfg.rpc_config, rpc_deps)?;
 
     // Miner
-    let (_, pk) = ecvrf::keygen();
-    let network_target: u32 = (cfg.num_nodes * cfg.blocktime).into();
-    thread::spawn(move || {
-        let mut iters = 0;
+    let network_target: u32 = (cfg.num_miners * cfg.num_nodes * cfg.blocktime).into();
+    for _ in 0..cfg.num_miners {
+        let (_, pk) = ecvrf::keygen();
         let lsn_cloned = local_sync_node.clone();
-        loop {
-            let blktpl = lsn_cloned.get_block_template();
-            if let Some(solution) =
-                miner::mock::try_solve_one_shot(&blktpl, &pk.clone(), iters, network_target)
-            {
-                let blk = chain::Block {
-                    block_header: BlockHeader {
-                        version: 1,
-                        previous_header_hash: blktpl.previous_header_hash,
-                        time: 4,
-                        bits: 5.into(),
-                        pubkey: pk.clone(),
-                        iterations: solution.iterations,
-                        randomness: solution.randomness,
-                    },
-                    proof: solution.proof,
-                };
-                trace!("Mined a block {}!", blk.hash());
-                // Let's use PeerIndex=0 to identify the node itself
-                lsn_cloned.on_block(0, IndexedBlock::from(blk));
-                iters = 0;
+        thread::spawn(move || {
+            let mut iters = 0;
+            loop {
+                let blktpl = lsn_cloned.get_block_template();
+                if let Some(solution) =
+                    miner::mock::try_solve_one_shot(&blktpl, &pk.clone(), iters, network_target)
+                {
+                    let blk = chain::Block {
+                        block_header: BlockHeader {
+                            version: 1,
+                            previous_header_hash: blktpl.previous_header_hash,
+                            time: 4,
+                            bits: 5.into(),
+                            pubkey: pk.clone(),
+                            iterations: solution.iterations,
+                            randomness: solution.randomness,
+                        },
+                        proof: solution.proof,
+                    };
+                    trace!(
+                        "Block {} mined by {}!",
+                        blk.hash(),
+                        hex::encode(pk.to_bytes())
+                    );
+                    // Let's use PeerIndex=0 to identify the node itself
+                    lsn_cloned.on_block(0, IndexedBlock::from(blk));
+                    iters = 0;
+                }
             }
-        }
-    });
+        });
+    }
 
     // Keep the main process running forever
     el.run(p2p::forever()).unwrap();

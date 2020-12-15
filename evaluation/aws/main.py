@@ -626,13 +626,13 @@ class Operator:
                 print(f"{result.dnsname}: Not deployed yet, please wait")
         print()
 
-    def run_benchmark(self, instances, dryrun=False):
+    def run_benchmark(self, instances, blocktime=60, num_miners=1, dryrun=False):
         if dryrun == False:
             self.stop_benchmark(instances)
             self.clean_logs(instances)
 
         peers_str = ','.join(instances.get_peers())
-        cmd = f'/home/ec2-user/main.sh 60 {len(instances.running)} {peers_str}'
+        cmd = f'/home/ec2-user/main.sh {blocktime} {len(instances.running)} {num_miners} {peers_str}'
 
         print("Starting randchaind with command:\n %s" % cmd)
         print()

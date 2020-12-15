@@ -6,6 +6,7 @@ extern crate clap;
 extern crate log;
 extern crate app_dirs;
 extern crate env_logger;
+extern crate hex;
 extern crate libc;
 
 extern crate chain;
