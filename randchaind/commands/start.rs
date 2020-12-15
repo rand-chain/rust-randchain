@@ -156,7 +156,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
             loop {
                 let blktpl = local_sync_node.get_block_template();
                 if let Some(solution) =
-                    miner::mock::try_solve_one_shot(&blktpl, &pk.clone(), network_target)
+                    miner::mock::try_solve_one_shot(&blktpl, &pk, network_target)
                 {
                     let blk = chain::Block {
                         block_header: BlockHeader {
