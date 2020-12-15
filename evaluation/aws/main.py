@@ -304,6 +304,7 @@ class Instances:
                     i = Instance(info['InstanceId'], region)
                     self[i.id] = i
                 i.load_properties(info, statuses.get(i.id))
+        self.load_ips()
 
     def refresh_until(self, break_condition: Callable[[], bool], verbose: bool = True):
         while not break_condition():
