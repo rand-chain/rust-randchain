@@ -654,12 +654,23 @@ class Operator:
             else:
                 print("Error (or already done)")
 
-    def collect_logs(self, instances):
+    def collect_logs(self, instances, blocktime=60, num_miners=1):
         os.makedirs(LOG_PATH, exist_ok=True)
         self.ssh_connect(instances)
         print("Collecting logs")
-        for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
-            self._download_file(remote_path, instances.running)
+        for idx, i in enumerate(instances.running):
+            for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
+                print(
+                    f"Downloading {remote_path} from {i.dnsname+'...': <65} {idx + 1}/{len(instances.running)} ", end="", flush=True)
+                # Filename: dnsname_blocktime_numnodes_numminers_{stats.csv/main.log}
+                cmd = ' '.join([
+                    f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
+                    f'ec2-user@{i.dnsname}:{remote_path}',
+                    f'"{LOG_PATH}/{i.dnsname}_{blocktime}_{len(instances.running)}_{num_miners}_{remote_path.split("/")[-1]}"',
+                ])
+                subprocess.run(cmd, shell=True, check=True,
+                               stderr=subprocess.DEVNULL)
+                print("done")
 
     def clean_logs(self, instances):
         self.ssh_connect(instances)
@@ -674,19 +685,19 @@ class Operator:
                 print("Error (or already done)")
         print()
 
-    def _download_file(self, remote_path, instances):
-        for i, dnsname in enumerate([i.dnsname for i in instances]):
-            print(
-                f"Downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
-            cmd = ' '.join([
-                f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
-                f'ec2-user@{dnsname}:{remote_path}',
-                f'"{LOG_PATH}/{dnsname}_{remote_path.split("/")[-1]}"',
-            ])
-            subprocess.run(cmd, shell=True, check=True,
-                           stderr=subprocess.DEVNULL)
-            print("done")
-        print()
+    # def _download_file(self, remote_path, instances):
+    #     for i, dnsname in enumerate([i.dnsname for i in instances]):
+    #         print(
+    #             f"Downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
+    #         cmd = ' '.join([
+    #             f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
+    #             f'ec2-user@{dnsname}:{remote_path}',
+    #             f'"{LOG_PATH}/{dnsname}_{remote_path.split("/")[-1]}"',
+    #         ])
+    #         subprocess.run(cmd, shell=True, check=True,
+    #                        stderr=subprocess.DEVNULL)
+    #         print("done")
+    #     print()
 
 
 if __name__ == '__main__':
