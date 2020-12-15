@@ -676,28 +676,14 @@ class Operator:
         self.ssh_connect(instances)
 
         print("Removing logs")
-        results = self._ssh_run("pkill -9 randchaind dstat & rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/",
-                                instances.running)
+        results = self._ssh_run(
+            "rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/", instances.running)
         for r in results:
             if r.exit_code == 0:
                 print("Done at %s" % r.dnsname)
             else:
                 print("Error (or already done)")
         print()
-
-    # def _download_file(self, remote_path, instances):
-    #     for i, dnsname in enumerate([i.dnsname for i in instances]):
-    #         print(
-    #             f"Downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
-    #         cmd = ' '.join([
-    #             f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
-    #             f'ec2-user@{dnsname}:{remote_path}',
-    #             f'"{LOG_PATH}/{dnsname}_{remote_path.split("/")[-1]}"',
-    #         ])
-    #         subprocess.run(cmd, shell=True, check=True,
-    #                        stderr=subprocess.DEVNULL)
-    #         print("done")
-    #     print()
 
 
 if __name__ == '__main__':
