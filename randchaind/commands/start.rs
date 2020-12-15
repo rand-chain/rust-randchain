@@ -151,11 +151,11 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
     let network_target: u32 = (cfg.num_miners * cfg.num_nodes * cfg.blocktime).into();
     for _ in 0..cfg.num_miners {
         let (_, pk) = ecvrf::keygen();
-        let lsn_cloned = local_sync_node.clone();
+        let local_sync_node = local_sync_node.clone();
         thread::spawn(move || {
             let mut iters = 0;
             loop {
-                let blktpl = lsn_cloned.get_block_template();
+                let blktpl = local_sync_node.get_block_template();
                 if let Some(solution) =
                     miner::mock::try_solve_one_shot(&blktpl, &pk.clone(), iters, network_target)
                 {
@@ -177,7 +177,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
                         hex::encode(pk.to_bytes())
                     );
                     // Let's use PeerIndex=0 to identify the node itself
-                    lsn_cloned.on_block(0, IndexedBlock::from(blk));
+                    local_sync_node.on_block(0, IndexedBlock::from(blk));
                     iters = 0;
                 }
             }
