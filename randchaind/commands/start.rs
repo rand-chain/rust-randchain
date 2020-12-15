@@ -161,10 +161,10 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
                 {
                     let blk = chain::Block {
                         block_header: BlockHeader {
-                            version: 1,
+                            version: blktpl.version,
                             previous_header_hash: blktpl.previous_header_hash,
-                            time: 4,
-                            bits: 5.into(),
+                            time: blktpl.time,
+                            bits: blktpl.bits,
                             pubkey: pk.clone(),
                             iterations: solution.iterations,
                             randomness: solution.randomness,
