@@ -49,11 +49,15 @@ fn h_g_inner(data: &Bytes, _pubkey: &VrfPk) -> Integer {
 pub fn try_solve_one_shot(
     block: &BlockTemplate,
     pubkey: &VrfPk,
+    mut iterations: u64,
     network_target: u32,
 ) -> Option<Solution> {
     thread::sleep(time::Duration::from_secs(1));
     let g = h_g(block, pubkey);
-    let iterations = STEP as u64;
+    iterations += STEP as u64;
+    if iterations > (u32::max_value() as u64) {
+        return None;
+    }
 
     let mut rng = rand::thread_rng();
     let r: f32 = rng.gen(); // generates a float between 0 and 1

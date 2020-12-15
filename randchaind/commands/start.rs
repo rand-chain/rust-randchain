@@ -153,10 +153,11 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
         let (_, pk) = ecvrf::keygen();
         let local_sync_node = local_sync_node.clone();
         thread::spawn(move || {
+            let mut iters = 0;
             loop {
                 let blktpl = local_sync_node.get_block_template();
                 if let Some(solution) =
-                    miner::mock::try_solve_one_shot(&blktpl, &pk, network_target)
+                    miner::mock::try_solve_one_shot(&blktpl, &pk, iters, network_target)
                 {
                     let blk = chain::Block {
                         block_header: BlockHeader {
@@ -177,6 +178,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
                     );
                     // Let's use PeerIndex=0 to identify the node itself
                     local_sync_node.on_block(0, IndexedBlock::from(blk));
+                    iters = 0;
                 }
             }
         });
