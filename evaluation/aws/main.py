@@ -656,7 +656,6 @@ class Operator:
 
     def collect_logs(self, instances, blocktime=60, num_miners=1):
         os.makedirs(LOG_PATH, exist_ok=True)
-        self.ssh_connect(instances)
         print("Collecting logs")
         for idx, i in enumerate(instances.running):
             for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
