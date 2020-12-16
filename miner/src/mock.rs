@@ -11,7 +11,7 @@ use crypto::dhash256;
 use primitives::bytes::Bytes;
 use ser::Stream;
 
-const STEP: u32 = 1024;
+const STEP: u32 = 233868;
 
 // consistent with verification/src/verify_block.rs
 fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
