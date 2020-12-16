@@ -64,7 +64,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
     };
 
     let (in_connections, out_connections) = match network {
-        Network::Testnet | Network::Mainnet | Network::Other(_) => (10, 10),
+        Network::Testnet | Network::Mainnet | Network::Other(_) => (125, 8),
         Network::Regtest | Network::Unitest => (1, 0),
     };
 

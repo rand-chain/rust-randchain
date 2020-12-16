@@ -12,6 +12,8 @@ use net::{
 use ns_dns_tokio::DnsResolver;
 use parking_lot::RwLock;
 use protocol::{InboundSyncConnectionRef, LocalSyncNodeRef, OutboundSyncConnectionRef};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use session::{NormalSessionFactory, SeednodeSessionFactory, SessionFactory};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -592,8 +594,15 @@ impl P2P {
     }
 
     pub fn run(&self) -> Result<(), Box<dyn error::Error>> {
-        for peer in &self.config.peers {
-            self.connect::<NormalSessionFactory>(*peer);
+        let mut rng = thread_rng();
+        let sampled_peers: Vec<net::SocketAddr> = self
+            .config
+            .peers
+            .choose_multiple(&mut rng, self.config.outbound_connections as usize)
+            .cloned()
+            .collect();
+        for peer in sampled_peers {
+            self.connect::<NormalSessionFactory>(peer);
         }
 
         let resolver = DnsResolver::system_config(&self.event_loop_handle)?;
