@@ -626,13 +626,13 @@ class Operator:
                 print(f"{result.dnsname}: Not deployed yet, please wait")
         print()
 
-    def run_benchmark(self, instances, dryrun=False):
+    def run_benchmark(self, instances, blocktime=60, num_miners=1, dryrun=False):
         if dryrun == False:
             self.stop_benchmark(instances)
             self.clean_logs(instances)
 
         peers_str = ','.join(instances.get_peers())
-        cmd = f'/home/ec2-user/main.sh 60 {len(instances.running)} {peers_str}'
+        cmd = f'/home/ec2-user/main.sh {blocktime} {len(instances.running)} {num_miners} {peers_str}'
 
         print("Starting randchaind with command:\n %s" % cmd)
         print()
@@ -654,38 +654,34 @@ class Operator:
             else:
                 print("Error (or already done)")
 
-    def collect_logs(self, instances):
+    def collect_logs(self, instances, blocktime=60, num_miners=1):
         os.makedirs(LOG_PATH, exist_ok=True)
-        self.ssh_connect(instances)
         print("Collecting logs")
-        for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
-            self._download_file(remote_path, instances.running)
+        for idx, i in enumerate(instances.running):
+            for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
+                print(
+                    f"Downloading {remote_path} from {i.dnsname+'...': <65} {idx + 1}/{len(instances.running)} ", end="", flush=True)
+                # Filename: dnsname_blocktime_numnodes_numminers_{stats.csv/main.log}
+                cmd = ' '.join([
+                    f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
+                    f'ec2-user@{i.dnsname}:{remote_path}',
+                    f'"{LOG_PATH}/{i.dnsname}_{blocktime}_{len(instances.running)}_{num_miners}_{remote_path.split("/")[-1]}"',
+                ])
+                subprocess.run(cmd, shell=True, check=True,
+                               stderr=subprocess.DEVNULL)
+                print("done")
 
     def clean_logs(self, instances):
         self.ssh_connect(instances)
 
         print("Removing logs")
-        results = self._ssh_run("pkill -9 randchaind dstat & rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/",
-                                instances.running)
+        results = self._ssh_run(
+            "rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/", instances.running)
         for r in results:
             if r.exit_code == 0:
                 print("Done at %s" % r.dnsname)
             else:
                 print("Error (or already done)")
-        print()
-
-    def _download_file(self, remote_path, instances):
-        for i, dnsname in enumerate([i.dnsname for i in instances]):
-            print(
-                f"Downloading {remote_path} from {dnsname+'...': <65} {i + 1}/{len(instances)} ", end="", flush=True)
-            cmd = ' '.join([
-                f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
-                f'ec2-user@{dnsname}:{remote_path}',
-                f'"{LOG_PATH}/{dnsname}_{remote_path.split("/")[-1]}"',
-            ])
-            subprocess.run(cmd, shell=True, check=True,
-                           stderr=subprocess.DEVNULL)
-            print("done")
         print()
 
 

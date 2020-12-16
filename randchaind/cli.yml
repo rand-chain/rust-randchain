@@ -107,6 +107,11 @@ args:
         help: Number of nodes in the network
         takes_value: true
         value_name: NUMBER
+    - num-miners:
+        long: num-miners
+        help: Number of miners in a single node
+        takes_value: true
+        value_name: NUMBER
     - blocktime:
         long: blocktime
         short: b
