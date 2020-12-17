@@ -22,7 +22,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 # Parameters
 
 
-NUM_NODES = 16
+NUM_NODES = 128
 REFRESH_INTERVAL = 5.0
 REGIONS = {
     'us-east-1': 'N. Virginia',
@@ -247,6 +247,9 @@ class Instances:
         if return_dict:
             return d
         return d.items()
+
+    def get_by_region(self, region):
+        return [i for i in self if i.region==region]
 
     def lookup(self, what):
         if isinstance(what, Instances):
@@ -602,7 +605,7 @@ class Operator:
 
         if self.ssh_client is None:
             self.ssh_client = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
-                                                             keepalive_seconds=30, allow_agent=False)
+                                                             keepalive_seconds=60, allow_agent=False, pool_size=256)
         else:
             self.ssh_client.hosts = hosts
 
