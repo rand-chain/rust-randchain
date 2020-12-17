@@ -22,7 +22,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 # Parameters
 
 
-NUM_NODES = 1000
+NUM_NODES = 128
 REFRESH_INTERVAL = 5.0
 REGIONS = {
     'us-east-1': 'N. Virginia',
@@ -41,7 +41,7 @@ REGIONS = {
     'eu-central-1': 'Frankfurt',
 }
 
-TESTING = 1
+TESTING = 0
 if TESTING == 1:
     REGIONS = {
         'us-east-1': 'N. Virginia',
@@ -247,6 +247,9 @@ class Instances:
         if return_dict:
             return d
         return d.items()
+
+    def get_by_region(self, region):
+        return [i for i in self if i.region==region]
 
     def lookup(self, what):
         if isinstance(what, Instances):
@@ -602,7 +605,7 @@ class Operator:
 
         if self.ssh_client is None:
             self.ssh_client = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
-                                                             keepalive_seconds=30, allow_agent=False)
+                                                             keepalive_seconds=60, allow_agent=False, pool_size=256)
         else:
             self.ssh_client.hosts = hosts
 
@@ -626,7 +629,7 @@ class Operator:
                 print(f"{result.dnsname}: Not deployed yet, please wait")
         print()
 
-    def run_benchmark(self, instances, blocktime=60, num_miners=1, dryrun=False):
+    def run_benchmark(self, instances, blocktime=10, num_miners=1, dryrun=False):
         if dryrun == False:
             self.stop_benchmark(instances)
             self.clean_logs(instances)
@@ -654,8 +657,10 @@ class Operator:
             else:
                 print("Error (or already done)")
 
-    def collect_logs(self, instances, blocktime=60, num_miners=1):
+    def collect_logs(self, instances, blocktime=10, num_miners=1):
         os.makedirs(LOG_PATH, exist_ok=True)
+        os.makedirs(
+            f"{LOG_PATH}/{blocktime}_{NUM_NODES}_{num_miners}/", exist_ok=True)
         print("Collecting logs")
         for idx, i in enumerate(instances.running):
             for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
@@ -665,7 +670,7 @@ class Operator:
                 cmd = ' '.join([
                     f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
                     f'ec2-user@{i.dnsname}:{remote_path}',
-                    f'"{LOG_PATH}/{i.dnsname}_{blocktime}_{len(instances.running)}_{num_miners}_{remote_path.split("/")[-1]}"',
+                    f'"{LOG_PATH}/{blocktime}_{NUM_NODES}_{num_miners}/{i.dnsname}_{remote_path.split("/")[-1]}"',
                 ])
                 subprocess.run(cmd, shell=True, check=True,
                                stderr=subprocess.DEVNULL)
