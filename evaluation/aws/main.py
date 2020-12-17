@@ -42,7 +42,7 @@ REGIONS = {
     'eu-central-1': 'Frankfurt',
 }
 
-TESTING = 1
+TESTING = 0
 if TESTING == 1:
     REGIONS = {
         'us-east-1': 'N. Virginia',
@@ -577,7 +577,7 @@ class Operator:
                 outputs[iid] = output
         return outputs
 
-    def run_command_sync(self, cmd):
+    def run_command_blocking(self, cmd):
         cids = self._run_command(cmd)
         outputs = self._get_outputs(cids)
         while True:
@@ -598,7 +598,7 @@ class Operator:
 
     def if_deployed(self):
         cmd = "ls /home/ec2-user/main.sh"
-        outputs = self.run_command_sync(cmd)
+        outputs = self.run_command_blocking(cmd)
         for iid, out in outputs.items():
             if out['ResponseCode'] == 0:
                 print(f"{out['InstanceId']}: Deployed")
@@ -606,62 +606,71 @@ class Operator:
                 print(f"{out['InstanceId']}: Not deployed yet, please wait")
         print()
 
-    def run_benchmark(self, blocktime=10, num_miners=1, dryrun=False):
-        if dryrun == False:
-            self.stop_benchmark()
-            self.clean_logs()
+    def run_benchmark(self, blocktime=10, num_miners=1):
+        self.stop_benchmark(nonblocking=True)
+        self.clean_logs(nonblocking=True)
+
+        time.sleep(5)
 
         peers_str = ','.join(self.instances.get_peers())
         cmd = f'/home/ec2-user/main.sh {blocktime} {len(self.instances.running)} {num_miners} {peers_str}'
 
         print("Starting randchaind with command:\n %s" % cmd)
-        print()
-
-        if dryrun == False:
-            self._run_command(cmd)
+        self._run_command(cmd)
 
         print("done")
 
-    def stop_benchmark(self):
+    def stop_benchmark(self, nonblocking=False):
         print("Killing randchaind processes")
         cmd = "pkill -9 -f randchaind & pkill -9 -f dstat"
-        outputs = self.run_command_sync(cmd)
-        for iid, out in outputs.items():
-            if out['ResponseCode'] == 0:
-                print("Done at %s" % iid)
-            else:
-                print("Error (or already done) at %s: %s" %
-                      iid, out['StandardOutputContent'])
+        if nonblocking == True:
+            self._run_command(cmd)
+        else:
+            outputs = self.run_command_blocking(cmd)
+            for iid, out in outputs.items():
+                if out['ResponseCode'] == 0:
+                    print("Done at %s" % iid)
+                else:
+                    print("Error (or already done) at %s: %s" %
+                          iid, out['StandardOutputContent'])
 
     def collect_logs(self, blocktime=10, num_miners=1):
         os.makedirs(LOG_PATH, exist_ok=True)
         os.makedirs(
             f"{LOG_PATH}/{blocktime}_{NUM_NODES}_{num_miners}/", exist_ok=True)
         print("Collecting logs")
+        procs = []
         for idx, i in enumerate(self.instances.running):
             for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
                 print(
-                    f"Downloading {remote_path} from {i.dnsname+'...': <65} {idx + 1}/{len(self.instances.running)} ", end="", flush=True)
+                    f"Downloading {remote_path} from {i.dnsname+'...': <65} {idx + 1}/{len(self.instances.running)} ")
                 # Filename: dnsname_blocktime_numnodes_numminers_{stats.csv/main.log}
                 cmd = ' '.join([
                     f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
                     f'ec2-user@{i.dnsname}:{remote_path}',
                     f'"{LOG_PATH}/{blocktime}_{NUM_NODES}_{num_miners}/{i.dnsname}_{remote_path.split("/")[-1]}"',
                 ])
-                subprocess.run(cmd, shell=True, check=True,
-                               stderr=subprocess.DEVNULL)
-                print("done")
+                proc = subprocess.Popen(cmd, shell=True, stderr=subprocess.DEVNULL)
+                procs.append(proc)
+        
+        # collect status of all subprocesses
+        outputs = [p.wait() for p in procs]
+        print("Done")
 
-    def clean_logs(self):
+
+    def clean_logs(self, nonblocking=False):
         print("Removing logs")
         cmd = "rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/"
-        outputs = self.run_command_sync(cmd)
-        for iid, out in outputs.items():
-            if out['ResponseCode'] == 0:
-                print("Done at %s" % iid)
-            else:
-                print("Error (or already done) at %s: %s" %
-                      iid, out['StandardOutputContent'])
+        if nonblocking == True:
+            self._run_command(cmd)
+        else:
+            outputs = self.run_command_blocking(cmd)
+            for iid, out in outputs.items():
+                if out['ResponseCode'] == 0:
+                    print("Done at %s" % iid)
+                else:
+                    print("Error (or already done) at %s: %s" %
+                          iid, out['StandardOutputContent'])
 
 
 if __name__ == '__main__':
