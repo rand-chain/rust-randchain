@@ -1,5 +1,6 @@
 import boto3
 import socket
+import json
 import collections
 import dataclasses
 import enum
@@ -41,7 +42,7 @@ REGIONS = {
     'eu-central-1': 'Frankfurt',
 }
 
-TESTING = 0
+TESTING = 1
 if TESTING == 1:
     REGIONS = {
         'us-east-1': 'N. Virginia',
@@ -249,7 +250,7 @@ class Instances:
         return d.items()
 
     def get_by_region(self, region):
-        return [i for i in self if i.region==region]
+        return [i for i in self if i.region == region]
 
     def lookup(self, what):
         if isinstance(what, Instances):
@@ -452,6 +453,10 @@ class Instances:
                 UserData=SETUP_INSTANCE_SCRIPT,
                 SecurityGroups=['randchain'],
                 InstanceInitiatedShutdownBehavior='terminate',
+                IamInstanceProfile={
+                    # 'Arn': 'arn:aws:iam::290229848066:role/SystemManager',
+                    'Name': 'SystemManager',
+                },
                 DryRun=dryrun,
             )
         print("done")
@@ -517,27 +522,8 @@ def create_or_update_security_groups():
         print(" done")
 
 
-# def update_nodes_list():
-#     try:
-#         with open(NODES_PATH, 'r') as f:
-#             cfg = f.read()
-#     except FileNotFoundError:
-#         cfg = ''
-
-#     dnsnames = [i.dnsname for i in instances.running]
-#     dnsnames.sort()
-#     newcfg = "\n".join(f"{dnsname}:8333" for dnsname in dnsnames)
-#     if cfg != newcfg:
-#         print()
-#         print(f"updating {NODES_PATH} to currently running instances")
-#         print()
-#         with open(NODES_PATH, 'w') as f:
-#             f.write(newcfg)
-
-
 ####################################################################################
 # SSH stuff
-
 
 @dataclasses.dataclass
 class SSHResult:
@@ -559,113 +545,103 @@ class SSHResult:
 
 
 class Operator:
-    def __init__(self):
+    def __init__(self, instances, ssm_clients):
+        self.instances = instances.running
+        self.ssm_clients = ssm_clients
         self.ssh_client: pssh.clients.ParallelSSHClient = None
 
-    def _ssh_run(self, command, instances, raise_exception_on_failure=True, sudo=False, user=None, stop_on_errors=True,
-                 use_pty=False, host_args=None, shell=None,
-                 encoding='utf-8', timeout=None, greenlet_timeout=None):
-        if isinstance(command, list):
-            last_result = None
-            for c in command:
-                last_result = self._ssh_run(c, raise_exception_on_failure, sudo, user, raise_exception_on_failure, sudo, user,
-                                            stop_on_errors, use_pty, host_args, shell, encoding, greenlet_timeout)
-            return last_result
+    def _run_command(self, cmd):
+        command_ids = dict()
+        for region in REGIONS:
+            instanceIds = self.instances.by_region(
+                return_dict=True)[region].ids
+            response = self.ssm_clients[region].send_command(
+                InstanceIds=instanceIds,
+                DocumentName="AWS-RunShellScript",
+                Parameters={'commands': [cmd]},
+            )
+            command_id = response['Command']['CommandId']
+            command_ids[region] = command_id
+        return command_ids
 
-        outputs = self.ssh_client.run_command(command, sudo, user, stop_on_errors, use_pty,
-                                              host_args, shell, encoding, timeout, greenlet_timeout)
-        self.ssh_client.join(outputs)
+    def _get_outputs(self, command_ids):
+        outputs = dict()
+        for region in REGIONS:
+            instanceIds = self.instances.by_region(
+                return_dict=True)[region].ids
+            for iid in instanceIds:
+                output = self.ssm_clients[region].get_command_invocation(
+                    CommandId=command_ids[region],
+                    InstanceId=iid,
+                )
+                outputs[iid] = output
+        return outputs
 
-        results = []
-        for v in outputs:
-            results.append(
-                SSHResult(id=instances.get_id(v.host), dnsname=v.host, exit_code=v.exit_code, error=v.exception,
-                          stdout='\n'.join(list(v.stdout)),
-                          stderr='\n'.join(list(v.stderr)),
-                          stdin=v.stdin))
-
-        if raise_exception_on_failure and any(r.exit_code != 0 for r in results):
-            for r in results:
-                print(repr(r))
-            raise RuntimeError(
-                f"execution of command '{command}' failed at least for one instance", command)
-        return results
-
-    def ssh_connect(self, instances):
-        running_instances = instances.running
-
-        hosts = [i.dnsname for i in running_instances]
-
-        if not hosts:
-            print("no hosts to connect to, aborting")
-            return
-
-        print(
-            f"Connecting to {len(running_instances)} out of {len(instances)} instances... ", end='', flush=True)
-
-        if self.ssh_client is None:
-            self.ssh_client = pssh.clients.ParallelSSHClient(hosts, user='ec2-user', pkey="~/.ssh/randchain.pem",
-                                                             keepalive_seconds=60, allow_agent=False, pool_size=256)
-        else:
-            self.ssh_client.hosts = hosts
-
-        results = self._ssh_run("date", running_instances)
-        print("done")
-        for result in results:
-            print(
-                f"Connected to {result.dnsname}: {result.stdout}")
-        print()
-
-    def if_deployed(self, instances):
-        self.ssh_connect(instances)
-        results = self._ssh_run("ls /home/ec2-user/main.sh",
-                                instances.running, raise_exception_on_failure=False)
-        print(
-            f"Deployment status of {len(instances.running)} out of {len(instances)} instances:")
-        for result in results:
-            if result.exit_code == 0:
-                print(f"{result.dnsname}: Deployed")
+    def run_command_sync(self, cmd):
+        cids = self._run_command(cmd)
+        outputs = self._get_outputs(cids)
+        while True:
+            finished = True
+            for iid, out in outputs.items():
+                if out['ResponseCode'] == -1:
+                    finished = False
+            if finished == True:
+                break
             else:
-                print(f"{result.dnsname}: Not deployed yet, please wait")
+                time.sleep(5)
+                outputs = self._get_outputs(cids)
+        return outputs
+
+    def refresh(self):
+        self.instances.status()
+        self.instances = self.instances.running
+
+    def if_deployed(self):
+        cmd = "ls /home/ec2-user/main.sh"
+        outputs = self.run_command_sync(cmd)
+        for iid, out in outputs.items():
+            if out['ResponseCode'] == 0:
+                print(f"{out['InstanceId']}: Deployed")
+            else:
+                print(f"{out['InstanceId']}: Not deployed yet, please wait")
         print()
 
-    def run_benchmark(self, instances, blocktime=10, num_miners=1, dryrun=False):
+    def run_benchmark(self, blocktime=10, num_miners=1, dryrun=False):
         if dryrun == False:
-            self.stop_benchmark(instances)
-            self.clean_logs(instances)
+            self.stop_benchmark()
+            self.clean_logs()
 
-        peers_str = ','.join(instances.get_peers())
-        cmd = f'/home/ec2-user/main.sh {blocktime} {len(instances.running)} {num_miners} {peers_str}'
+        peers_str = ','.join(self.instances.get_peers())
+        cmd = f'/home/ec2-user/main.sh {blocktime} {len(self.instances.running)} {num_miners} {peers_str}'
 
         print("Starting randchaind with command:\n %s" % cmd)
         print()
 
         if dryrun == False:
-            self._ssh_run(cmd, instances)
+            self._run_command(cmd)
 
         print("done")
 
-    def stop_benchmark(self, instances):
-        self.ssh_connect(instances)
-
+    def stop_benchmark(self):
         print("Killing randchaind processes")
-        results = self._ssh_run(
-            "pkill -9 -f randchaind & pkill -9 -f dstat", instances.running)
-        for r in results:
-            if r.exit_code == 0:
-                print("Done at %s" % r.dnsname)
+        cmd = "pkill -9 -f randchaind & pkill -9 -f dstat"
+        outputs = self.run_command_sync(cmd)
+        for iid, out in outputs.items():
+            if out['ResponseCode'] == 0:
+                print("Done at %s" % iid)
             else:
-                print("Error (or already done)")
+                print("Error (or already done) at %s: %s" %
+                      iid, out['StandardOutputContent'])
 
-    def collect_logs(self, instances, blocktime=10, num_miners=1):
+    def collect_logs(self, blocktime=10, num_miners=1):
         os.makedirs(LOG_PATH, exist_ok=True)
         os.makedirs(
             f"{LOG_PATH}/{blocktime}_{NUM_NODES}_{num_miners}/", exist_ok=True)
         print("Collecting logs")
-        for idx, i in enumerate(instances.running):
+        for idx, i in enumerate(self.instances.running):
             for remote_path in ['/home/ec2-user/main.log', '/home/ec2-user/stats.csv']:
                 print(
-                    f"Downloading {remote_path} from {i.dnsname+'...': <65} {idx + 1}/{len(instances.running)} ", end="", flush=True)
+                    f"Downloading {remote_path} from {i.dnsname+'...': <65} {idx + 1}/{len(self.instances.running)} ", end="", flush=True)
                 # Filename: dnsname_blocktime_numnodes_numminers_{stats.csv/main.log}
                 cmd = ' '.join([
                     f'rsync -z -e "ssh -i ~/.ssh/randchain.pem -oStrictHostKeyChecking=accept-new"',
@@ -676,18 +652,16 @@ class Operator:
                                stderr=subprocess.DEVNULL)
                 print("done")
 
-    def clean_logs(self, instances):
-        self.ssh_connect(instances)
-
+    def clean_logs(self):
         print("Removing logs")
-        results = self._ssh_run(
-            "rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/", instances.running)
-        for r in results:
-            if r.exit_code == 0:
-                print("Done at %s" % r.dnsname)
+        cmd = "rm -rf /home/ec2-user/stats.csv /home/ec2-user/main.log /home/ec2-user/.local/share/randchaind/"
+        outputs = self.run_command_sync(cmd)
+        for iid, out in outputs.items():
+            if out['ResponseCode'] == 0:
+                print("Done at %s" % iid)
             else:
-                print("Error (or already done)")
-        print()
+                print("Error (or already done) at %s: %s" %
+                      iid, out['StandardOutputContent'])
 
 
 if __name__ == '__main__':
@@ -700,6 +674,9 @@ if __name__ == '__main__':
     }
     ec2_clients = {
         region: boto3.client("ec2", region_name=region) for region in REGIONS
+    }
+    ssm_clients = {
+        region: boto3.client("ssm", region_name=region) for region in REGIONS
     }
 
     # security group
@@ -714,8 +691,9 @@ if __name__ == '__main__':
 
     # Here you need to wait for some time (e.g., 1 min) until `setup-instance.sh` is executed on all instances
 
-    op = Operator()
-
+    op = Operator(instances, ssm_clients)
+    # print(op.ssm_clients['us-east-1'].send_command(InstanceIds=['i-0945ba88c51f82960'],
+    #                                                DocumentName="AWS-RunShellScript", Parameters={'commands': ['echo hellofuckyou']}))
     # op.ssh_connect(instances)
     # op.run_benchmark(instances)
     # op.collect_logs(instances)
