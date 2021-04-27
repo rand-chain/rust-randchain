@@ -5,6 +5,7 @@ mod bytes;
 mod get_block_response;
 mod hash;
 mod nodes;
+mod submit_block;
 mod uint;
 
 pub use self::block::RawBlock;
