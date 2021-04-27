@@ -155,7 +155,6 @@ pub mod tests {
     use super::*;
     use db::BlockChainDatabase;
     use jsonrpc_core::IoHandler;
-    use primitives::bytes::Bytes as GlobalBytes;
     use primitives::hash::H256 as GlobalH256;
     use std::sync::Arc;
     use v1::traits::BlockChain;
@@ -184,33 +183,30 @@ pub mod tests {
         }
 
         fn raw_block(&self, _hash: GlobalH256) -> Option<RawBlock> {
-            let b2_bytes: GlobalBytes = "010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd610101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d010bffffffff0100f2052a010000004341047211a824f55b505228e4c3d5194c1fcfaa15a456abdf37f9b9d97a4040afc073dee6c89064984f03385237d92167c13e236446b417ab79a0fcae412ae3316b77ac00000000".into();
+            let b2_bytes = serialize(&test_data::block_h2());
             Some(RawBlock::from(b2_bytes))
         }
 
         fn verbose_block(&self, _hash: GlobalH256) -> Option<VerboseBlock> {
-            // https://blockexplorer.com/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd
-            // https://blockchain.info/ru/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd
-            // https://webbtc.com/block/000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd.json
             Some(VerboseBlock {
-                hash: "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000".into(),
+                hash: test_data::block_h2().hash().into(),
                 confirmations: 1, // h2
-                size: 215,
+                size: serialize(&test_data::block_h2()).len() as u32,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
-                    .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469744,
+                pubkey_hex: test_data::block_h2().header().pubkey.to_bytes().to_hex(),
+                randomness_hex: test_data::block_h2()
+                    .header()
+                    .randomness
+                    .to_string_radix(16),
+                time: test_data::block_h2().header().time,
                 mediantime: None,
-                iterations: 1639830024,
-                bits: 486604799,
+                iterations: test_data::block_h2().header().iterations,
+                bits: test_data::block_h2().header().bits.into(),
                 difficulty: 1.0,
                 chainwork: 0.into(),
-                previousblockhash: Some(
-                    "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000".into(),
-                ),
+                previousblockhash: Some(test_data::block_h1().hash().into()),
                 nextblockhash: None,
             })
         }
@@ -260,11 +256,11 @@ pub mod tests {
             )
             .unwrap();
 
-        // direct hash is ....
+        // direct hash is 0e02cf1de23136c83e2aa473e226c02f5f2d4a7dffd16e49fafdfb5e7d6f5971
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"71596f7d5efbfdfa496ed1ff7d4a2d5f2fc026e273a42a3ec83631e21dcf020e","id":1}"#
         );
     }
 
@@ -277,12 +273,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblockcount",
-				"params": [],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockcount",
+                    	"params": [],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -298,20 +294,20 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblockhash",
-				"params": [0],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockhash",
+                    	"params": [0],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
-        // direct hash is ...
+        // direct hash is 0e02cf1de23136c83e2aa473e226c02f5f2d4a7dffd16e49fafdfb5e7d6f5971
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":"a1ba7dca74f77a4b0053b0f6b8eea1268ec44337d59d5acfafa0d94b7bd18404","id":1}"#
+            r#"{"jsonrpc":"2.0","result":"71596f7d5efbfdfa496ed1ff7d4a2d5f2fc026e273a42a3ec83631e21dcf020e","id":1}"#
         );
     }
 
@@ -324,12 +320,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblockhash",
-				"params": [0],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblockhash",
+                    	"params": [0],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -348,12 +344,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getdifficulty",
-				"params": [],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getdifficulty",
+                    	"params": [],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -371,61 +367,56 @@ pub mod tests {
         let core = BlockChainClientCore::new(storage);
 
         // get info on block #1:
-        let verbose_block = core.verbose_block(
-            "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
-        );
+        let verbose_block = core.verbose_block(test_data::block_h1().hash().into());
         assert_eq!(
             verbose_block,
             Some(VerboseBlock {
-                hash: "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into(),
+                hash: test_data::block_h1().hash().into(),
                 confirmations: 2, // h1 + h2
-                size: 55,
+                size: 859,
                 height: Some(1),
                 version: 1,
                 version_hex: "1".to_owned(),
-                // TODO:
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469665,
-                mediantime: Some(1231006505),
-                iterations: 2573394689,
-                bits: 486604799,
-                difficulty: 1.0,
+                randomness_hex: "966e8f70aa11fdb48b7d463c57db4722d1ac994640879f98a616b165c3a5df9db31c0dee6cbcebf46c427049ead7b7edbe39970ce7b0fecf2a9b07c4381e466055f1e8fc152f304f3cfdbb475bdaa93a9f95de38ff1d091d175bfea579574f444c1650a6ab4bfd97d2b19f6653549517d91b882a5560da1b6b0188ae67d016dfe2dfe795593e844b2d32e29b985b425038c83c7aaf9b9ea3d73065767f234da6f25e43137a8d91265d16afdb9ab728f619385a31734ba769bfb5ff1bea3869043534d1697efc3148a0867ceacb6d2d24508ea1b201abfbb23604aa7cc3dd7dbfe9c002f2f26199aea18e9c24e870bfa090505eecc307d895caf7bdadccbdfbb4".to_owned(),
+                time: 1001,
+                mediantime: Some(1000),
+                iterations: 4,
+                bits: 545259519,
+                difficulty: 0.00000000046565423739069247,
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "0484d17b4bd9a0afcf5a9dd53743c48e26a1eeb8f6b053004b7af774ca7dbaa1".into()
+                    test_data::genesis().hash().into()
                 ),
                 nextblockhash: Some(
-                    "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into()
+                    test_data::block_h2().hash().into()
                 ),
             })
         );
 
         // get info on block #2:
-        let verbose_block = core.verbose_block(
-            "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
-        );
+        let verbose_block = core.verbose_block(test_data::block_h2().hash().into());
         assert_eq!(
             verbose_block,
             Some(VerboseBlock {
-                hash: "b6d94e340f618ec8f11682fe8eef6fdf19cbfdd0a67aad15907d88294cc961ae".into(),
+                hash: test_data::block_h2().hash().into(),
                 confirmations: 1, // h2
-                size: 215,
+                size: 859,
                 height: Some(2),
                 version: 1,
                 version_hex: "1".to_owned(),
-                pubkey_hex: "6969696969696969696969696969696969696969696969696969696969696969"
+                pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
-                randomness_hex: "7788".to_owned(),
-                time: 1231469744,
-                mediantime: Some(1231469665),
-                iterations: 1639830024,
-                bits: 486604799,
-                difficulty: 1.0,
+                randomness_hex: "5ced562ee6e1c95c2e034d3ed4fc38508fd4cf0a1faa466303c79b7bc9fcaf4d60d1dc53884698e891e5ee1f661f79e58631b8003d0fd18d526fcc3f95e97597c125573895ffc3a6a9b1458b1a383cdb1ea151f2b01f62980d6e92aaef8d0c5a06e56995176a75cb8aa37c94a5e677e1dd91e1fb3874b72f614507b5e9b29bc5e43264123e8fb29664558dad1aa4e350843262effaffe63685765fa7028ce10b81d13059a3dfc8207b7bc37ce4e8e23d22a797b454abf7777c641a534a2bfd5d67f5d182c75a4a7fe9f3a31eb85afe533cc55edca86b9dfe6e8d66c2c00a90097ac0ff8ca06f00dd524018fb422ad68994ec537cd12ab10f4144a8f3290dae1a".to_owned(),
+                time: 1002,
+                mediantime: Some(1001),
+                iterations: 4,
+                bits: 545259519,
+                difficulty: 0.00000000046565423739069247,
                 chainwork: 0.into(),
                 previousblockhash: Some(
-                    "c6235208c895dbfd487d3c760194b77b5e0633835a0482fe6df049fc35b28277".into()
+                    test_data::block_h1().hash().into()
                 ),
                 nextblockhash: None,
             })
@@ -438,31 +429,31 @@ pub mod tests {
         let mut handler = IoHandler::new();
         handler.extend_with(client.to_delegate());
 
-        let expected = r#"{"jsonrpc":"2.0","result":"010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd610101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d010bffffffff0100f2052a010000004341047211a824f55b505228e4c3d5194c1fcfaa15a456abdf37f9b9d97a4040afc073dee6c89064984f03385237d92167c13e236446b417ab79a0fcae412ae3316b77ac00000000","id":1}"#;
+        let expected = r#"{"jsonrpc":"2.0","result":"0100000027cf1cfd394338d0af68c0bd84960c8cb1becb8a10991df558a8fb167ef65e63ea030000ffff7f2020000000000000000000000000000000000000000000000000000000000000000004000000fd00015ced562ee6e1c95c2e034d3ed4fc38508fd4cf0a1faa466303c79b7bc9fcaf4d60d1dc53884698e891e5ee1f661f79e58631b8003d0fd18d526fcc3f95e97597c125573895ffc3a6a9b1458b1a383cdb1ea151f2b01f62980d6e92aaef8d0c5a06e56995176a75cb8aa37c94a5e677e1dd91e1fb3874b72f614507b5e9b29bc5e43264123e8fb29664558dad1aa4e350843262effaffe63685765fa7028ce10b81d13059a3dfc8207b7bc37ce4e8e23d22a797b454abf7777c641a534a2bfd5d67f5d182c75a4a7fe9f3a31eb85afe533cc55edca86b9dfe6e8d66c2c00a90097ac0ff8ca06f00dd524018fb422ad68994ec537cd12ab10f4144a8f3290dae1a02fd000113f6cd3e8a5010bd7383bc1540735721fa5f6b433e67c5dfb9a4d9e30559ae3c08627385820f34535edcad1d1b36019e5f615e70661c3e9cb553643fd8003096a3079c67ac289eb122abb1d7cace1ae8f4a3ec6959b89c43a16ffe785fb166ebe94c2609d65795fc58f6faac12e6e00a41099b44f6a53344db5f2846bf2c5782a503234822f8d75257d5a04d352cc85fb569157e8c1195f77208359759229f1c3e81ae82275b6362350a7fb430abf99c1a0d054eaa4aaf90e63fb1028740af75ff05c8286338aef128f6fb75d93a78c08dd4e05f0b91516cb15b1832d473f5539daf6b6c1176ff460ace9049029278640be9bc5a1893030387d72760e1ff3532fd00014be8ac242b610c307dee148c2d3cbf0e460e6dbf00aadaf1ee202c87a630ec96b74d6caedf9932c98d35949cdfbca69e32ae72b8b200dc41f52ea5a890c3fc64370c124f9fa9478fcaaa8da260ffdb07492ebc60ee642f459fa75a7e9839fb8442f03610a807a662a45364f729352682d02b4a2c353c11d0dde3a802bceb8af7149f499152d1e7b51bc627abaa63e270442cdf0a3d9d12aa2590abd0ab9209faca4a2b3c8cb1ff673e282f3d89fcee7d28b1139b1c0646ad2248a628fbc71cb1228a4ced677e589b17b8f688032921237cf2d723c204a89259d321a8c88cb18303669ef278f6480ea1bad355cc86d431157bff750d4918af83c47f1889efa05e","id":1}"#;
 
         let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["29483ce82fad9d817f3ac76b8bd8f221cd5a6aa882523da8fcf19df6c0f60d40", false],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
         assert_eq!(&sample, expected);
 
         // try without optional parameter
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd"],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["29483ce82fad9d817f3ac76b8bd8f221cd5a6aa882523da8fcf19df6c0f60d40"],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
         assert_eq!(&sample, expected);
@@ -477,12 +468,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
-				"id": 1
-			}"#),
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
+                    	"id": 1
+                    }"#),
             )
             .unwrap();
 
@@ -499,20 +490,20 @@ pub mod tests {
         handler.extend_with(client.to_delegate());
 
         let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd",true],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["29483ce82fad9d817f3ac76b8bd8f221cd5a6aa882523da8fcf19df6c0f60d40",true],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
 
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":{"bits":486604799,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd","height":2,"mediantime":null,"nextblockhash":null,"iterations":1639830024,"previousblockhash":"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048","randomnessHex":"7788","size":215,"time":1231469744,"version":1,"versionHex":"1"},"id":1}"#
+            r#"{"jsonrpc":"2.0","result":{"bits":545259519,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"29483ce82fad9d817f3ac76b8bd8f221cd5a6aa882523da8fcf19df6c0f60d40","height":2,"iterations":4,"mediantime":null,"nextblockhash":null,"previousblockhash":"635ef67e16fba858f51d99108acbbeb18c0c9684bdc068afd0384339fd1ccf27","pubkeyHex":"0000000000000000000000000000000000000000000000000000000000000000","randomnessHex":"5ced562ee6e1c95c2e034d3ed4fc38508fd4cf0a1faa466303c79b7bc9fcaf4d60d1dc53884698e891e5ee1f661f79e58631b8003d0fd18d526fcc3f95e97597c125573895ffc3a6a9b1458b1a383cdb1ea151f2b01f62980d6e92aaef8d0c5a06e56995176a75cb8aa37c94a5e677e1dd91e1fb3874b72f614507b5e9b29bc5e43264123e8fb29664558dad1aa4e350843262effaffe63685765fa7028ce10b81d13059a3dfc8207b7bc37ce4e8e23d22a797b454abf7777c641a534a2bfd5d67f5d182c75a4a7fe9f3a31eb85afe533cc55edca86b9dfe6e8d66c2c00a90097ac0ff8ca06f00dd524018fb422ad68994ec537cd12ab10f4144a8f3290dae1a","size":859,"time":1002,"version":1,"versionHex":"1"},"id":1}"#
         );
     }
 
@@ -523,16 +514,16 @@ pub mod tests {
         handler.extend_with(client.to_delegate());
 
         let sample = handler
-            .handle_request_sync(
-                &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblock",
-				"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", true],
-				"id": 1
-			}"#),
-            )
-            .unwrap();
+             .handle_request_sync(
+                 &(r#"
+                    {
+                    	"jsonrpc": "2.0",
+                    	"method": "getblock",
+                    	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", true],
+                    	"id": 1
+                    }"#),
+             )
+             .unwrap();
 
         assert_eq!(
             &sample,
