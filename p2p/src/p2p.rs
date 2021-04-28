@@ -12,6 +12,8 @@ use net::{
 use ns_dns_tokio::DnsResolver;
 use parking_lot::RwLock;
 use protocol::{InboundSyncConnectionRef, LocalSyncNodeRef, OutboundSyncConnectionRef};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use session::{NormalSessionFactory, SeednodeSessionFactory, SessionFactory};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -220,9 +222,9 @@ impl Context {
                             channel.session().initialize();
                             Context::on_message(context, channel)
                         }
-                        Ok(DeadlineStatus::Meet(Err(_))) => {
+                        Ok(DeadlineStatus::Meet(Err(err))) => {
                             // protocol error
-                            trace!("Handshake with {} failed", socket);
+                            trace!("Handshake with {} failed: {}", socket, err);
                             // TODO: close socket
                             context.node_table.write().note_failure(&socket);
                             context.connection_counter.note_close_outbound_connection();
@@ -236,9 +238,9 @@ impl Context {
                             context.connection_counter.note_close_outbound_connection();
                             Box::new(finished(Ok(())))
                         }
-                        Err(_) => {
+                        Err(err) => {
                             // network error
-                            trace!("Unable to connect to {}", socket);
+                            trace!("Unable to connect to {}: {}", socket, err);
                             context.node_table.write().note_failure(&socket);
                             context.connection_counter.note_close_outbound_connection();
                             Box::new(finished(Ok(())))
@@ -284,16 +286,18 @@ impl Context {
                         Ok(DeadlineStatus::Meet(Ok(connection))) => {
                             // successfull hanshake
                             trace!("Accepted connection from {}", connection.address);
-                            context
-                                .node_table
-                                .write()
-                                .insert(connection.address, connection.services);
+                            // PROTOTYPE ONLY: Replace port to the default one
+                            // TODO: Ports should be announced by nodes themselves rather than hardcoded here
+                            let mut addr = connection.address.clone();
+                            addr.set_port(config.network.port());
+                            // insert the address to node table
+                            context.node_table.write().insert(addr, connection.services);
+                            // establish channel
                             let channel = context.connections.store::<NormalSessionFactory>(
                                 context.clone(),
                                 connection,
                                 Direction::Inbound,
                             );
-
                             // initialize session and then start reading messages
                             channel.session().initialize();
                             Context::on_message(context.clone(), channel)
@@ -590,8 +594,15 @@ impl P2P {
     }
 
     pub fn run(&self) -> Result<(), Box<dyn error::Error>> {
-        for peer in &self.config.peers {
-            self.connect::<NormalSessionFactory>(*peer);
+        let mut rng = thread_rng();
+        let sampled_peers: Vec<net::SocketAddr> = self
+            .config
+            .peers
+            .choose_multiple(&mut rng, self.config.outbound_connections as usize)
+            .cloned()
+            .collect();
+        for peer in sampled_peers {
+            self.connect::<NormalSessionFactory>(peer);
         }
 
         let resolver = DnsResolver::system_config(&self.event_loop_handle)?;
@@ -633,8 +644,8 @@ impl P2P {
                         );
                     }
                 },
-                Err(_err) => {
-                    trace!("Dns lookup of seednode {} failed", owned_seednode);
+                Err(err) => {
+                    trace!("Dns lookup of seednode {} failed: {}", owned_seednode, err);
                 }
             }
             finished(())
