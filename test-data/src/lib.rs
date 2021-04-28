@@ -15,6 +15,7 @@ use ecvrf::VrfPk;
 
 use chain::Block;
 use primitives::compact::Compact;
+use network::Network::Mainnet;
 
 pub mod block;
 pub mod chain_builder;
