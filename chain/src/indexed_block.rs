@@ -34,6 +34,7 @@ impl From<Block> for IndexedBlock {
         Self::from_raw(block)
     }
 }
+
 impl cmp::PartialEq for IndexedBlock {
     fn eq(&self, other: &Self) -> bool {
         self.header.hash == other.header.hash
