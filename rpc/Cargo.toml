@@ -1,31 +1,30 @@
 [package]
 name = "rpc"
 version = "0.1.0"
-authors = ["Ethcore <admin@ethcore.io>"]
+authors = [ "Ethcore <admin@ethcore.io>" ]
 
 [lib]
 
 [dependencies]
-log = "0.4"
-rug = "1.3.0"
-serde = "1.0"
-serde_json = "1.0"
-serde_derive = "1.0"
-rustc-hex = "2"
-tokio-core = "0.1.1"
-jsonrpc-core = { git = "https://github.com/ethcore/jsonrpc.git" }
-jsonrpc-macros = { git = "https://github.com/ethcore/jsonrpc.git" }
-jsonrpc-http-server = { git = "https://github.com/ethcore/jsonrpc.git" }
-
-sync = { path = "../sync" }
-serialization = { path = "../serialization" }
 chain = { path = "../chain" }
-primitives = { path = "../primitives" }
-p2p = { path = "../p2p" }
-network = { path = "../network" }
-storage = { path = "../storage" }
 db = { path = "../db" }
+jsonrpc-core = { git = "https://github.com/ethcore/jsonrpc.git" }
+jsonrpc-http-server = { git = "https://github.com/ethcore/jsonrpc.git" }
+jsonrpc-macros = { git = "https://github.com/ethcore/jsonrpc.git" }
+log = "0.4"
 miner = { path = "../miner" }
+network = { path = "../network" }
+p2p = { path = "../p2p" }
+primitives = { path = "../primitives" }
+rug = "1.3.0"
+rustc-hex = "2"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+serialization = { path = "../serialization" }
+storage = { path = "../storage" }
+sync = { path = "../sync" }
+tokio-core = "0.1.1"
 verification = { path = "../verification" }
 
 [dev-dependencies]
