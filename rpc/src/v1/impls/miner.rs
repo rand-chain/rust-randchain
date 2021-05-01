@@ -2,7 +2,7 @@ use jsonrpc_core::Error;
 use miner;
 use sync;
 use v1::traits::Miner;
-use v1::types::{BlockTemplate, BlockTemplateRequest};
+use v1::types::{BlockTemplate, BlockTemplateRequest, SubmitBlockRequest, SubmitBlockResponse};
 
 pub struct MinerClient<T: MinerClientCoreApi> {
     core: T,
@@ -10,6 +10,8 @@ pub struct MinerClient<T: MinerClientCoreApi> {
 
 pub trait MinerClientCoreApi: Send + Sync + 'static {
     fn get_block_template(&self) -> miner::BlockTemplate;
+
+    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse;
 }
 
 pub struct MinerClientCore {
@@ -28,6 +30,11 @@ impl MinerClientCoreApi for MinerClientCore {
     fn get_block_template(&self) -> miner::BlockTemplate {
         self.local_sync_node.get_block_template()
     }
+
+    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse {
+        unimplemented!();
+        // self.local_sync_node.submit_block(block)
+    }
 }
 
 impl<T> MinerClient<T>
@@ -45,6 +52,10 @@ where
 {
     fn get_block_template(&self, _request: BlockTemplateRequest) -> Result<BlockTemplate, Error> {
         Ok(self.core.get_block_template().into())
+    }
+
+    fn submit_block(&self, block: SubmitBlockRequest) -> Result<SubmitBlockResponse, Error> {
+        Ok(self.core.submit_block(block).into())
     }
 }
 
@@ -80,12 +91,12 @@ pub mod tests {
         let sample = handler
             .handle_request_sync(
                 &(r#"
-			{
-				"jsonrpc": "2.0",
-				"method": "getblocktemplate",
-				"params": [{}],
-				"id": 1
-			}"#),
+            {
+                "jsonrpc": "2.0",
+                "method": "getblocktemplate",
+                "params": [{}],
+                "id": 1
+            }"#),
             )
             .unwrap();
 

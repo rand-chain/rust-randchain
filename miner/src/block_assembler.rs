@@ -4,7 +4,7 @@ use primitives::hash::H256;
 use storage::SharedStore;
 use verification::work_required;
 
-const BLOCK_VERSION: u32 = 0x20000000;
+const BLOCK_VERSION: u32 = 0x00000001;
 // TODO:
 // const BLOCK_HEADER_SIZE: u32 = 4 + 32 + 32 + 4 + 4 + 4;
 
