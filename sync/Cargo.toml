@@ -1,32 +1,32 @@
 [package]
 name = "sync"
 version = "0.1.0"
-authors = ["Ethcore <admin@ethcore.io>"]
+authors = [ "Ethcore <admin@ethcore.io>" ]
 
 [dependencies]
-parking_lot = "0.4"
-log = "0.4"
-time = "0.1"
-futures = "0.1"
-linked-hash-map = "0.3"
 bit-vec = "0.4.3"
-murmur3 = "0.4"
-rand = "0.7"
+bitcrypto = { path = "../crypto" }
 byteorder = "1.0"
 
 chain = { path = "../chain" }
-bitcrypto = { path = "../crypto" }
-storage = { path = "../storage" }
 db = { path = "../db" }
+futures = "0.1"
+linked-hash-map = "0.3"
+log = "0.4"
 message = { path = "../message" }
 miner = { path = "../miner" }
-p2p = { path = "../p2p" }
-primitives = { path = "../primitives" }
-serialization = { path = "../serialization" }
-verification = { path = "../verification" }
+murmur3 = "0.4"
 network = { path = "../network" }
+p2p = { path = "../p2p" }
+parking_lot = "0.4"
+primitives = { path = "../primitives" }
+rand = "0.7"
+serialization = { path = "../serialization" }
+storage = { path = "../storage" }
+time = "0.1"
+verification = { path = "../verification" }
 
 [dev-dependencies]
+chain = { path = "../chain", features = [ "test-helpers" ] }
+miner = { path = "../miner", features = [ "test-helpers" ] }
 test-data = { path = "../test-data" }
-miner = { path = "../miner", features = ["test-helpers"] }
-chain = { path = "../chain", features = ["test-helpers"] }

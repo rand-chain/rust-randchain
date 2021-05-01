@@ -2,18 +2,18 @@
 name = "randchain"
 version = "0.1.0"
 license = "GPL-3.0"
-authors = ["RandChain https://github.com/rand-chain/"]
+authors = [ "RandChain https://github.com/rand-chain/" ]
 description = "RandChain: Decentralised Randomness Beacon from Sequential Proof-of-Work. https://eprint.iacr.org/2020/1033.pdf"
 
 [dependencies]
-log = "0.4"
-env_logger = "0.5"
 app_dirs = { git = "https://github.com/paritytech/app-dirs-rs" }
-libc = "0.2"
-clap = { version = "2", features = ["yaml"] }
-chain = { path = "chain" }
 bitcrypto = { path = "crypto" }
+chain = { path = "chain" }
+clap = { version = "2", features = [ "yaml" ] }
 db = { path = "db" }
+env_logger = "0.5"
+libc = "0.2"
+log = "0.4"
 logs = { path = "logs" }
 message = { path = "message" }
 miner = { path = "miner" }
@@ -61,6 +61,5 @@ members = [
 			"storage",
 			"sync",
 			"test-data",
-			"vdf",
-			"verification",
-		]
+			"vdf""verification",
+]
