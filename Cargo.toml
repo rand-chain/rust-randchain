@@ -61,5 +61,6 @@ members = [
 			"storage",
 			"sync",
 			"test-data",
-			"vdf""verification",
+			"vdf",
+			"verification",
 ]
