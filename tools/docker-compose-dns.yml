@@ -2,45 +2,34 @@
 version: '3'
 services:
   seednode:
+    domainname: "dnsseed.randchain.org"
     tty: true
-    image: randchain-dev/coredns:v0.1.1
-    entrypoint: coredns
-    command: ["-conf", "/etc/dnsseeder/Corefile-local"]
+    image: randchain-dev/dnsseeder:latest
+    entrypoint: /dnsseeder/dnsseeder
+    command: ["-v", "-netfile", "/dnsseeder/configs/randchain.json"]
     cap_add:
       - ALL
-    depends_on:
-      - bootstrap-node
+    extra_hosts: 
+      - "dnsseed.randchain.org:10.0.0.200"
     restart: always
     networks:
       randchain_privnet:
         ipv4_address: 10.0.0.200
-    extra_hosts:
-      - "mainnet.randchain.io:10.0.0.5"
-
-  bootstrap-node:
-    tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
-    command: ["-s", "10.0.0.200:53"]
-    cap_add:
-      - ALL
-    environment:
-      - RUST_BACKTRACE=full
-      - RUST_LOG=trace
-    networks:
-      randchain_privnet:
-        ipv4_address: 10.0.0.5
 
   node:
     tty: true
     image: randchain-dev/randchaind:latest
     entrypoint: /bin/randchaind
-    command: ["-s", "10.0.0.200:53", "-p", "10.0.0.5"]
+    command: ["-s", "dnsseed.randchain.org", "-p", "10.0.0.2:8333,10.0.0.3:8333"]
+    dns:
+      - 10.0.0.200
     cap_add:
       - ALL
     environment:
       - RUST_BACKTRACE=full
       - RUST_LOG=trace
+    depends_on: 
+      - seednode
     networks:
       - randchain_privnet
 
