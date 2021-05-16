@@ -13,6 +13,7 @@ jsonrpc-http-server = { git = "https://github.com/ethcore/jsonrpc.git" }
 jsonrpc-macros = { git = "https://github.com/ethcore/jsonrpc.git" }
 log = "0.4"
 miner = { path = "../miner" }
+message = { path = "../message"}
 network = { path = "../network" }
 p2p = { path = "../p2p" }
 primitives = { path = "../primitives" }

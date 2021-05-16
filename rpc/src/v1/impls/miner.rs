@@ -1,5 +1,8 @@
+use chain::{Block, IndexedBlock};
 use jsonrpc_core::Error;
+use message::types::Block;
 use miner;
+use ser::{deserialize, serialize};
 use sync;
 use v1::traits::Miner;
 use v1::types::{
@@ -13,7 +16,7 @@ pub struct MinerClient<T: MinerClientCoreApi> {
 pub trait MinerClientCoreApi: Send + Sync + 'static {
     fn get_block_template(&self) -> miner::BlockTemplate;
 
-    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse;
+    fn submit_block(&self, submit_block_req: SubmitBlockRequest) -> SubmitBlockResponse;
 }
 
 pub struct MinerClientCore {
@@ -33,9 +36,12 @@ impl MinerClientCoreApi for MinerClientCore {
         self.local_sync_node.get_block_template()
     }
 
-    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse {
-        unimplemented!();
-        // self.local_sync_node.submit_block(block)
+    fn submit_block(&self, submit_block_req: SubmitBlockRequest) -> SubmitBlockResponse {
+        // TODO serialise
+        // TODO RH deal with rawblock with incorrect format
+        let block: IndexedBlock = IndexedBlock::from(submit_block_req.data);
+        self.local_sync_node.on_block(1, block);
+        SubmitBlockResponse {}
     }
 }
 
@@ -56,8 +62,11 @@ where
         Ok(self.core.get_block_template().into())
     }
 
-    fn submit_block(&self, block: SubmitBlockRequest) -> Result<SubmitBlockResponse, Error> {
-        Ok(self.core.submit_block(block).into())
+    fn submit_block(
+        &self,
+        submit_block_req: SubmitBlockRequest,
+    ) -> Result<SubmitBlockResponse, Error> {
+        Ok(self.core.submit_block(submit_block_req).into())
     }
 }
 
@@ -83,7 +92,7 @@ pub mod tests {
             }
         }
 
-        fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse {
+        fn submit_block(&self, submit_block_req: SubmitBlockRequest) -> SubmitBlockResponse {
             SubmitBlockResponse {}
         }
     }

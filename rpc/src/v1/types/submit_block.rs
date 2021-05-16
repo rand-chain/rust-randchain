@@ -9,5 +9,7 @@ pub struct SubmitBlockRequest {
     // params (json object, optional, default=nil) this parameter is currently **ignored**. Some miner pools provide `workid` here
 }
 
+/// SubmitBlock Response
+/// TODO error message
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct SubmitBlockResponse {}
