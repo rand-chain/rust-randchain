@@ -2,7 +2,9 @@ use jsonrpc_core::Error;
 use miner;
 use sync;
 use v1::traits::Miner;
-use v1::types::{BlockTemplate, BlockTemplateRequest, SubmitBlockRequest, SubmitBlockResponse};
+use v1::types::{
+    BlockTemplate, BlockTemplateRequest, Bytes, SubmitBlockRequest, SubmitBlockResponse,
+};
 
 pub struct MinerClient<T: MinerClientCoreApi> {
     core: T,
@@ -79,6 +81,10 @@ pub mod tests {
                 bits: 44.into(),
                 height: 55,
             }
+        }
+
+        fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse {
+            SubmitBlockResponse {}
         }
     }
 
