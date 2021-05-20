@@ -88,6 +88,26 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -
     }
 }
 
+/// Dry run miner
+pub fn find_solution_dry(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> {
+    let g = h_g(block, pubkey);
+    let mut cur_y = g.clone();
+    let mut iterations = 0u64;
+
+    // consistent with chain/src/block_header.rs
+    let block_header_hash = dhash256(&serialize(&BlockHeader {
+        version: block.version,
+        previous_header_hash: block.previous_header_hash,
+        time: block.time,
+        bits: block.bits,
+        pubkey: pubkey.clone(),
+        iterations: iterations as u32,
+        randomness: cur_y.clone(),
+    }));
+
+    return Some(solution);
+}
+
 #[cfg(test)]
 mod tests {
     use super::find_solution;
