@@ -1,6 +1,5 @@
 use chain::{Block, IndexedBlock};
 use jsonrpc_core::Error;
-use message::types::Block;
 use miner;
 use ser::{deserialize, serialize};
 use sync;
@@ -32,15 +31,20 @@ impl MinerClientCore {
 }
 
 impl MinerClientCoreApi for MinerClientCore {
+    // when receiving getblocktemplate request
     fn get_block_template(&self) -> miner::BlockTemplate {
         self.local_sync_node.get_block_template()
     }
 
+    // when receiving submitblock request
     fn submit_block(&self, submit_block_req: SubmitBlockRequest) -> SubmitBlockResponse {
-        // TODO serialise
-        // TODO RH deal with rawblock with incorrect format
-        let block: IndexedBlock = IndexedBlock::from(submit_block_req.data);
-        self.local_sync_node.on_block(1, block);
+        // TODO RH deserialise to Block
+        let data_vec: Vec<u8> = submit_block_req.data.into();
+        let blk: Block = deserialize(&data_vec[..]).unwrap();
+        // Covnert Block to IndexedBlock
+        let indexed_blk = IndexedBlock::from_raw(blk);
+        // commit IndexedBlock locally
+        self.local_sync_node.on_block(1, indexed_blk);
         SubmitBlockResponse {}
     }
 }
