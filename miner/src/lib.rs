@@ -19,5 +19,5 @@ mod cpu_miner;
 
 pub use block_assembler::{BlockAssembler, BlockTemplate};
 pub use cpu_miner::find_solution;
-pub use cpu_miner::Solution;
+pub use cpu_miner::find_solution_dry;
 pub use primitives::hash;
