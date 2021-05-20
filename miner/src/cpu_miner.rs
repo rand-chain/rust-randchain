@@ -94,16 +94,11 @@ pub fn find_solution_dry(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Soluti
     let mut cur_y = g.clone();
     let mut iterations = 0u64;
 
-    // consistent with chain/src/block_header.rs
-    let block_header_hash = dhash256(&serialize(&BlockHeader {
-        version: block.version,
-        previous_header_hash: block.previous_header_hash,
-        time: block.time,
-        bits: block.bits,
-        pubkey: pubkey.clone(),
+    let solution = Solution {
         iterations: iterations as u32,
         randomness: cur_y.clone(),
-    }));
+        proof: vdf::prove(&g, &cur_y, iterations as u32),
+    };
 
     return Some(solution);
 }
