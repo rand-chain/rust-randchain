@@ -97,18 +97,21 @@ pub mod tests {
     struct SuccessMinerClientCore;
 
     impl MinerClientCoreApi for SuccessMinerClientCore {
-        fn get_block_template(&self) -> miner::BlockTemplate {
-            miner::BlockTemplate {
+        fn get_block_template(&self) -> Result<miner::BlockTemplate, Error> {
+            Ok(miner::BlockTemplate {
                 version: 777,
                 previous_header_hash: H256::from(1),
                 time: 33,
                 bits: 44.into(),
                 height: 55,
-            }
+            })
         }
 
-        fn submit_block(&self, submit_block_req: SubmitBlockRequest) -> SubmitBlockResponse {
-            SubmitBlockResponse {}
+        fn submit_block(
+            &self,
+            submit_block_req: SubmitBlockRequest,
+        ) -> Result<SubmitBlockResponse, Error> {
+            Ok(SubmitBlockResponse {})
         }
     }
 
