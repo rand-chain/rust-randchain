@@ -13,9 +13,12 @@ pub struct MinerClient<T: MinerClientCoreApi> {
 }
 
 pub trait MinerClientCoreApi: Send + Sync + 'static {
-    fn get_block_template(&self) -> miner::BlockTemplate;
+    fn get_block_template(&self) -> Result<miner::BlockTemplate, Error>;
 
-    fn submit_block(&self, submit_block_req: SubmitBlockRequest) -> SubmitBlockResponse;
+    fn submit_block(
+        &self,
+        submit_block_req: SubmitBlockRequest,
+    ) -> Result<SubmitBlockResponse, Error>;
 }
 
 pub struct MinerClientCore {
@@ -24,28 +27,32 @@ pub struct MinerClientCore {
 
 impl MinerClientCore {
     pub fn new(local_sync_node: sync::LocalNodeRef) -> Self {
-        MinerClientCore {
-            local_sync_node: local_sync_node,
-        }
+        MinerClientCore { local_sync_node }
     }
 }
 
 impl MinerClientCoreApi for MinerClientCore {
     // when receiving getblocktemplate request
-    fn get_block_template(&self) -> miner::BlockTemplate {
-        self.local_sync_node.get_block_template()
+    fn get_block_template(&self) -> Result<miner::BlockTemplate, Error> {
+        Ok(self.local_sync_node.get_block_template())
     }
 
     // when receiving submitblock request
-    fn submit_block(&self, submit_block_req: SubmitBlockRequest) -> SubmitBlockResponse {
-        // TODO RH deserialise to Block
+    fn submit_block(
+        &self,
+        submit_block_req: SubmitBlockRequest,
+    ) -> Result<SubmitBlockResponse, Error> {
+        // Deserialise to Block
         let data_vec: Vec<u8> = submit_block_req.data.into();
-        let blk: Block = deserialize(&data_vec[..]).unwrap();
-        // Covnert Block to IndexedBlock
+        let blk: Block = match deserialize(&data_vec[..]) {
+            Ok(block) => block,
+            Err(_) => return Err(Error::parse_error()),
+        };
+        // Convert Block to IndexedBlock
         let indexed_blk = IndexedBlock::from_raw(blk);
         // commit IndexedBlock locally
         self.local_sync_node.on_block(1, indexed_blk);
-        SubmitBlockResponse {}
+        Ok(SubmitBlockResponse {})
     }
 }
 
@@ -54,7 +61,7 @@ where
     T: MinerClientCoreApi,
 {
     pub fn new(core: T) -> Self {
-        MinerClient { core: core }
+        MinerClient { core }
     }
 }
 
@@ -63,14 +70,18 @@ where
     T: MinerClientCoreApi,
 {
     fn get_block_template(&self, _request: BlockTemplateRequest) -> Result<BlockTemplate, Error> {
-        Ok(self.core.get_block_template().into())
+        let tpl: BlockTemplate = match self.core.get_block_template() {
+            Ok(tpl) => tpl.into(),
+            Err(err) => return Err(err),
+        };
+        Ok(tpl)
     }
 
     fn submit_block(
         &self,
         submit_block_req: SubmitBlockRequest,
     ) -> Result<SubmitBlockResponse, Error> {
-        Ok(self.core.submit_block(submit_block_req).into())
+        self.core.submit_block(submit_block_req)
     }
 }
 
