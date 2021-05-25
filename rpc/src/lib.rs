@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate log;
 extern crate rug;
 extern crate rustc_hex as hex;

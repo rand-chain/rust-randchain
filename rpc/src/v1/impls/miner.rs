@@ -51,7 +51,7 @@ impl MinerClientCoreApi for MinerClientCore {
         // Convert Block to IndexedBlock
         let indexed_blk = IndexedBlock::from_raw(blk);
         // commit IndexedBlock locally
-        self.local_sync_node.on_block(1, indexed_blk);
+        self.local_sync_node.on_block(0, indexed_blk);
         Ok(SubmitBlockResponse {})
     }
 }
@@ -71,8 +71,20 @@ where
 {
     fn get_block_template(&self, _request: BlockTemplateRequest) -> Result<BlockTemplate, Error> {
         let tpl: BlockTemplate = match self.core.get_block_template() {
-            Ok(tpl) => tpl.into(),
-            Err(err) => return Err(err),
+            Ok(tpl) => {
+                log::info!(
+                    target: "rpc",
+                    "getblocktemplate OK: previous_header_hash = {:?}",
+                    tpl.previous_header_hash
+                );
+                tpl.into()
+            }
+            Err(err) => {
+                return {
+                    log::error!(target: "rpc", "error upon getblocktemplate: {:?}", err);
+                    Err(err)
+                }
+            }
         };
         Ok(tpl)
     }
@@ -81,7 +93,17 @@ where
         &self,
         submit_block_req: SubmitBlockRequest,
     ) -> Result<SubmitBlockResponse, Error> {
-        self.core.submit_block(submit_block_req)
+        let resp: SubmitBlockResponse = match self.core.submit_block(submit_block_req) {
+            Ok(resp) => {
+                log::info!(target: "rpc", "submitblock OK");
+                resp
+            }
+            Err(err) => {
+                log::error!(target: "rpc", "error upon submitblock: {:?}", err);
+                return Err(err);
+            }
+        };
+        Ok(resp)
     }
 }
 

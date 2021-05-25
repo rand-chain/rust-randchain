@@ -10,6 +10,5 @@ pub struct SubmitBlockRequest {
 }
 
 /// SubmitBlock Response
-/// TODO error message
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct SubmitBlockResponse {}
