@@ -1,17 +1,24 @@
+use chain::{Block, IndexedBlock};
 use jsonrpc_core::Error;
 use miner;
+use ser::{deserialize, serialize};
 use sync;
 use v1::traits::Miner;
-use v1::types::{BlockTemplate, BlockTemplateRequest, SubmitBlockRequest, SubmitBlockResponse};
+use v1::types::{
+    BlockTemplate, BlockTemplateRequest, Bytes, SubmitBlockRequest, SubmitBlockResponse,
+};
 
 pub struct MinerClient<T: MinerClientCoreApi> {
     core: T,
 }
 
 pub trait MinerClientCoreApi: Send + Sync + 'static {
-    fn get_block_template(&self) -> miner::BlockTemplate;
+    fn get_block_template(&self) -> Result<miner::BlockTemplate, Error>;
 
-    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse;
+    fn submit_block(
+        &self,
+        submit_block_req: SubmitBlockRequest,
+    ) -> Result<SubmitBlockResponse, Error>;
 }
 
 pub struct MinerClientCore {
@@ -20,20 +27,37 @@ pub struct MinerClientCore {
 
 impl MinerClientCore {
     pub fn new(local_sync_node: sync::LocalNodeRef) -> Self {
-        MinerClientCore {
-            local_sync_node: local_sync_node,
-        }
+        MinerClientCore { local_sync_node }
     }
 }
 
 impl MinerClientCoreApi for MinerClientCore {
-    fn get_block_template(&self) -> miner::BlockTemplate {
-        self.local_sync_node.get_block_template()
+    // when receiving getblocktemplate request
+    fn get_block_template(&self) -> Result<miner::BlockTemplate, Error> {
+        Ok(self.local_sync_node.get_block_template())
     }
 
-    fn submit_block(&self, block: SubmitBlockRequest) -> SubmitBlockResponse {
-        unimplemented!();
-        // self.local_sync_node.submit_block(block)
+    // when receiving submitblock request
+    fn submit_block(
+        &self,
+        submit_block_req: SubmitBlockRequest,
+    ) -> Result<SubmitBlockResponse, Error> {
+        // Deserialise to Block
+        let data_vec: Vec<u8> = submit_block_req.data.into();
+        let blk: Block = match deserialize(&data_vec[..]) {
+            Ok(block) => block,
+            Err(_) => return Err(Error::parse_error()),
+        };
+        // Convert Block to IndexedBlock
+        let indexed_blk = IndexedBlock::from_raw(blk);
+        trace!(
+            "received submitblock request with block hash = {:?}",
+            indexed_blk.hash()
+        );
+        // commit IndexedBlock locally
+        // TODO RH check why on_block does not work
+        self.local_sync_node.on_block(0, indexed_blk.clone());
+        Ok(SubmitBlockResponse {})
     }
 }
 
@@ -42,7 +66,7 @@ where
     T: MinerClientCoreApi,
 {
     pub fn new(core: T) -> Self {
-        MinerClient { core: core }
+        MinerClient { core }
     }
 }
 
@@ -51,11 +75,39 @@ where
     T: MinerClientCoreApi,
 {
     fn get_block_template(&self, _request: BlockTemplateRequest) -> Result<BlockTemplate, Error> {
-        Ok(self.core.get_block_template().into())
+        let tpl: BlockTemplate = match self.core.get_block_template() {
+            Ok(tpl) => {
+                trace!(
+                    "getblocktemplate OK: previous_header_hash = {:?}",
+                    tpl.previous_header_hash
+                );
+                tpl.into()
+            }
+            Err(err) => {
+                return {
+                    error!("error upon getblocktemplate: {:?}", err);
+                    Err(err)
+                }
+            }
+        };
+        Ok(tpl)
     }
 
-    fn submit_block(&self, block: SubmitBlockRequest) -> Result<SubmitBlockResponse, Error> {
-        Ok(self.core.submit_block(block).into())
+    fn submit_block(
+        &self,
+        submit_block_req: SubmitBlockRequest,
+    ) -> Result<SubmitBlockResponse, Error> {
+        let resp: SubmitBlockResponse = match self.core.submit_block(submit_block_req) {
+            Ok(resp) => {
+                trace!("submitblock OK");
+                resp
+            }
+            Err(err) => {
+                error!("error upon submitblock: {:?}", err);
+                return Err(err);
+            }
+        };
+        Ok(resp)
     }
 }
 
@@ -71,14 +123,21 @@ pub mod tests {
     struct SuccessMinerClientCore;
 
     impl MinerClientCoreApi for SuccessMinerClientCore {
-        fn get_block_template(&self) -> miner::BlockTemplate {
-            miner::BlockTemplate {
+        fn get_block_template(&self) -> Result<miner::BlockTemplate, Error> {
+            Ok(miner::BlockTemplate {
                 version: 777,
                 previous_header_hash: H256::from(1),
                 time: 33,
                 bits: 44.into(),
                 height: 55,
-            }
+            })
+        }
+
+        fn submit_block(
+            &self,
+            submit_block_req: SubmitBlockRequest,
+        ) -> Result<SubmitBlockResponse, Error> {
+            Ok(SubmitBlockResponse {})
         }
     }
 

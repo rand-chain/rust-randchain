@@ -1,0 +1,41 @@
+# `docker-compose up --scale node=4`
+version: '3'
+services:
+  node:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    command: [""]
+    cap_add:
+      - ALL
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
+    depends_on: 
+      - seednode
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.101
+
+  miner:
+    tty: true
+    image: randchain-dev/randchaind:latest
+    entrypoint: /bin/randchaind
+    command: [""]
+    cap_add:
+      - ALL
+    environment:
+      - RUST_BACKTRACE=full
+      - RUST_LOG=trace
+    depends_on: 
+      - seednode
+    networks:
+      randchain_privnet:
+        ipv4_address: 10.0.0.102
+
+networks:
+  randchain_privnet:
+    driver: macvlan
+    ipam:
+      config:
+        - subnet: 10.0.0.0/8
