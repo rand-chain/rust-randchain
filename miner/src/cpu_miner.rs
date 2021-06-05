@@ -47,6 +47,7 @@ pub struct Solution {
 }
 
 /// SeqPoW.Init()
+#[allow(dead_code)]
 pub fn init(block: &BlockTemplate, pubkey: &VrfPk) -> Solution {
     Solution {
         iterations: 0u64,
@@ -56,6 +57,7 @@ pub fn init(block: &BlockTemplate, pubkey: &VrfPk) -> Solution {
 }
 
 /// SeqPoW.Solve()
+#[allow(dead_code)]
 pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Solution, bool) {
     let mut iterations = solution.iterations;
     iterations += STEP as u64;
@@ -83,6 +85,7 @@ pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Sol
 }
 
 /// SeqPoW.Prove()
+#[allow(dead_code)]
 pub fn prove(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> Solution {
     let g = h_g(block, pubkey);
     Solution {
@@ -93,6 +96,7 @@ pub fn prove(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> Solu
 }
 
 /// SeqPoW.Verify()
+#[allow(dead_code)]
 pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> bool {
     let g = h_g(block, pubkey);
     // if VDF verification fails, then fail
@@ -160,8 +164,8 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -
 /// Dry run miner
 pub fn find_solution_dry(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> {
     let g = h_g(block, pubkey);
-    let mut cur_y = g.clone();
-    let mut iterations = 0u64;
+    let cur_y = g.clone();
+    let iterations = 0u64;
 
     let solution = Solution {
         iterations: iterations,
@@ -174,7 +178,7 @@ pub fn find_solution_dry(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Soluti
 
 #[cfg(test)]
 mod tests {
-    use super::find_solution;
+    use super::*;
     use block_assembler::BlockTemplate;
     use ecvrf::VrfPk;
     use primitives::bigint::{Uint, U256};
@@ -194,5 +198,28 @@ mod tests {
         let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
         let solution = find_solution(&block_template, &pubkey, Duration::from_secs(0));
         assert!(solution.is_some());
+    }
+
+    #[test]
+    fn test_seqpow_low_difficulty() {
+        let block_template = BlockTemplate {
+            version: 0,
+            previous_header_hash: 0.into(),
+            time: 0,
+            bits: U256::max_value().into(),
+            height: 0,
+        };
+
+        // generate or load key
+        let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
+        let mut solution = init(&block_template, &pubkey);
+        loop {
+            let (new_solution, valid) = solve(&block_template, &pubkey, &solution);
+            if valid {
+                solution = prove(&block_template, &pubkey, &new_solution);
+                break;
+            }
+        }
+        assert_eq!(verify(&block_template, &pubkey, &solution), true);
     }
 }
