@@ -63,7 +63,7 @@ impl<'a> BlockVDF<'a> {
         match vdf::verify(
             &g,
             &self.block.header.raw.randomness,
-            self.block.header.raw.iterations,
+            self.block.header.raw.iterations as u64,
             &self.block.proof,
         ) {
             false => Err(Error::Vdf),

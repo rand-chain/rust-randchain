@@ -115,7 +115,7 @@ where
                 block_header: header.clone(),
                 proof: vec![],
             }));
-            self.proof = vdf::prove(&g, &header.randomness, header.iterations);
+            self.proof = vdf::prove(&g, &header.randomness, header.iterations as u64);
         }
         self
     }
@@ -213,7 +213,7 @@ where
             },
             proof: vec![],
         }));
-        self.randomness = vdf::eval(&g, self.iterations);
+        self.randomness = vdf::eval(&g, self.iterations as u64);
         self
     }
 
