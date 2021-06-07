@@ -57,7 +57,6 @@ pub fn init(block: &BlockTemplate, pubkey: &VrfPk) -> Solution {
 }
 
 /// SeqPoW.Solve()
-#[allow(dead_code)]
 pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Solution, bool) {
     let mut iterations = solution.iterations;
     iterations += STEP as u64;
@@ -85,7 +84,6 @@ pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Sol
 }
 
 /// SeqPoW.Prove()
-#[allow(dead_code)]
 pub fn prove(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> Solution {
     let g = h_g(block, pubkey);
     Solution {
@@ -96,7 +94,6 @@ pub fn prove(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> Solu
 }
 
 /// SeqPoW.Verify()
-#[allow(dead_code)]
 pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> bool {
     let g = h_g(block, pubkey);
     // if VDF verification fails, then fail
