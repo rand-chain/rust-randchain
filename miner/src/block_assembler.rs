@@ -8,6 +8,7 @@ const BLOCK_VERSION: u32 = 0x00000001;
 // TODO:
 // const BLOCK_HEADER_SIZE: u32 = 4 + 32 + 32 + 4 + 4 + 4;
 
+#[derive(Copy, Clone)]
 pub struct BlockTemplate {
     /// Version
     pub version: u32,
