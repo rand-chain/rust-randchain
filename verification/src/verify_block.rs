@@ -11,7 +11,6 @@ pub fn h_g(block: &IndexedBlock) -> Integer {
     stream
         .append(&block.header.raw.version)
         .append(&block.header.raw.previous_header_hash)
-        .append(&block.header.raw.time)
         .append(&block.header.raw.bits)
         .append(&Bytes::from(block.header.raw.pubkey.to_bytes().to_vec()));
     let data = stream.out();

@@ -12,13 +12,12 @@ use VrfPk;
 
 #[derive(PartialEq, Clone)]
 pub struct BlockHeader {
-    pub version: u32,
-    pub previous_header_hash: H256,
-    pub time: u32,
-    pub bits: Compact,
-    pub pubkey: VrfPk,
-    pub iterations: u32,
-    pub randomness: Integer,
+    pub version: u32,               // protocol version
+    pub previous_header_hash: H256, // previous hash
+    pub bits: Compact,              // difficulty
+    pub pubkey: VrfPk,              // pubkey of miner
+    pub iterations: u32,            // # of iterations
+    pub randomness: Integer,        // output TODO: move out
 }
 
 impl BlockHeader {
@@ -34,7 +33,6 @@ impl Serializable for BlockHeader {
         stream
             .append(&self.version)
             .append(&self.previous_header_hash)
-            .append(&self.time)
             .append(&self.bits)
             .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
             .append(&self.iterations)
@@ -50,7 +48,6 @@ impl Deserializable for BlockHeader {
         let res = BlockHeader {
             version: reader.read()?,
             previous_header_hash: reader.read()?,
-            time: reader.read()?,
             bits: reader.read()?,
             pubkey: {
                 let pk_bytes = reader.read::<Bytes>()?;
@@ -80,7 +77,6 @@ impl fmt::Debug for BlockHeader {
                 "previous_header_hash",
                 &self.previous_header_hash.reversed(),
             )
-            .field("time", &self.time)
             .field("bits", &self.bits)
             .field("pubkey", &self.pubkey)
             .field("iterations", &self.iterations)
@@ -107,12 +103,12 @@ mod tests {
     use ser::{Error as ReaderError, Reader, Stream};
     use VrfPk;
 
+    // TODO update tests as we changed the block structure
     #[test]
     fn test_block_header_stream() {
         let block_header = BlockHeader {
             version: 1,
             previous_header_hash: [2; 32].into(),
-            time: 4,
             bits: 5.into(),
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,
@@ -151,7 +147,6 @@ mod tests {
         let expected = BlockHeader {
             version: 1,
             previous_header_hash: [2; 32].into(),
-            time: 4,
             bits: 5.into(),
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,

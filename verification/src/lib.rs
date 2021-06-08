@@ -103,7 +103,7 @@ pub use verify_header::HeaderVerifier;
 
 pub use chain_verifier::BackwardsCompatibleChainVerifier;
 pub use error::Error;
-pub use timestamp::{median_timestamp, median_timestamp_inclusive};
+// pub use timestamp::{median_timestamp, median_timestamp_inclusive};
 pub use work::{
     block_reward_satoshi, is_valid_proof_of_work, is_valid_proof_of_work_hash, work_required,
 };

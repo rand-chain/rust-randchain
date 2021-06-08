@@ -94,7 +94,6 @@ impl Network {
                     block_header: BlockHeader {
                         version: 1,
                         previous_header_hash: [0; 32].into(), // genesis_block has all-0 previous_header_hash
-                        time: 4,
                         bits: 5.into(),
                         pubkey: ecvrf::VrfPk::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
@@ -109,7 +108,6 @@ impl Network {
                     block_header: BlockHeader {
                         version: 1,
                         previous_header_hash: [0; 32].into(), // genesis_block has all-0 previous_header_hash
-                        time: 4,
                         bits: 5.into(),
                         pubkey: ecvrf::VrfPk::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
@@ -124,7 +122,6 @@ impl Network {
                     block_header: BlockHeader {
                         version: 1,
                         previous_header_hash: [0; 32].into(), // genesis_block has all-0 previous_header_hash
-                        time: 4,
                         bits: 5.into(),
                         pubkey: ecvrf::VrfPk::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,

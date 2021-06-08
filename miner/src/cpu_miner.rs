@@ -18,7 +18,6 @@ fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
     stream
         .append(&block.version)
         .append(&block.previous_header_hash)
-        .append(&block.time)
         .append(&block.bits)
         .append(&Bytes::from(pubkey.to_bytes().to_vec()));
     let data = stream.out();
@@ -64,7 +63,6 @@ pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Sol
     let block_header_hash = dhash256(&serialize(&BlockHeader {
         version: block.version,
         previous_header_hash: block.previous_header_hash,
-        time: block.time,
         bits: block.bits,
         pubkey: pubkey.clone(),
         iterations: iterations as u32,
@@ -103,7 +101,6 @@ pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> boo
     let block_header_hash = dhash256(&serialize(&BlockHeader {
         version: block.version,
         previous_header_hash: block.previous_header_hash,
-        time: block.time,
         bits: block.bits,
         pubkey: pubkey.clone(),
         iterations: solution.iterations as u32,
@@ -138,7 +135,6 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -
         let block_header_hash = dhash256(&serialize(&BlockHeader {
             version: block.version,
             previous_header_hash: block.previous_header_hash,
-            time: block.time,
             bits: block.bits,
             pubkey: pubkey.clone(),
             iterations: iterations as u32,
@@ -186,7 +182,6 @@ mod tests {
         let block_template = BlockTemplate {
             version: 0,
             previous_header_hash: 0.into(),
-            time: 0,
             bits: U256::max_value().into(),
             height: 0,
         };
@@ -202,7 +197,6 @@ mod tests {
         let block_template = BlockTemplate {
             version: 0,
             previous_header_hash: 0.into(),
-            time: 0,
             bits: U256::max_value().into(),
             height: 0,
         };
