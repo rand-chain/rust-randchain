@@ -8,6 +8,7 @@ use work::work_required;
 pub struct HeaderAcceptor<'a> {
     pub version: HeaderVersion<'a>,
     pub work: HeaderWork<'a>,
+    // TODO: verify SeqPoW
     // pub median_timestamp: HeaderMedianTimestamp<'a>,
 }
 

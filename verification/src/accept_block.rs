@@ -4,6 +4,7 @@ use storage::BlockHeaderProvider;
 
 /// Flexible verification of ordered block
 pub struct BlockAcceptor<'a> {
+    // TODO: verify SeqPoW
     pub finality: BlockFinality<'a>,
 }
 
