@@ -12,13 +12,13 @@ use VrfPk;
 
 #[derive(PartialEq, Clone)]
 pub struct BlockHeader {
-    pub version: u32,
-    pub previous_header_hash: H256,
-    pub time: u32,
-    pub bits: Compact,
-    pub pubkey: VrfPk,
-    pub iterations: u32,
-    pub randomness: Integer,
+    pub version: u32,               // protocol version
+    pub previous_header_hash: H256, // previous hash
+    pub time: u32,                  // TODO: delete
+    pub bits: Compact,              // difficulty
+    pub pubkey: VrfPk,              // pubkey of miner
+    pub iterations: u32,            // # of iterations
+    pub randomness: Integer,        // output TODO: move out
 }
 
 impl BlockHeader {
