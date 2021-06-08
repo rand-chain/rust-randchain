@@ -127,7 +127,6 @@ pub mod tests {
             Ok(miner::BlockTemplate {
                 version: 777,
                 previous_header_hash: H256::from(1),
-                time: 33,
                 bits: 44.into(),
                 height: 55,
             })
@@ -163,7 +162,7 @@ pub mod tests {
         // but client expects reverse hash
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":{"bits":44,"coinbaseaux":null,"curtime":33,"height":55,"mintime":null,"mutable":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000001","rules":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","vbavailable":null,"vbrequired":null,"version":777,"weightlimit":null},"id":1}"#
+            r#"{"jsonrpc":"2.0","result":{"bits":44,"coinbaseaux":null,"height":55,"mutable":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000001","rules":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","vbavailable":null,"vbrequired":null,"version":777,"weightlimit":null},"id":1}"#
         );
     }
 }

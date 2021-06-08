@@ -139,7 +139,6 @@ where
 
 pub struct BlockHeaderBuilder<F = Identity> {
     callback: F,
-    time: u32,
     parent: H256,
     bits: Compact,
     version: u32,
@@ -155,11 +154,6 @@ where
     pub fn with_callback(callback: F) -> Self {
         BlockHeaderBuilder {
             callback: callback,
-            time: TIMESTAMP_COUNTER.with(|counter| {
-                let val = counter.get();
-                counter.set(val + 1);
-                val
-            }),
             parent: 0.into(),
             bits: Compact::max_value(),
             // set to 4 to allow creating long test chains
@@ -172,11 +166,6 @@ where
 
     pub fn parent(mut self, parent: H256) -> Self {
         self.parent = parent;
-        self
-    }
-
-    pub fn time(mut self, time: u32) -> Self {
-        self.time = time;
         self
     }
 
@@ -205,7 +194,6 @@ where
             block_header: chain::BlockHeader {
                 version: self.version,
                 previous_header_hash: self.parent,
-                time: self.time,
                 bits: self.bits,
                 pubkey: self.pubkey.clone(),
                 iterations: self.iterations,
@@ -219,7 +207,6 @@ where
 
     pub fn build(self) -> F::Result {
         self.callback.invoke(chain::BlockHeader {
-            time: self.time,
             previous_header_hash: self.parent,
             bits: self.bits,
             version: self.version,
@@ -273,12 +260,6 @@ pub fn build_n_empty_blocks(n: u32, start_iterations: u32) -> Vec<chain::Block> 
     let children = build_n_empty_blocks_from(n, start_iterations + 1, &result[0].block_header);
     result.extend(children);
     result
-}
-
-#[test]
-fn example1() {
-    let block = BlockBuilder::new().header().time(1000).build().build();
-    assert_eq!(block.header().time, 1000);
 }
 
 #[test]
