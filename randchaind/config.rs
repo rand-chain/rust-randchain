@@ -124,7 +124,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         }
     }
 
-    let seednodes: Vec<String> = match matches.value_of("seednodes") {
+    let seednodes: Vec<String> = match matches.value_of("seednode") {
         Some(addrs_cfg) => {
             let mut addrs: Vec<String> = vec![];
             for addr_str in addrs_cfg.split(",") {

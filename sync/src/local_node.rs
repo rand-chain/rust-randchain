@@ -149,7 +149,7 @@ where
     /// Get block template for mining
     pub fn get_block_template(&self) -> BlockTemplate {
         let block_assembler = BlockAssembler {};
-        block_assembler.create_new_block(&self.storage, &self.network)
+        block_assembler.create_new_block(&self.storage, time::get_time().sec as u32, &self.network)
     }
 
     /// Install synchronization events listener

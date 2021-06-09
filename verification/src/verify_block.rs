@@ -11,6 +11,7 @@ pub fn h_g(block: &IndexedBlock) -> Integer {
     stream
         .append(&block.header.raw.version)
         .append(&block.header.raw.previous_header_hash)
+        .append(&block.header.raw.time)
         .append(&block.header.raw.bits)
         .append(&Bytes::from(block.header.raw.pubkey.to_bytes().to_vec()));
     let data = stream.out();
@@ -61,8 +62,8 @@ impl<'a> BlockVDF<'a> {
 
         match vdf::verify(
             &g,
-            &self.block.header.raw.solution,
-            self.block.header.raw.iterations as u64,
+            &self.block.header.raw.randomness,
+            self.block.header.raw.iterations,
             &self.block.proof,
         ) {
             false => Err(Error::Vdf),

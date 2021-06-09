@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate log;
 extern crate rug;
 extern crate rustc_hex as hex;
@@ -12,7 +11,6 @@ extern crate jsonrpc_macros;
 extern crate chain;
 extern crate db;
 extern crate jsonrpc_http_server;
-extern crate message;
 extern crate miner;
 extern crate network;
 extern crate p2p;

@@ -75,7 +75,7 @@ impl IndexedBlock {
     }
 
     pub fn randomness(&self) -> &Integer {
-        &self.header.raw.solution
+        &self.header.raw.randomness
     }
 }
 
