@@ -78,7 +78,7 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                 bits: block.header.raw.bits.into(),
                 hash: block.hash().clone().into(),
                 pubkey_hex: block.header.raw.pubkey.to_bytes().to_hex(),
-                randomness_hex: block.header.raw.randomness.to_string_radix(16),
+                randomness_hex: block.randomness().to_string_radix(16),
                 iterations: block.header.raw.iterations,
                 version: block.header.raw.version,
                 version_hex: format!("{:x}", &block.header.raw.version),
@@ -190,10 +190,7 @@ pub mod tests {
                 version: 1,
                 version_hex: "1".to_owned(),
                 pubkey_hex: test_data::block_h2().header().pubkey.to_bytes().to_hex(),
-                randomness_hex: test_data::block_h2()
-                    .header()
-                    .randomness
-                    .to_string_radix(16),
+                randomness_hex: test_data::block_h2().randomness().to_string_radix(16),
                 iterations: test_data::block_h2().header().iterations,
                 bits: test_data::block_h2().header().bits.into(),
                 difficulty: 1.0,

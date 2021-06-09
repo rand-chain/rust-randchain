@@ -66,7 +66,7 @@ pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Sol
         bits: block.bits,
         pubkey: pubkey.clone(),
         iterations: iterations as u32,
-        randomness: new_y.clone(),
+        solution: new_y.clone(),
     }));
     let new_solution = Solution {
         iterations: iterations,
@@ -104,7 +104,7 @@ pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> boo
         bits: block.bits,
         pubkey: pubkey.clone(),
         iterations: solution.iterations as u32,
-        randomness: solution.element.clone(),
+        solution: solution.element.clone(),
     }));
     // if PoW verification fails, then fail
     if !is_valid_proof_of_work_hash(block.bits, &block_header_hash) {
@@ -138,7 +138,7 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -
             bits: block.bits,
             pubkey: pubkey.clone(),
             iterations: iterations as u32,
-            randomness: new_y.clone(),
+            solution: new_y.clone(),
         }));
         if is_valid_proof_of_work_hash(block.bits, &block_header_hash) {
             let solution = Solution {

@@ -115,7 +115,7 @@ where
                 block_header: header.clone(),
                 proof: vec![],
             }));
-            self.proof = vdf::prove(&g, &header.randomness, header.iterations as u64);
+            self.proof = vdf::prove(&g, &header.solution, header.iterations as u64);
         }
         self
     }
@@ -144,7 +144,7 @@ pub struct BlockHeaderBuilder<F = Identity> {
     version: u32,
     pubkey: VrfPk,
     iterations: u32,
-    randomness: Integer,
+    solution: Integer,
 }
 
 impl<F> BlockHeaderBuilder<F>
@@ -160,7 +160,7 @@ where
             version: 4,
             pubkey: VrfPk::from_bytes(&[0; 32]).unwrap(),
             iterations: 0u32,
-            randomness: Integer::from(0),
+            solution: Integer::from(0),
         }
     }
 
@@ -197,11 +197,11 @@ where
                 bits: self.bits,
                 pubkey: self.pubkey.clone(),
                 iterations: self.iterations,
-                randomness: self.randomness,
+                solution: self.solution,
             },
             proof: vec![],
         }));
-        self.randomness = vdf::eval(&g, self.iterations as u64);
+        self.solution = vdf::eval(&g, self.iterations as u64);
         self
     }
 
@@ -212,7 +212,7 @@ where
             version: self.version,
             pubkey: self.pubkey,
             iterations: self.iterations,
-            randomness: self.randomness,
+            solution: self.solution,
         })
     }
 }

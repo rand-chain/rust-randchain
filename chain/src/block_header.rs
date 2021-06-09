@@ -17,7 +17,7 @@ pub struct BlockHeader {
     pub bits: Compact,              // difficulty
     pub pubkey: VrfPk,              // pubkey of miner
     pub iterations: u32,            // # of iterations
-    pub randomness: Integer,        // output TODO: move out
+    pub solution: Integer,          // output TODO: move out
 }
 
 impl BlockHeader {
@@ -36,7 +36,7 @@ impl Serializable for BlockHeader {
             .append(&self.bits)
             .append(&Bytes::from(self.pubkey.to_bytes().to_vec()))
             .append(&self.iterations)
-            .append(&self.randomness);
+            .append(&self.solution);
     }
 }
 
@@ -62,7 +62,7 @@ impl Deserializable for BlockHeader {
                 }
             },
             iterations: reader.read()?,
-            randomness: reader.read()?,
+            solution: reader.read()?,
         };
 
         Ok(res)
@@ -80,7 +80,7 @@ impl fmt::Debug for BlockHeader {
             .field("bits", &self.bits)
             .field("pubkey", &self.pubkey)
             .field("iterations", &self.iterations)
-            .field("randomness", &self.randomness)
+            .field("solution", &self.solution)
             .finish()
     }
 }
@@ -112,7 +112,7 @@ mod tests {
             bits: 5.into(),
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,
-            randomness: Integer::from(8),
+            solution: Integer::from(8),
         };
 
         let mut stream = Stream::default();
@@ -150,7 +150,7 @@ mod tests {
             bits: 5.into(),
             pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,
-            randomness: Integer::from(8),
+            solution: Integer::from(8),
         };
 
         assert_eq!(expected, reader.read().unwrap());
