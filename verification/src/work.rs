@@ -58,7 +58,6 @@ pub fn retarget_timespan(retarget_timestamp: u32, last_timestamp: u32) -> u32 {
 /// Returns work required for given header
 pub fn work_required(
     parent_hash: H256,
-    time: u32,
     height: u32,
     store: &dyn BlockHeaderProvider,
     network: &Network,
@@ -72,93 +71,94 @@ pub fn work_required(
         .block_header(parent_hash.clone().into())
         .expect("self.height != 0; qed");
 
-    if is_retarget_height(height) {
-        return work_required_retarget(parent_header, height, store, max_bits);
-    }
+    // TODO: retarget algorithm here
+    // if is_retarget_height(height) {
+    //     return work_required_retarget(parent_header, height, store, max_bits);
+    // }
 
-    if *network == Network::Testnet {
-        return work_required_testnet(parent_hash, time, height, store, Network::Testnet);
-    }
+    // if *network == Network::Testnet {
+    //     return work_required_testnet(parent_hash, time, height, store, Network::Testnet);
+    // }
 
     parent_header.raw.bits
 }
 
-pub fn work_required_testnet(
-    parent_hash: H256,
-    time: u32,
-    height: u32,
-    store: &dyn BlockHeaderProvider,
-    network: Network,
-) -> Compact {
-    assert!(
-        height != 0,
-        "cannot calculate required work for genesis block"
-    );
+// pub fn work_required_testnet(
+//     parent_hash: H256,
+//     time: u32,
+//     height: u32,
+//     store: &dyn BlockHeaderProvider,
+//     network: Network,
+// ) -> Compact {
+//     assert!(
+//         height != 0,
+//         "cannot calculate required work for genesis block"
+//     );
 
-    let mut bits = Vec::new();
-    let mut block_ref: BlockRef = parent_hash.into();
+//     let mut bits = Vec::new();
+//     let mut block_ref: BlockRef = parent_hash.into();
 
-    let parent_header = store
-        .block_header(block_ref.clone())
-        .expect("height != 0; qed");
-    let max_time_gap = parent_header.raw.time + DOUBLE_SPACING_SECONDS;
-    let max_bits = network.max_bits().into();
-    if time > max_time_gap {
-        return max_bits;
-    }
+//     let parent_header = store
+//         .block_header(block_ref.clone())
+//         .expect("height != 0; qed");
+//     let max_time_gap = parent_header.raw.time + DOUBLE_SPACING_SECONDS;
+//     let max_bits = network.max_bits().into();
+//     if time > max_time_gap {
+//         return max_bits;
+//     }
 
-    // TODO: optimize it, so it does not make 2016!!! redundant queries each time
-    for _ in 0..RETARGETING_INTERVAL {
-        let previous_header = match store.block_header(block_ref) {
-            Some(h) => h,
-            None => {
-                break;
-            }
-        };
-        bits.push(previous_header.raw.bits);
-        block_ref = previous_header.raw.previous_header_hash.into();
-    }
+//     // TODO: optimize it, so it does not make 2016!!! redundant queries each time
+//     for _ in 0..RETARGETING_INTERVAL {
+//         let previous_header = match store.block_header(block_ref) {
+//             Some(h) => h,
+//             None => {
+//                 break;
+//             }
+//         };
+//         bits.push(previous_header.raw.bits);
+//         block_ref = previous_header.raw.previous_header_hash.into();
+//     }
 
-    for (index, bit) in bits.into_iter().enumerate() {
-        if bit != max_bits || is_retarget_height(height - index as u32 - 1) {
-            return bit;
-        }
-    }
+//     for (index, bit) in bits.into_iter().enumerate() {
+//         if bit != max_bits || is_retarget_height(height - index as u32 - 1) {
+//             return bit;
+//         }
+//     }
 
-    max_bits
-}
+//     max_bits
+// }
 
 /// Algorithm used for retargeting work every 2 weeks
-pub fn work_required_retarget(
-    parent_header: IndexedBlockHeader,
-    height: u32,
-    store: &dyn BlockHeaderProvider,
-    max_work_bits: Compact,
-) -> Compact {
-    let retarget_ref = (height - RETARGETING_INTERVAL).into();
-    let retarget_header = store
-        .block_header(retarget_ref)
-        .expect("self.height != 0 && self.height % RETARGETING_INTERVAL == 0; qed");
+// pub fn work_required_retarget(
+//     parent_header: IndexedBlockHeader,
+//     height: u32,
+//     store: &dyn BlockHeaderProvider,
+//     max_work_bits: Compact,
+// ) -> Compact {
+//     let retarget_ref = (height - RETARGETING_INTERVAL).into();
+//     let retarget_header = store
+//         .block_header(retarget_ref)
+//         .expect("self.height != 0 && self.height % RETARGETING_INTERVAL == 0; qed");
 
-    // timestamp of block(height - RETARGETING_INTERVAL)
-    let retarget_timestamp = retarget_header.raw.time;
-    // timestamp of parent block
-    let last_timestamp = parent_header.raw.time;
-    // bits of last block
-    let last_bits = parent_header.raw.bits;
+//     // timestamp of block(height - RETARGETING_INTERVAL)
+//     let retarget_timestamp = retarget_header.raw.time;
+//     // timestamp of parent block
+//     let last_timestamp = parent_header.raw.time;
+//     // bits of last block
+//     let last_bits = parent_header.raw.bits;
 
-    let mut retarget: U256 = last_bits.into();
-    let maximum: U256 = max_work_bits.into();
+//     let mut retarget: U256 = last_bits.into();
+//     let maximum: U256 = max_work_bits.into();
 
-    retarget = retarget * retarget_timespan(retarget_timestamp, last_timestamp).into();
-    retarget = retarget / TARGET_TIMESPAN_SECONDS.into();
+//     retarget = retarget * retarget_timespan(retarget_timestamp, last_timestamp).into();
+//     retarget = retarget / TARGET_TIMESPAN_SECONDS.into();
 
-    if retarget > maximum {
-        max_work_bits
-    } else {
-        retarget.into()
-    }
-}
+//     if retarget > maximum {
+//         max_work_bits
+//     } else {
+//         retarget.into()
+//     }
+// }
 
 pub fn block_reward_satoshi(block_height: u32) -> u64 {
     let mut res = 50 * 100 * 1000 * 1000;

@@ -33,9 +33,8 @@ impl BackwardsCompatibleChainVerifier {
             return Ok(());
         }
 
-        let current_time = ::time::get_time().sec as u32;
         // first run pre-verification
-        let chain_verifier = ChainVerifier::new(block, self.network, current_time);
+        let chain_verifier = ChainVerifier::new(block, self.network);
         chain_verifier.check()?;
 
         assert_eq!(
@@ -97,9 +96,10 @@ impl BackwardsCompatibleChainVerifier {
     ) -> Result<(), Error> {
         // let's do only preverifcation
         // TODO: full verification
-        let current_time = ::time::get_time().sec as u32;
+        // let current_time = ::time::get_time().sec as u32;
         let header = IndexedBlockHeader::new(hash.clone(), header.clone());
-        let header_verifier = HeaderVerifier::new(&header, self.network, current_time);
+        let header_verifier = HeaderVerifier::new(&header, self.network);
+        // let header_verifier = HeaderVerifier::new(&header, self.network, current_time);
         header_verifier.check()
     }
 }

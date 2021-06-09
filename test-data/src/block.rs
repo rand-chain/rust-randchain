@@ -115,7 +115,7 @@ where
                 block_header: header.clone(),
                 proof: vec![],
             }));
-            self.proof = vdf::prove(&g, &header.randomness, header.iterations);
+            self.proof = vdf::prove(&g, &header.solution, header.iterations as u64);
         }
         self
     }
@@ -139,13 +139,12 @@ where
 
 pub struct BlockHeaderBuilder<F = Identity> {
     callback: F,
-    time: u32,
     parent: H256,
     bits: Compact,
     version: u32,
     pubkey: VrfPk,
     iterations: u32,
-    randomness: Integer,
+    solution: Integer,
 }
 
 impl<F> BlockHeaderBuilder<F>
@@ -155,28 +154,18 @@ where
     pub fn with_callback(callback: F) -> Self {
         BlockHeaderBuilder {
             callback: callback,
-            time: TIMESTAMP_COUNTER.with(|counter| {
-                let val = counter.get();
-                counter.set(val + 1);
-                val
-            }),
             parent: 0.into(),
             bits: Compact::max_value(),
             // set to 4 to allow creating long test chains
             version: 4,
             pubkey: VrfPk::from_bytes(&[0; 32]).unwrap(),
             iterations: 0u32,
-            randomness: Integer::from(0),
+            solution: Integer::from(0),
         }
     }
 
     pub fn parent(mut self, parent: H256) -> Self {
         self.parent = parent;
-        self
-    }
-
-    pub fn time(mut self, time: u32) -> Self {
-        self.time = time;
         self
     }
 
@@ -205,27 +194,25 @@ where
             block_header: chain::BlockHeader {
                 version: self.version,
                 previous_header_hash: self.parent,
-                time: self.time,
                 bits: self.bits,
                 pubkey: self.pubkey.clone(),
                 iterations: self.iterations,
-                randomness: self.randomness,
+                solution: self.solution,
             },
             proof: vec![],
         }));
-        self.randomness = vdf::eval(&g, self.iterations);
+        self.solution = vdf::eval(&g, self.iterations as u64);
         self
     }
 
     pub fn build(self) -> F::Result {
         self.callback.invoke(chain::BlockHeader {
-            time: self.time,
             previous_header_hash: self.parent,
             bits: self.bits,
             version: self.version,
             pubkey: self.pubkey,
             iterations: self.iterations,
-            randomness: self.randomness,
+            solution: self.solution,
         })
     }
 }
@@ -273,12 +260,6 @@ pub fn build_n_empty_blocks(n: u32, start_iterations: u32) -> Vec<chain::Block> 
     let children = build_n_empty_blocks_from(n, start_iterations + 1, &result[0].block_header);
     result.extend(children);
     result
-}
-
-#[test]
-fn example1() {
-    let block = BlockBuilder::new().header().time(1000).build().build();
-    assert_eq!(block.header().time, 1000);
 }
 
 #[test]
