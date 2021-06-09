@@ -97,7 +97,7 @@ impl Network {
                         bits: 5.into(),
                         pubkey: ecvrf::VrfPk::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
-                        randomness: rug::Integer::from(8),
+                        solution: rug::Integer::from(8),
                     },
                     proof: vec![],
                 };
@@ -111,7 +111,7 @@ impl Network {
                         bits: 5.into(),
                         pubkey: ecvrf::VrfPk::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
-                        randomness: rug::Integer::from(8),
+                        solution: rug::Integer::from(8),
                     },
                     proof: vec![],
                 };
@@ -125,7 +125,7 @@ impl Network {
                         bits: 5.into(),
                         pubkey: ecvrf::VrfPk::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
-                        randomness: rug::Integer::from(8),
+                        solution: rug::Integer::from(8),
                     },
                     proof: vec![],
                 };
