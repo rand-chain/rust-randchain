@@ -1160,7 +1160,6 @@ dependencies = [
  "jsonrpc-http-server 8.0.0 (git+https://github.com/ethcore/jsonrpc.git)",
  "jsonrpc-macros 8.0.0 (git+https://github.com/ethcore/jsonrpc.git)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "message 0.1.0",
  "miner 0.1.0",
  "network 0.1.0",
  "p2p 0.1.0",

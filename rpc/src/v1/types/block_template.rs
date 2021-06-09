@@ -24,10 +24,14 @@ pub struct BlockTemplate {
     pub coinbaseaux: Option<HashMap<String, String>>,
     /// The hash target
     pub target: H256,
-    /// List of ways the block template may be changed, e.g. 'transactions', 'prevblock'
+    /// The minimum timestamp appropriate for next block time in seconds since epoch (Jan 1 1970 GMT)
+    pub mintime: Option<i64>,
+    /// List of ways the block template may be changed, e.g. 'time', 'transactions', 'prevblock'
     pub mutable: Option<Vec<String>>,
     /// Limit of block weight
     pub weightlimit: Option<u32>,
+    /// Current timestamp in seconds since epoch (Jan 1 1970 GMT)
+    pub curtime: u32,
     /// Compressed target of next block
     pub bits: u32,
     /// The height of the next block
@@ -39,6 +43,7 @@ impl From<miner::BlockTemplate> for BlockTemplate {
         BlockTemplate {
             version: block.version,
             previousblockhash: block.previous_header_hash.reversed().into(),
+            curtime: block.time,
             bits: block.bits.into(),
             height: block.height,
             ..Default::default()
@@ -52,7 +57,6 @@ mod tests {
     use super::*;
     use serde_json;
 
-    // update tests as we changed block format
     #[test]
     fn block_template_serialize() {
         assert_eq!(
@@ -64,13 +68,15 @@ mod tests {
                 previousblockhash: H256::default(),
                 coinbaseaux: None,
                 target: H256::default(),
+                mintime: None,
                 mutable: None,
                 weightlimit: None,
+                curtime: 100,
                 bits: 200,
                 height: 300,
             })
             .unwrap(),
-            r#"{"version":0,"rules":null,"vbavailable":null,"vbrequired":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000000","coinbaseaux":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","mutable":null,"weightlimit":null,"bits":200,"height":300}"#
+            r#"{"version":0,"rules":null,"vbavailable":null,"vbrequired":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000000","coinbaseaux":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","mintime":null,"mutable":null,"weightlimit":null,"curtime":100,"bits":200,"height":300}"#
         );
         assert_eq!(
             serde_json::to_string(&BlockTemplate {
@@ -81,20 +87,22 @@ mod tests {
                 previousblockhash: H256::from(10),
                 coinbaseaux: Some(vec![("c".to_owned(), "d".to_owned())].into_iter().collect()),
                 target: H256::from(100),
+                mintime: Some(7),
                 mutable: Some(vec!["afg".to_owned()]),
                 weightlimit: Some(523),
+                curtime: 100,
                 bits: 200,
                 height: 300,
             })
             .unwrap(),
-            r#"{"version":0,"rules":["a"],"vbavailable":{"b":5},"vbrequired":10,"previousblockhash":"0a00000000000000000000000000000000000000000000000000000000000000","coinbaseaux":{"c":"d"},"target":"6400000000000000000000000000000000000000000000000000000000000000","mutable":["afg"],"weightlimit":523,"bits":200,"height":300}"#
+            r#"{"version":0,"rules":["a"],"vbavailable":{"b":5},"vbrequired":10,"previousblockhash":"0a00000000000000000000000000000000000000000000000000000000000000","coinbaseaux":{"c":"d"},"target":"6400000000000000000000000000000000000000000000000000000000000000","mintime":7,"mutable":["afg"],"weightlimit":523,"curtime":100,"bits":200,"height":300}"#
         );
     }
 
     #[test]
     fn block_template_deserialize() {
         assert_eq!(
-			serde_json::from_str::<BlockTemplate>(r#"{"version":0,"rules":null,"vbavailable":null,"vbrequired":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000000","transactions":[],"coinbaseaux":null,"coinbasevalue":null,"coinbasetxn":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","mutable":null,"noncerange":null,"sigoplimit":null,"sizelimit":null,"weightlimit":null,"bits":200,"height":300}"#).unwrap(),
+			serde_json::from_str::<BlockTemplate>(r#"{"version":0,"rules":null,"vbavailable":null,"vbrequired":null,"previousblockhash":"0000000000000000000000000000000000000000000000000000000000000000","transactions":[],"coinbaseaux":null,"coinbasevalue":null,"coinbasetxn":null,"target":"0000000000000000000000000000000000000000000000000000000000000000","mintime":null,"mutable":null,"noncerange":null,"sigoplimit":null,"sizelimit":null,"weightlimit":null,"curtime":100,"bits":200,"height":300}"#).unwrap(),
 			BlockTemplate {
 				version: 0,
 				rules: None,
@@ -103,13 +111,15 @@ mod tests {
 				previousblockhash: H256::default(),
 				coinbaseaux: None,
 				target: H256::default(),
+				mintime: None,
 				mutable: None,
 				weightlimit: None,
+				curtime: 100,
 				bits: 200,
 				height: 300,
 			});
         assert_eq!(
-			serde_json::from_str::<BlockTemplate>(r#"{"version":0,"rules":["a"],"vbavailable":{"b":5},"vbrequired":10,"previousblockhash":"0a00000000000000000000000000000000000000000000000000000000000000","transactions":[{"data":"00010203","txid":null,"hash":null,"depends":null,"fee":null,"sigops":null,"weight":null,"required":false}],"coinbaseaux":{"c":"d"},"coinbasevalue":30,"coinbasetxn":{"data":"555555","txid":"2c00000000000000000000000000000000000000000000000000000000000000","hash":"3700000000000000000000000000000000000000000000000000000000000000","depends":[1],"fee":300,"sigops":400,"weight":500,"required":true},"target":"6400000000000000000000000000000000000000000000000000000000000000","mutable":["afg"],"noncerange":"00000000ffffffff","sigoplimit":45,"sizelimit":449,"weightlimit":523,"bits":200,"height":300}"#).unwrap(),
+			serde_json::from_str::<BlockTemplate>(r#"{"version":0,"rules":["a"],"vbavailable":{"b":5},"vbrequired":10,"previousblockhash":"0a00000000000000000000000000000000000000000000000000000000000000","transactions":[{"data":"00010203","txid":null,"hash":null,"depends":null,"fee":null,"sigops":null,"weight":null,"required":false}],"coinbaseaux":{"c":"d"},"coinbasevalue":30,"coinbasetxn":{"data":"555555","txid":"2c00000000000000000000000000000000000000000000000000000000000000","hash":"3700000000000000000000000000000000000000000000000000000000000000","depends":[1],"fee":300,"sigops":400,"weight":500,"required":true},"target":"6400000000000000000000000000000000000000000000000000000000000000","mintime":7,"mutable":["afg"],"noncerange":"00000000ffffffff","sigoplimit":45,"sizelimit":449,"weightlimit":523,"curtime":100,"bits":200,"height":300}"#).unwrap(),
 			BlockTemplate {
 				version: 0,
 				rules: Some(vec!["a".to_owned()]),
@@ -118,8 +128,10 @@ mod tests {
 				previousblockhash: H256::from(10),
 				coinbaseaux: Some(vec![("c".to_owned(), "d".to_owned())].into_iter().collect()),
 				target: H256::from(100),
+				mintime: Some(7),
 				mutable: Some(vec!["afg".to_owned()]),
 				weightlimit: Some(523),
+				curtime: 100,
 				bits: 200,
 				height: 300,
 			});
