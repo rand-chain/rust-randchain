@@ -87,6 +87,14 @@ impl Network {
         }
     }
 
+    pub fn step_parameter(&self) -> u64 {
+        match *self {
+            Network::Mainnet | Network::Other(_) => 100_000,
+            Network::Testnet => 100_000,
+            Network::Regtest | Network::Unitest => 100_000,
+        }
+    }
+
     pub fn genesis_block(&self) -> IndexedBlock {
         match *self {
             Network::Mainnet | Network::Other(_) => {

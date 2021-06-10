@@ -4,13 +4,12 @@ use block_assembler::BlockTemplate;
 use chain::BlockHeader;
 use crypto::dhash256;
 use ecvrf::VrfPk;
+use network::Network;
 use primitives::bytes::Bytes;
 use rug::{integer::Order, Integer};
 use ser::{serialize, Stream};
 use sha2::{Digest, Sha256};
 use verification::is_valid_proof_of_work_hash;
-
-const STEP: u64 = 100_000; // roughly 1/4 ~ 1/3 second
 
 // consistent with verification/src/verify_block.rs
 fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
@@ -57,8 +56,9 @@ pub fn init(block: &BlockTemplate, pubkey: &VrfPk) -> Solution {
 
 /// SeqPoW.Solve()
 pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Solution, bool) {
+    let STEP = Network::Mainnet.step_parameter();
     let mut iterations = solution.iterations;
-    iterations += STEP as u64;
+    iterations += STEP;
     let new_y = vdf::eval(&solution.element, STEP);
     let block_header_hash = dhash256(&serialize(&BlockHeader {
         version: block.version,
@@ -116,7 +116,7 @@ pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> boo
 /// Simple randchain cpu miner.
 pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -> Option<Solution> {
     let start_time = Instant::now();
-
+    let STEP = Network::Mainnet.step_parameter();
     let g = h_g(block, pubkey);
     let mut cur_y = g.clone();
     let mut iterations = 0u64;
@@ -125,7 +125,7 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -
             return None;
         }
 
-        iterations += STEP as u64;
+        iterations += STEP;
         if iterations > (u32::max_value() as u64) {
             return None;
         }
