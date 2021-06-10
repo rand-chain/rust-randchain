@@ -10,7 +10,7 @@ use ser::{serialize, Stream};
 use sha2::{Digest, Sha256};
 use verification::is_valid_proof_of_work_hash;
 
-const STEP: u64 = 1024;
+const STEP: u64 = 100_000; // roughly 1/4 ~ 1/3 second
 
 // consistent with verification/src/verify_block.rs
 fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
