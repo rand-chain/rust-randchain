@@ -56,10 +56,10 @@ pub fn init(block: &BlockTemplate, pubkey: &VrfPk) -> Solution {
 
 /// SeqPoW.Solve()
 pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Solution, bool) {
-    let STEP = Network::Mainnet.step_parameter();
+    let step = Network::Mainnet.step_parameter();
     let mut iterations = solution.iterations;
-    iterations += STEP;
-    let new_y = vdf::eval(&solution.element, STEP);
+    iterations += step;
+    let new_y = vdf::eval(&solution.element, step);
     let block_header_hash = dhash256(&serialize(&BlockHeader {
         version: block.version,
         previous_header_hash: block.previous_header_hash,
@@ -116,7 +116,7 @@ pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> boo
 /// Simple randchain cpu miner.
 pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -> Option<Solution> {
     let start_time = Instant::now();
-    let STEP = Network::Mainnet.step_parameter();
+    let step = Network::Mainnet.step_parameter();
     let g = h_g(block, pubkey);
     let mut cur_y = g.clone();
     let mut iterations = 0u64;
@@ -125,12 +125,12 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -
             return None;
         }
 
-        iterations += STEP;
+        iterations += step;
         if iterations > (u32::max_value() as u64) {
             return None;
         }
 
-        let new_y = vdf::eval(&cur_y, STEP);
+        let new_y = vdf::eval(&cur_y, step);
         // consistent with chain/src/block_header.rs
         let block_header_hash = dhash256(&serialize(&BlockHeader {
             version: block.version,
