@@ -1,4 +1,4 @@
 #[derive(Serialize)]
-pub struct NetworkInfo {
+pub struct BlockchainInfo {
     // TODO RH implement
 }

@@ -8,7 +8,7 @@ use v1::helpers::errors::{block_at_height_not_found, block_not_found};
 use v1::traits::BlockChain;
 use v1::types::H256;
 use v1::types::U256;
-use v1::types::{GetBlockResponse, RawBlock, VerboseBlock};
+use v1::types::{BlockchainInfo, GetBlockResponse, RawBlock, VerboseBlock};
 use verification;
 
 pub struct BlockChainClient<T: BlockChainClientCoreApi> {
@@ -22,6 +22,7 @@ pub trait BlockChainClientCoreApi: Send + Sync + 'static {
     fn difficulty(&self) -> f64;
     fn raw_block(&self, hash: GlobalH256) -> Option<RawBlock>;
     fn verbose_block(&self, hash: GlobalH256) -> Option<VerboseBlock>;
+    fn blockchain_info(&self) -> BlockchainInfo;
 }
 
 pub struct BlockChainClientCore {
@@ -85,6 +86,11 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
             }
         })
     }
+
+    fn blockchain_info(&self) -> BlockchainInfo {
+        // TODO RH implement
+        unimplemented!();
+    }
 }
 
 impl<T> BlockChainClient<T>
@@ -139,6 +145,10 @@ where
                 .map(|block| GetBlockResponse::Raw(block))
         }
         .ok_or(block_not_found(hash))
+    }
+
+    fn blockchain_info(&self) -> Result<BlockchainInfo, Error> {
+        Ok(self.core.blockchain_info())
     }
 }
 
