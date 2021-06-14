@@ -4,6 +4,7 @@ mod block_template_request;
 mod bytes;
 mod get_block_response;
 mod hash;
+mod network;
 mod nodes;
 mod submit_block;
 mod uint;
@@ -14,6 +15,7 @@ pub use self::block_template_request::{BlockTemplateRequest, BlockTemplateReques
 pub use self::bytes::Bytes;
 pub use self::get_block_response::{GetBlockResponse, VerboseBlock};
 pub use self::hash::{H160, H256};
+pub use self::network::NetworkInfo;
 pub use self::nodes::{AddNodeOperation, NodeInfo};
 pub use self::submit_block::{SubmitBlockRequest, SubmitBlockResponse};
 pub use self::uint::U256;

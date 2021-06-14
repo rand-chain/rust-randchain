@@ -5,7 +5,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use v1::helpers::errors;
 use v1::traits::Network as NetworkRpc;
-use v1::types::{AddNodeOperation, NodeInfo};
+use v1::types::{AddNodeOperation, NetworkInfo, NodeInfo};
 
 pub trait NetworkApi: Send + Sync + 'static {
     fn add_node(&self, socket_addr: SocketAddr) -> Result<(), p2p::NodeTableError>;
@@ -14,6 +14,7 @@ pub trait NetworkApi: Send + Sync + 'static {
     fn node_info(&self, node_addr: IpAddr) -> Result<NodeInfo, p2p::NodeTableError>;
     fn nodes_info(&self) -> Vec<NodeInfo>;
     fn connection_count(&self) -> usize;
+    fn net_info(&self) -> NetworkInfo;
 }
 
 impl<T> NetworkRpc for NetworkClient<T>
@@ -65,6 +66,10 @@ where
 
     fn connection_count(&self) -> Result<usize, Error> {
         Ok(self.api.connection_count())
+    }
+
+    fn net_info(&self) -> Result<NetworkInfo, Error> {
+        Ok(self.api.net_info())
     }
 }
 
@@ -151,5 +156,10 @@ impl NetworkApi for NetworkClientCore {
 
     fn connection_count(&self) -> usize {
         self.p2p.connections().count()
+    }
+
+    fn net_info(&self) -> NetworkInfo {
+        // TODO RH implement
+        unimplemented!();
     }
 }
