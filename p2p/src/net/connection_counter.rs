@@ -72,6 +72,13 @@ impl ConnectionCounter {
         let current = self.current_outbound_connections.load(Ordering::Acquire) as u32;
         (current, self.max_outbound_connections)
     }
+
+    /// Returns a pair of unsigned integers where first element is current number of connections and the second is max.
+    pub fn all_connections(&self) -> (u32, u32) {
+        let current_in = self.current_outbound_connections.load(Ordering::Acquire) as u32;
+        let current_out = self.current_outbound_connections.load(Ordering::Acquire) as u32;
+        (current_in + current_out, self.max_outbound_connections)
+    }
 }
 
 #[cfg(test)]

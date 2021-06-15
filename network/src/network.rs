@@ -50,11 +50,11 @@ pub enum Network {
 impl Network {
     pub fn name(&self) -> String {
         match *self {
-            Network::Mainnet => "Mainnet",
-            Network::Testnet => "Testnet",
-            Network::Regtest => "Regtest",
-            Network::Unitest => "Unitest",
-            Network::Other(value) => value.into(),
+            Network::Mainnet => "Mainnet".to_owned(),
+            Network::Testnet => "Testnet".to_owned(),
+            Network::Regtest => "Regtest".to_owned(),
+            Network::Unitest => "Unitest".to_owned(),
+            Network::Other(value) => format!("{}", value),
         }
     }
 

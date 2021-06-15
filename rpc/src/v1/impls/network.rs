@@ -161,24 +161,30 @@ impl NetworkApi for NetworkClientCore {
     }
 
     fn net_info(&self) -> NetworkInfo {
+        let cfg = self.p2p.config();
         NetworkInfo {
             version: 1,
-            subversion: self.p2p.config.user_agent,
-            protocolversion: self.p2p.config.connection.protocol_version,
-            localservices: self.p2p.config.preferable_services,
-            connections: self.p2p.inbound_connections + self.p2p.out_connections,
-            connections_in: self.p2p.inbound_connections,
-            connections_out: self.p2p.outbound_connections,
+            subversion: "/Satoshi:0.12.1/".to_owned(),
+            protocolversion: cfg.connection.protocol_version,
+            localservices: cfg.preferable_services.into(),
+            localservicesnames: None,
+            localrelay: None,
+            timeoffset: None,
+            connections: cfg.inbound_connections + cfg.outbound_connections,
+            connections_in: cfg.inbound_connections,
+            connections_out: cfg.outbound_connections,
+            networkactive: None,
             networks: vec![NetworkType {
-                name: self.p2p.config.connection.network.name(),
+                name: cfg.connection.network.name(),
+                limited: None,
                 reachable: true,
-                proxy: "",
+                proxy: "".to_string(),
+                proxy_randomize_credentials: None,
             }],
-            localaddresses: vec![AddressType {
-                address: self.p2p.config.local_address.ip().into(),
-                port: self.p2p.config.local_address.port().into(),
-                score: 100,
-            }],
+            relayfee: None,
+            incrementalfee: None,
+            localaddresses: vec![],
+            warnings: None,
         }
     }
 }

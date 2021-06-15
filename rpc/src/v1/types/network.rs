@@ -7,7 +7,7 @@ pub struct NetworkInfo {
     pub version: u32,                            // the server version
     pub subversion: String,                      // the server subversion string
     pub protocolversion: u32,                    // the protocol version
-    pub localservices: Vec<Services>,            // the services we offer to the network
+    pub localservices: u64,                      // the services we offer to the network
     pub localservicesnames: Option<Vec<String>>, // the services we offer to the network, in human-readable form
     pub localrelay: Option<bool>, // true if transaction relay is requested from peers
     pub timeoffset: Option<u32>,  // the time offset
