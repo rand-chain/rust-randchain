@@ -5,6 +5,8 @@ use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use v1::helpers::errors;
 use v1::traits::Network as NetworkRpc;
+use v1::types::Address as AddressType;
+use v1::types::Network as NetworkType;
 use v1::types::{AddNodeOperation, NetworkInfo, NodeInfo};
 
 pub trait NetworkApi: Send + Sync + 'static {
@@ -159,7 +161,24 @@ impl NetworkApi for NetworkClientCore {
     }
 
     fn net_info(&self) -> NetworkInfo {
-        // TODO RH implement
-        unimplemented!();
+        NetworkInfo {
+            version: 1,
+            subversion: self.p2p.config.user_agent,
+            protocolversion: self.p2p.config.connection.protocol_version,
+            localservices: self.p2p.config.preferable_services,
+            connections: self.p2p.inbound_connections + self.p2p.out_connections,
+            connections_in: self.p2p.inbound_connections,
+            connections_out: self.p2p.outbound_connections,
+            networks: vec![NetworkType {
+                name: self.p2p.config.connection.network.name(),
+                reachable: true,
+                proxy: "",
+            }],
+            localaddresses: vec![AddressType {
+                address: self.p2p.config.local_address.ip().into(),
+                port: self.p2p.config.local_address.port().into(),
+                score: 100,
+            }],
+        }
     }
 }

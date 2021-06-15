@@ -40,7 +40,7 @@ pub struct Context {
     remote: Remote,
     /// Local synchronization node.
     local_sync_node: LocalSyncNodeRef,
-    /// Node table path.
+    /// Network configuration.
     config: Config,
 }
 

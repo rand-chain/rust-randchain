@@ -17,7 +17,7 @@ pub use self::blockchain::BlockchainInfo;
 pub use self::bytes::Bytes;
 pub use self::get_block_response::{GetBlockResponse, VerboseBlock};
 pub use self::hash::{H160, H256};
-pub use self::network::NetworkInfo;
+pub use self::network::{Address, Network, NetworkInfo};
 pub use self::nodes::{AddNodeOperation, NodeInfo};
 pub use self::submit_block::{SubmitBlockRequest, SubmitBlockResponse};
 pub use self::uint::U256;
