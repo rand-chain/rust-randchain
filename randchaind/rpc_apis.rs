@@ -62,8 +62,11 @@ pub fn setup_rpc(
                 MinerClient::new(MinerClientCore::new(deps.local_sync_node.clone())).to_delegate(),
             ),
             Api::BlockChain => handler.extend_with(
-                BlockChainClient::new(BlockChainClientCore::new(deps.storage.clone()))
-                    .to_delegate(),
+                BlockChainClient::new(BlockChainClientCore::new(
+                    deps.p2p_context.clone(),
+                    deps.storage.clone(),
+                ))
+                .to_delegate(),
             ),
             Api::Network => handler.extend_with(
                 NetworkClient::new(NetworkClientCore::new(deps.p2p_context.clone())).to_delegate(),

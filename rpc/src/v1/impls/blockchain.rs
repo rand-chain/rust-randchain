@@ -3,6 +3,7 @@ use jsonrpc_core::Error;
 use jsonrpc_macros::Trailing;
 use primitives::hash::H256 as GlobalH256;
 use ser::serialize;
+use std::sync::Arc;
 use storage;
 use v1::helpers::errors::{block_at_height_not_found, block_not_found};
 use v1::traits::BlockChain;
@@ -26,12 +27,16 @@ pub trait BlockChainClientCoreApi: Send + Sync + 'static {
 }
 
 pub struct BlockChainClientCore {
+    p2p: Arc<p2p::Context>,
     storage: storage::SharedStore,
 }
 
 impl BlockChainClientCore {
-    pub fn new(storage: storage::SharedStore) -> Self {
-        BlockChainClientCore { storage: storage }
+    pub fn new(p2p: Arc<p2p::Context>, storage: storage::SharedStore) -> Self {
+        BlockChainClientCore {
+            p2p: p2p,
+            storage: storage,
+        }
     }
 }
 
@@ -89,7 +94,25 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
 
     fn blockchain_info(&self) -> BlockchainInfo {
         // TODO RH implement
-        unimplemented!();
+        BlockchainInfo {
+            chain: self.p2p.config().connection.network.name(),
+            blocks: self.storage.best_block().number,
+            headers: self.storage.best_block().number,
+            bestblockhash: self.storage.best_block().hash.to_string(),
+            difficulty: self.storage.difficulty(),
+            mediantime: None,
+            verificationprogress: 1, // TODO
+            initialblockdownload: 0, // TODO
+            chainwork: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                .to_owned(), // TODO
+            size_on_disk: None,      // TODO
+            pruned: false,           // TODO prune mode
+            pruneheight: None,       // TODO prune mode
+            automatic_pruning: None, // TODO prune mode
+            prune_target_size: None, // TODO prune mode
+            softforks: None,         // TODO soft fork
+            warnings: None,          // TODO
+        }
     }
 }
 

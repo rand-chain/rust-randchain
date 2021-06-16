@@ -2,7 +2,7 @@ use message::Services;
 
 /// Information of the network
 /// See https://github.com/bitcoin/bitcoin/blob/master/src/rpc/net.cpp#L575
-#[derive(Serialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct NetworkInfo {
     pub version: u32,                            // the server version
     pub subversion: String,                      // the server subversion string
@@ -22,14 +22,14 @@ pub struct NetworkInfo {
     pub warnings: Option<String>,    // any network and blockchain warnings
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Address {
     pub address: String, // network address
     pub port: u32,       // network port
     pub score: u32,      // relative score
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Network {
     pub name: String,                              //
     pub limited: Option<bool>,                     // is the network limited using -onlynet?
