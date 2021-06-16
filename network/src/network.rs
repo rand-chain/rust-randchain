@@ -48,6 +48,16 @@ pub enum Network {
 }
 
 impl Network {
+    pub fn name(&self) -> String {
+        match *self {
+            Network::Mainnet => "main".to_owned(),
+            Network::Testnet => "test".to_owned(),
+            Network::Regtest => "regtest".to_owned(),
+            Network::Unitest => "unitest".to_owned(),
+            Network::Other(value) => format!("{}", value),
+        }
+    }
+
     pub fn magic(&self) -> Magic {
         match *self {
             Network::Mainnet => MAGIC_MAINNET,

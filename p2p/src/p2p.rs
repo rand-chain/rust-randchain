@@ -40,7 +40,7 @@ pub struct Context {
     remote: Remote,
     /// Local synchronization node.
     local_sync_node: LocalSyncNodeRef,
-    /// Node table path.
+    /// Network configuration.
     config: Config,
 }
 
@@ -532,8 +532,16 @@ impl Context {
             .create_sync_session(start_height, services, outbound_connection)
     }
 
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
+
     pub fn connections(&self) -> &Connections {
         &self.connections
+    }
+
+    pub fn connection_counter(&self) -> &ConnectionCounter {
+        &self.connection_counter
     }
 
     pub fn nodes(&self) -> Vec<Node> {

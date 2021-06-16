@@ -315,7 +315,7 @@ mod tests {
                 // and supported protocols
                 from: "050000000000000000000000000000000000ffff2f5a0808208d".into(),
                 nonce: 0x3c76a409eb48a228,
-                user_agent: "/randchaind-testnet:0.0.1/".into(),
+                user_agent: "/Satoshi:0.12.1/".into(),
                 start_height: 0,
             },
             V70001 { relay: true },
