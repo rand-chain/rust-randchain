@@ -1,10 +1,7 @@
 use jsonrpc_core::Error;
 use jsonrpc_macros::Trailing;
 
-use v1::types::BlockchainInfo;
-use v1::types::GetBlockResponse;
-use v1::types::VerboseBlock;
-use v1::types::H256;
+use v1::types::{BlockMetadata, BlockchainInfo, GetBlockResponse, VerboseBlock, H256};
 
 build_rpc_trait! {
     /// Parity-randchain blockchain data interface.
@@ -40,7 +37,7 @@ build_rpc_trait! {
         #[rpc(name = "getblockchaininfo")]
         fn blockchain_info(&self) -> Result<BlockchainInfo, Error>;
 
-        // #[rpc(name = "getblocks")]
-        // fn blocks(&self, u32, u32) -> Result<Vec<VerboseBlock>, Error>;
+        #[rpc(name = "getblocks")]
+        fn blocks(&self, u32, u32) -> Result<Vec<BlockMetadata>, Error>;
     }
 }

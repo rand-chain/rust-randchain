@@ -5,11 +5,11 @@ use primitives::hash::H256 as GlobalH256;
 use ser::serialize;
 use std::sync::Arc;
 use storage;
-use v1::helpers::errors::{block_at_height_not_found, block_not_found};
+use v1::helpers::errors::{block_at_height_not_found, block_not_found, too_many_blocks};
 use v1::traits::BlockChain;
-use v1::types::H256;
-use v1::types::U256;
-use v1::types::{BlockchainInfo, GetBlockResponse, RawBlock, VerboseBlock};
+use v1::types::{
+    BlockMetadata, BlockchainInfo, GetBlockResponse, RawBlock, VerboseBlock, H256, U256,
+};
 use verification;
 
 pub struct BlockChainClient<T: BlockChainClientCoreApi> {
@@ -24,6 +24,7 @@ pub trait BlockChainClientCoreApi: Send + Sync + 'static {
     fn raw_block(&self, hash: GlobalH256) -> Option<RawBlock>;
     fn verbose_block(&self, hash: GlobalH256) -> Option<VerboseBlock>;
     fn blockchain_info(&self) -> BlockchainInfo;
+    fn blocks(&self, u32, u32) -> Vec<BlockMetadata>;
 }
 
 pub struct BlockChainClientCore {
@@ -114,6 +115,10 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
             warnings: None,          // TODO
         }
     }
+
+    fn blocks(&self, start: u32, num: u32) -> Vec<BlockMetadata> {
+        unimplemented!() // TODO RH
+    }
 }
 
 impl<T> BlockChainClient<T>
@@ -172,6 +177,14 @@ where
 
     fn blockchain_info(&self) -> Result<BlockchainInfo, Error> {
         Ok(self.core.blockchain_info())
+    }
+
+    fn blocks(&self, start: u32, num: u32) -> Result<Vec<BlockMetadata>, Error> {
+        if num > 10 {
+            Err(too_many_blocks())
+        } else {
+            Ok(self.core.blocks(start, num))
+        }
     }
 }
 

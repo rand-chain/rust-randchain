@@ -7,6 +7,7 @@ mod codes {
     pub const BLOCK_NOT_FOUND: i64 = -32099;
     pub const NODE_ALREADY_ADDED: i64 = -32150;
     pub const NODE_NOT_ADDED: i64 = -32151;
+    pub const TOO_MANY_BLOCKS: i64 = -32152;
 }
 
 use jsonrpc_core::{Error, ErrorCode, Value};
@@ -73,6 +74,14 @@ pub fn unknown() -> Error {
     Error {
         code: ErrorCode::ServerError(codes::UNKNOWN),
         message: "Unknown error has occurred".into(),
+        data: None,
+    }
+}
+
+pub fn too_many_blocks() -> Error {
+    Error {
+        code: ErrorCode::ServerError(codes::TOO_MANY_BLOCKS),
+        message: "Too many blocks to respond, use smaller `num`".into(),
         data: None,
     }
 }

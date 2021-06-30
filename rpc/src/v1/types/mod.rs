@@ -9,7 +9,7 @@ mod nodes;
 mod submit_block;
 mod uint;
 
-pub use self::block::{GetBlockResponse, RawBlock, VerboseBlock};
+pub use self::block::{BlockMetadata, GetBlockResponse, RawBlock, VerboseBlock};
 pub use self::block_template::BlockTemplate;
 pub use self::block_template_request::{BlockTemplateRequest, BlockTemplateRequestMode};
 pub use self::blockchain::BlockchainInfo;
