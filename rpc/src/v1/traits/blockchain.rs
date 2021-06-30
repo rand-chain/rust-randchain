@@ -3,6 +3,7 @@ use jsonrpc_macros::Trailing;
 
 use v1::types::BlockchainInfo;
 use v1::types::GetBlockResponse;
+use v1::types::VerboseBlock;
 use v1::types::H256;
 
 build_rpc_trait! {
@@ -38,5 +39,8 @@ build_rpc_trait! {
         /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblockchaininfo", "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getblockchaininfo")]
         fn blockchain_info(&self) -> Result<BlockchainInfo, Error>;
+
+        // #[rpc(name = "getblocks")]
+        // fn blocks(&self, u32, u32) -> Result<Vec<VerboseBlock>, Error>;
     }
 }
