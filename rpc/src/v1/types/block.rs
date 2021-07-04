@@ -6,10 +6,9 @@ use serde::{Serialize, Serializer};
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct BlockMetadata {
     /// Block hash
-    pub hash: H256,
+    pub hash: String,
     /// Block height
-    /// TODO: bitcoind always returns value, but we hold this value for main chain blocks only
-    pub height: Option<u32>,
+    pub height: u32,
     /// Randomness as hex
     #[serde(rename = "randomnessHex")]
     pub randomness_hex: String,

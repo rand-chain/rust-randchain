@@ -37,6 +37,8 @@ build_rpc_trait! {
         #[rpc(name = "getblockchaininfo")]
         fn blockchain_info(&self) -> Result<BlockchainInfo, Error>;
 
+        /// Get metadata of a number of blocks
+        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblocks", "params": [0, 10], "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getblocks")]
         fn blocks(&self, u32, u32) -> Result<Vec<BlockMetadata>, Error>;
     }

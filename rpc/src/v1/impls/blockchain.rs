@@ -117,7 +117,21 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
     }
 
     fn blocks(&self, start: u32, num: u32) -> Vec<BlockMetadata> {
-        unimplemented!() // TODO RH
+        let mut blocks: Vec<BlockMetadata> = vec![];
+        for i in start..(start + num) {
+            match self.storage.block(i.into()) {
+                Some(block_store) => {
+                    let block = BlockMetadata {
+                        hash: block_store.hash().to_string(),
+                        height: i,
+                        randomness_hex: block_store.randomness().to_string_radix(16),
+                    };
+                    blocks.push(block);
+                }
+                None => break,
+            }
+        }
+        blocks
     }
 }
 
