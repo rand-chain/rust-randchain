@@ -66,7 +66,7 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
 
     fn verbose_block(&self, hash: GlobalH256) -> Option<VerboseBlock> {
         self.storage.block(hash.into()).map(|block| {
-            let height = self.storage.block_number(block.hash());
+            let height = self.storage.block_number(block.hash()); // note that the hash is reversed
             let confirmations = match height {
                 Some(block_number) => (self.storage.best_block().number - block_number + 1) as i64,
                 None => -1,
@@ -99,7 +99,7 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
             chain: self.p2p.config().connection.network.name(),
             blocks: self.storage.best_block().number,
             headers: self.storage.best_block().number,
-            bestblockhash: self.storage.best_block().hash.to_string(),
+            bestblockhash: self.storage.best_block().hash.to_reversed_str(),
             difficulty: self.storage.difficulty(),
             mediantime: None,
             verificationprogress: 1, // TODO
@@ -122,7 +122,7 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
             match self.storage.block(i.into()) {
                 Some(block_store) => {
                     let block = BlockMetadata {
-                        hash: block_store.hash().to_string(),
+                        hash: block_store.hash().to_reversed_str(),
                         height: i,
                         randomness_hex: block_store.randomness().to_string_radix(16),
                     };
