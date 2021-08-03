@@ -176,7 +176,7 @@ where
                     verbose_block.previousblockhash.map(|h| h.reversed());
                 verbose_block.nextblockhash = verbose_block.nextblockhash.map(|h| h.reversed());
                 verbose_block.hash = verbose_block.hash.reversed();
-                verbose_block.randomness_hex = verbose_block.randomness_hex;
+                // verbose_block.randomness_hex = verbose_block.randomness_hex;
                 Some(GetBlockResponse::Verbose(verbose_block))
             } else {
                 None

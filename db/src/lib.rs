@@ -1,6 +1,6 @@
 extern crate elastic_array;
+extern crate parity_rocksdb as rocksdb;
 extern crate parking_lot;
-extern crate rocksdb;
 #[macro_use]
 extern crate log;
 extern crate bit_vec;

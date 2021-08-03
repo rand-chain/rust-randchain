@@ -73,7 +73,7 @@ impl Stream {
     /// Appends raw bytes to the end of the stream.
     pub fn append_slice(&mut self, bytes: &[u8]) -> &mut Self {
         // discard error for now, since we write to simple vector
-        self.buffer.write(bytes).unwrap();
+        self.buffer.write_all(bytes).unwrap();
         self
     }
 

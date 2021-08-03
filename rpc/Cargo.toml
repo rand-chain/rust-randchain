@@ -8,9 +8,9 @@ authors = [ "Ethcore <admin@ethcore.io>" ]
 [dependencies]
 chain = { path = "../chain" }
 db = { path = "../db" }
-jsonrpc-core = { git = "https://github.com/ethcore/jsonrpc.git" }
-jsonrpc-http-server = { git = "https://github.com/ethcore/jsonrpc.git" }
-jsonrpc-macros = { git = "https://github.com/ethcore/jsonrpc.git" }
+jsonrpc-core = { git = "https://github.com/paritytech/jsonrpc.git", rev = "0eba7e745b0895b4234cd8d89b28e10e2c3c34a4" }
+jsonrpc-http-server = { git = "https://github.com/paritytech/jsonrpc.git", rev = "0eba7e745b0895b4234cd8d89b28e10e2c3c34a4" }
+jsonrpc-macros = { git = "https://github.com/paritytech/jsonrpc.git", rev = "0eba7e745b0895b4234cd8d89b28e10e2c3c34a4" }
 log = "0.4"
 miner = { path = "../miner" }
 message = { path = "../message"}
