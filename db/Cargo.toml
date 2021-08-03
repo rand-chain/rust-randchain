@@ -11,7 +11,7 @@ log = "0.4"
 lru-cache = "0.1"
 parking_lot = "0.4"
 primitives = { path = "../primitives" }
-rocksdb = { git = "https://github.com/ethcore/rust-rocksdb" }
+parity-rocksdb = { git = "https://github.com/ethcore/rust-rocksdb" }
 serialization = { path = "../serialization" }
 storage = { path = "../storage" }
 
