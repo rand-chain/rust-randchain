@@ -2146,7 +2146,7 @@ pub mod tests {
     }
 
     #[test]
-    // https://github.com/ethcore/parity-bitcoin/issues/121
+    // https://github.com/paritytech/parity-bitcoin/issues/121
     fn when_previous_block_verification_failed_fork_is_not_requested() {
         // got headers [b10, b11, b12] - some fork
         // got headers [b10, b21, b22] - main branch

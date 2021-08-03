@@ -3,12 +3,13 @@ use jsonrpc_core::Error;
 use jsonrpc_macros::Trailing;
 use primitives::hash::H256 as GlobalH256;
 use ser::serialize;
+use std::sync::Arc;
 use storage;
-use v1::helpers::errors::{block_at_height_not_found, block_not_found};
+use v1::helpers::errors::{block_at_height_not_found, block_not_found, too_many_blocks};
 use v1::traits::BlockChain;
-use v1::types::H256;
-use v1::types::U256;
-use v1::types::{GetBlockResponse, RawBlock, VerboseBlock};
+use v1::types::{
+    BlockMetadata, BlockchainInfo, GetBlockResponse, RawBlock, VerboseBlock, H256, U256,
+};
 use verification;
 
 pub struct BlockChainClient<T: BlockChainClientCoreApi> {
@@ -22,15 +23,21 @@ pub trait BlockChainClientCoreApi: Send + Sync + 'static {
     fn difficulty(&self) -> f64;
     fn raw_block(&self, hash: GlobalH256) -> Option<RawBlock>;
     fn verbose_block(&self, hash: GlobalH256) -> Option<VerboseBlock>;
+    fn blockchain_info(&self) -> BlockchainInfo;
+    fn blocks(&self, u32, u32) -> Vec<BlockMetadata>;
 }
 
 pub struct BlockChainClientCore {
+    p2p: Arc<p2p::Context>,
     storage: storage::SharedStore,
 }
 
 impl BlockChainClientCore {
-    pub fn new(storage: storage::SharedStore) -> Self {
-        BlockChainClientCore { storage: storage }
+    pub fn new(p2p: Arc<p2p::Context>, storage: storage::SharedStore) -> Self {
+        BlockChainClientCore {
+            p2p: p2p,
+            storage: storage,
+        }
     }
 }
 
@@ -59,22 +66,17 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
 
     fn verbose_block(&self, hash: GlobalH256) -> Option<VerboseBlock> {
         self.storage.block(hash.into()).map(|block| {
-            let height = self.storage.block_number(block.hash());
+            let height = self.storage.block_number(block.hash()); // note that the hash is reversed
             let confirmations = match height {
                 Some(block_number) => (self.storage.best_block().number - block_number + 1) as i64,
                 None => -1,
             };
             let block_size = block.size();
-            let median_time = verification::median_timestamp(
-                &block.header.raw,
-                self.storage.as_block_header_provider(),
-            );
 
             VerboseBlock {
                 confirmations: confirmations,
                 size: block_size as u32,
                 height: height,
-                mediantime: Some(median_time),
                 difficulty: block.header.raw.bits.to_f64(),
                 chainwork: U256::default(), // TODO: read from storage
                 previousblockhash: Some(block.header.raw.previous_header_hash.clone().into()),
@@ -83,13 +85,53 @@ impl BlockChainClientCoreApi for BlockChainClientCore {
                 bits: block.header.raw.bits.into(),
                 hash: block.hash().clone().into(),
                 pubkey_hex: block.header.raw.pubkey.to_bytes().to_hex(),
-                randomness_hex: block.header.raw.randomness.to_string_radix(16),
+                randomness_hex: block.randomness().to_string_radix(16),
                 iterations: block.header.raw.iterations,
-                time: block.header.raw.time,
                 version: block.header.raw.version,
                 version_hex: format!("{:x}", &block.header.raw.version),
             }
         })
+    }
+
+    fn blockchain_info(&self) -> BlockchainInfo {
+        // TODO RH implement
+        BlockchainInfo {
+            chain: self.p2p.config().connection.network.name(),
+            blocks: self.storage.best_block().number,
+            headers: self.storage.best_block().number,
+            bestblockhash: self.storage.best_block().hash.to_reversed_str(),
+            difficulty: self.storage.difficulty(),
+            mediantime: None,
+            verificationprogress: 1, // TODO
+            initialblockdownload: 0, // TODO
+            chainwork: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                .to_owned(), // TODO
+            size_on_disk: None,      // TODO
+            pruned: false,           // TODO prune mode
+            pruneheight: None,       // TODO prune mode
+            automatic_pruning: None, // TODO prune mode
+            prune_target_size: None, // TODO prune mode
+            softforks: None,         // TODO soft fork
+            warnings: None,          // TODO
+        }
+    }
+
+    fn blocks(&self, start: u32, num: u32) -> Vec<BlockMetadata> {
+        let mut blocks: Vec<BlockMetadata> = vec![];
+        for i in start..(start + num) {
+            match self.storage.block(i.into()) {
+                Some(block_store) => {
+                    let block = BlockMetadata {
+                        hash: block_store.hash().to_reversed_str(),
+                        height: i,
+                        randomness_hex: block_store.randomness().to_string_radix(16),
+                    };
+                    blocks.push(block);
+                }
+                None => break,
+            }
+        }
+        blocks
     }
 }
 
@@ -134,7 +176,7 @@ where
                     verbose_block.previousblockhash.map(|h| h.reversed());
                 verbose_block.nextblockhash = verbose_block.nextblockhash.map(|h| h.reversed());
                 verbose_block.hash = verbose_block.hash.reversed();
-                verbose_block.randomness_hex = verbose_block.randomness_hex;
+                // verbose_block.randomness_hex = verbose_block.randomness_hex;
                 Some(GetBlockResponse::Verbose(verbose_block))
             } else {
                 None
@@ -145,6 +187,18 @@ where
                 .map(|block| GetBlockResponse::Raw(block))
         }
         .ok_or(block_not_found(hash))
+    }
+
+    fn blockchain_info(&self) -> Result<BlockchainInfo, Error> {
+        Ok(self.core.blockchain_info())
+    }
+
+    fn blocks(&self, start: u32, num: u32) -> Result<Vec<BlockMetadata>, Error> {
+        if num > 10 {
+            Err(too_many_blocks())
+        } else {
+            Ok(self.core.blocks(start, num))
+        }
     }
 }
 
@@ -196,12 +250,7 @@ pub mod tests {
                 version: 1,
                 version_hex: "1".to_owned(),
                 pubkey_hex: test_data::block_h2().header().pubkey.to_bytes().to_hex(),
-                randomness_hex: test_data::block_h2()
-                    .header()
-                    .randomness
-                    .to_string_radix(16),
-                time: test_data::block_h2().header().time,
-                mediantime: None,
+                randomness_hex: test_data::block_h2().randomness().to_string_radix(16),
                 iterations: test_data::block_h2().header().iterations,
                 bits: test_data::block_h2().header().bits.into(),
                 difficulty: 1.0,
@@ -356,6 +405,7 @@ pub mod tests {
         assert_eq!(&sample, r#"{"jsonrpc":"2.0","result":1.0,"id":1}"#);
     }
 
+    // TODO update tests as we changed block format
     #[test]
     fn verbose_block_contents() {
         let storage = Arc::new(BlockChainDatabase::init_test_chain(vec![
@@ -380,8 +430,6 @@ pub mod tests {
                 pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
                 randomness_hex: "9fa3e85750af0157b3d08c44a2cef54cb0ccab50ea9d63ea016a8cc99c9a600a2a4c7ba9b4adc427148b6d3967c2a279e784d2514c7f3f6bcea6fe5d72fb78369f9026bebbdaffebf226d6a0de8e55356e90ac019b09318093c1b5d16b19b335d08713dfd05a251ebba267310c55b3093be6b0649f9a6318d9e61bfc6ba8b612690c7117018cef475972db62e79fbde36b6cd20b1b0ec946e78b916211de6963acf2cf4a72892f906b5ecc589d6f3fff4739028f47e377e592379fcfb63bcbd9810eddc0d7f8e0f9069e8dc9fb22f93f6f5685ad9e1779cbd03aecd689ad679db0364f44fa921056e583f4c71018cb2954216775ee09a6021548cf44b9c05e64".to_owned(),
-                time: 1001,
-                mediantime: Some(1000),
                 iterations: 1,
                 bits: 553713663,
                 difficulty: 0.00000000023283064365386963,
@@ -409,8 +457,6 @@ pub mod tests {
                 pubkey_hex: "0000000000000000000000000000000000000000000000000000000000000000"
                     .to_owned(),
                 randomness_hex: "59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6".to_owned(),
-                time: 1002,
-                mediantime: Some(1001),
                 iterations: 1,
                 bits: 553713663,
                 difficulty: 0.00000000023283064365386963,
@@ -503,7 +549,7 @@ pub mod tests {
 
         assert_eq!(
             &sample,
-            r#"{"jsonrpc":"2.0","result":{"bits":553713663,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"a84e37303d15d90f2d46a483b3f007efda0d876bd39ccd16b8fdd4d58adea1c5","height":2,"iterations":1,"mediantime":null,"nextblockhash":null,"previousblockhash":"8fc76690623d21e0ce7ad0479d3ea934fed2b89be57f225680fcb7e74a95a68a","pubkeyHex":"0000000000000000000000000000000000000000000000000000000000000000","randomnessHex":"59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6","size":341,"time":1002,"version":1,"versionHex":"1"},"id":1}"#
+            r#"{"jsonrpc":"2.0","result":{"bits":553713663,"chainwork":"0","confirmations":1,"difficulty":1.0,"hash":"a84e37303d15d90f2d46a483b3f007efda0d876bd39ccd16b8fdd4d58adea1c5","height":2,"iterations":1,"nextblockhash":null,"previousblockhash":"8fc76690623d21e0ce7ad0479d3ea934fed2b89be57f225680fcb7e74a95a68a","pubkeyHex":"0000000000000000000000000000000000000000000000000000000000000000","randomnessHex":"59c4420c8bd35716412451248f521db0fe76eb6a25c8a42127ceea885485d549e7215bf8535c3a651bf65a858df7c19b647dd571cce6cfc81981c801824a424b744e584ce01edb73c080e8181175838b89df08a629e579d87e258ebd0e3f6dda75c8e4e1cd1534506f700be8973335a95ade2235ad4e1bbda4aa14bd3b1e30b9110d7914652a528a07b85c06810651820baa186b435bea9884b2562ac4898a876a3015072be36ba7a29d15e49479c6d5a376d69c78b68d10dbea2107187be17719c066dd117e746f09a29e17fc4b72fdc9dfaa07fc0c8786970a6a6266659a4a038ec422160484fc6a4eac82a8079065bd4a4de416762237ddf208cc632af5d6","size":341,"version":1,"versionHex":"1"},"id":1}"#
         );
     }
 

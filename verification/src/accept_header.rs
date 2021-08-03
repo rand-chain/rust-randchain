@@ -2,13 +2,13 @@ use canon::CanonHeader;
 use error::Error;
 use network::Network;
 use storage::BlockHeaderProvider;
-use timestamp::median_timestamp;
+// use timestamp::median_timestamp;
 use work::work_required;
 
 pub struct HeaderAcceptor<'a> {
     pub version: HeaderVersion<'a>,
     pub work: HeaderWork<'a>,
-    pub median_timestamp: HeaderMedianTimestamp<'a>,
+    // pub median_timestamp: HeaderMedianTimestamp<'a>,
 }
 
 // TODO:
@@ -21,7 +21,7 @@ impl<'a> HeaderAcceptor<'a> {
     ) -> Self {
         HeaderAcceptor {
             work: HeaderWork::new(header, store, height, network),
-            median_timestamp: HeaderMedianTimestamp::new(header, store),
+            // median_timestamp: HeaderMedianTimestamp::new(header, store),
             version: HeaderVersion::new(header, height, network),
         }
     }
@@ -29,7 +29,7 @@ impl<'a> HeaderAcceptor<'a> {
     pub fn check(&self) -> Result<(), Error> {
         self.version.check()?;
         self.work.check()?;
-        self.median_timestamp.check()?;
+        // self.median_timestamp.check()?;
         Ok(())
     }
 }
@@ -81,14 +81,7 @@ impl<'a> HeaderWork<'a> {
 
     fn check(&self) -> Result<(), Error> {
         let previous_header_hash = self.header.raw.previous_header_hash.clone();
-        let time = self.header.raw.time;
-        let work = work_required(
-            previous_header_hash,
-            time,
-            self.height,
-            self.store,
-            self.network,
-        );
+        let work = work_required(previous_header_hash, self.height, self.store, self.network);
         if work == self.header.raw.bits {
             Ok(())
         } else {
@@ -100,26 +93,26 @@ impl<'a> HeaderWork<'a> {
     }
 }
 
-pub struct HeaderMedianTimestamp<'a> {
-    header: CanonHeader<'a>,
-    store: &'a dyn BlockHeaderProvider,
-}
+// pub struct HeaderMedianTimestamp<'a> {
+//     header: CanonHeader<'a>,
+//     store: &'a dyn BlockHeaderProvider,
+// }
 
-impl<'a> HeaderMedianTimestamp<'a> {
-    fn new(header: CanonHeader<'a>, store: &'a dyn BlockHeaderProvider) -> Self {
-        HeaderMedianTimestamp {
-            header: header,
-            store: store,
-        }
-    }
+// impl<'a> HeaderMedianTimestamp<'a> {
+//     fn new(header: CanonHeader<'a>, store: &'a dyn BlockHeaderProvider) -> Self {
+//         HeaderMedianTimestamp {
+//             header: header,
+//             store: store,
+//         }
+//     }
 
-    // TODO:
-    fn check(&self) -> Result<(), Error> {
-        // if csv_active && self.header.raw.time <= median_timestamp(&self.header.raw, self.store) {
-        if self.header.raw.time <= median_timestamp(&self.header.raw, self.store) {
-            Err(Error::Timestamp)
-        } else {
-            Ok(())
-        }
-    }
-}
+//     // TODO:
+//     fn check(&self) -> Result<(), Error> {
+//         // if csv_active && self.header.raw.time <= median_timestamp(&self.header.raw, self.store) {
+//         if self.header.raw.time <= median_timestamp(&self.header.raw, self.store) {
+//             Err(Error::Timestamp)
+//         } else {
+//             Ok(())
+//         }
+//     }
+// }

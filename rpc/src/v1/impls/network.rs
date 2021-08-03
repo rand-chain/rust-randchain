@@ -5,7 +5,9 @@ use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use v1::helpers::errors;
 use v1::traits::Network as NetworkRpc;
-use v1::types::{AddNodeOperation, NodeInfo};
+use v1::types::Address as AddressType;
+use v1::types::Network as NetworkType;
+use v1::types::{AddNodeOperation, NetworkInfo, NodeInfo};
 
 pub trait NetworkApi: Send + Sync + 'static {
     fn add_node(&self, socket_addr: SocketAddr) -> Result<(), p2p::NodeTableError>;
@@ -14,6 +16,7 @@ pub trait NetworkApi: Send + Sync + 'static {
     fn node_info(&self, node_addr: IpAddr) -> Result<NodeInfo, p2p::NodeTableError>;
     fn nodes_info(&self) -> Vec<NodeInfo>;
     fn connection_count(&self) -> usize;
+    fn net_info(&self) -> NetworkInfo;
 }
 
 impl<T> NetworkRpc for NetworkClient<T>
@@ -65,6 +68,10 @@ where
 
     fn connection_count(&self) -> Result<usize, Error> {
         Ok(self.api.connection_count())
+    }
+
+    fn net_info(&self) -> Result<NetworkInfo, Error> {
+        Ok(self.api.net_info())
     }
 }
 
@@ -151,5 +158,33 @@ impl NetworkApi for NetworkClientCore {
 
     fn connection_count(&self) -> usize {
         self.p2p.connections().count()
+    }
+
+    fn net_info(&self) -> NetworkInfo {
+        let cfg = self.p2p.config();
+        NetworkInfo {
+            version: 1,
+            subversion: "/Satoshi:0.12.1/".to_owned(),
+            protocolversion: cfg.connection.protocol_version,
+            localservices: cfg.preferable_services.into(),
+            localservicesnames: None,
+            localrelay: None,
+            timeoffset: None,
+            connections: cfg.inbound_connections + cfg.outbound_connections,
+            connections_in: cfg.inbound_connections,
+            connections_out: cfg.outbound_connections,
+            networkactive: None,
+            networks: vec![NetworkType {
+                name: cfg.connection.network.name(),
+                limited: None,
+                reachable: true,
+                proxy: "".to_string(),
+                proxy_randomize_credentials: None,
+            }],
+            relayfee: None,
+            incrementalfee: None,
+            localaddresses: vec![],
+            warnings: None,
+        }
     }
 }

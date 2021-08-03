@@ -133,7 +133,7 @@ pub fn start(cfg: config::Config) -> Result<(), String> {
     let rpc_deps = rpc::Dependencies {
         network: cfg.network,
         storage: cfg.db,
-        local_sync_node: local_sync_node,
+        local_sync_node: local_sync_node.clone(),
         p2p_context: p2p.context().clone(),
         remote: el.remote(),
     };
