@@ -662,7 +662,7 @@ checksum = "dd25036021b0de88a0aff6b850051563c6516d0bf53f8638938edbb9de732736"
 [[package]]
 name = "jsonrpc-core"
 version = "8.0.0"
-source = "git+https://github.com/ethcore/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
+source = "git+https://github.com/paritytech/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
 dependencies = [
  "futures",
  "log 0.3.9",
@@ -674,7 +674,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc-http-server"
 version = "8.0.0"
-source = "git+https://github.com/ethcore/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
+source = "git+https://github.com/paritytech/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
 dependencies = [
  "hyper",
  "jsonrpc-core",
@@ -687,7 +687,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc-macros"
 version = "8.0.0"
-source = "git+https://github.com/ethcore/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
+source = "git+https://github.com/paritytech/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-pubsub",
@@ -697,7 +697,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc-pubsub"
 version = "8.0.0"
-source = "git+https://github.com/ethcore/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
+source = "git+https://github.com/paritytech/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
 dependencies = [
  "jsonrpc-core",
  "log 0.3.9",
@@ -707,7 +707,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc-server-utils"
 version = "8.0.0"
-source = "git+https://github.com/ethcore/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
+source = "git+https://github.com/paritytech/jsonrpc.git?rev=0eba7e745b0895b4234cd8d89b28e10e2c3c34a4#0eba7e745b0895b4234cd8d89b28e10e2c3c34a4"
 dependencies = [
  "bytes",
  "globset",
@@ -1045,7 +1045,7 @@ dependencies = [
 [[package]]
 name = "parity-rocksdb"
 version = "0.5.1"
-source = "git+https://github.com/ethcore/rust-rocksdb#6e099ebea51e5b5adb33405310504c8582649b34"
+source = "git+https://github.com/paritytech/rust-rocksdb#6e099ebea51e5b5adb33405310504c8582649b34"
 dependencies = [
  "libc",
  "local-encoding",
@@ -1055,7 +1055,7 @@ dependencies = [
 [[package]]
 name = "parity-rocksdb-sys"
 version = "0.5.6"
-source = "git+https://github.com/ethcore/rust-rocksdb#6e099ebea51e5b5adb33405310504c8582649b34"
+source = "git+https://github.com/paritytech/rust-rocksdb#6e099ebea51e5b5adb33405310504c8582649b34"
 dependencies = [
  "cmake",
  "libc",
