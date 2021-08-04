@@ -56,6 +56,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "arrayvec"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23b62fc65de8e4e7f52534fb52b0f3ed04746ae267519eef2a83941e8085068b"
+
+[[package]]
 name = "assert_matches"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -83,6 +89,12 @@ name = "az"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "822d7d63e0c0260a050f6b1f0d316f5c79b9eab830aca526ed904e1011bd64ca"
+
+[[package]]
+name = "base58"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5024ee8015f02155eee35c711107ddd9a9bf3cb689cf2a9089c97e79b6e1ae83"
 
 [[package]]
 name = "base64"
@@ -734,6 +746,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "keys"
+version = "0.1.0"
+dependencies = [
+ "base58",
+ "bitcrypto",
+ "lazy_static",
+ "parity-secp256k1",
+ "primitives",
+ "rand 0.7.3",
+ "rustc-hex",
+]
+
+[[package]]
 name = "language-tags"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1064,6 +1089,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "parity-secp256k1"
+version = "0.7.0"
+source = "git+https://github.com/paritytech/rust-secp256k1#d05fd8e152f8d110b587906e3d854196b086e42a"
+dependencies = [
+ "arrayvec",
+ "cc",
+ "cfg-if 0.1.10",
+ "rand 0.7.3",
+]
+
+[[package]]
 name = "parity-snappy-sys"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1271,6 +1307,7 @@ dependencies = [
  "clap",
  "db",
  "env_logger",
+ "keys",
  "libc",
  "log 0.4.14",
  "logs",
