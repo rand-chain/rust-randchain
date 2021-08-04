@@ -18,13 +18,13 @@ fn sha3(b: Vec<u8>) -> [u8; 32] {
 
 #[derive(Debug, PartialEq, Eq)]
 /// Holds a secret key scalar for generating VRF proofs
-pub struct VrfSk {
+pub struct SK {
     s: Scalar,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 /// Holds a public key g*sk as usual in ECC
-pub struct VrfPk {
+pub struct PK {
     p: RistrettoPoint,
 }
 
@@ -36,49 +36,49 @@ pub struct VrfProof {
     s: Scalar,
 }
 
-impl VrfSk {
-    pub fn new() -> VrfSk {
-        return VrfSk {
+impl SK {
+    pub fn new() -> SK {
+        return SK {
             s: Scalar::random(&mut OsRng),
         };
     }
     pub fn to_bytes(&self) -> [u8; 32] {
         return self.s.to_bytes();
     }
-    pub fn from_bytes(b: &[u8; 32]) -> Result<VrfSk, &str> {
+    pub fn from_bytes(b: &[u8; 32]) -> Result<SK, &str> {
         let s = Scalar::from_canonical_bytes(*b);
         if s.is_none() {
             return Err("private key is not canonical");
         }
-        return Ok(VrfSk { s: s.unwrap() });
+        return Ok(SK { s: s.unwrap() });
     }
 }
 
-impl Clone for VrfSk {
+impl Clone for SK {
     fn clone(&self) -> Self {
-        VrfSk { s: self.s }
+        SK { s: self.s }
     }
 }
 
-impl VrfPk {
-    pub fn new(sk: &VrfSk) -> VrfPk {
-        return VrfPk { p: g * sk.s };
+impl PK {
+    pub fn new(sk: &SK) -> PK {
+        return PK { p: g * sk.s };
     }
     pub fn to_bytes(&self) -> [u8; 32] {
         return self.p.compress().to_bytes();
     }
-    pub fn from_bytes(b: &[u8; 32]) -> Result<VrfPk, &str> {
+    pub fn from_bytes(b: &[u8; 32]) -> Result<PK, &str> {
         let p = CompressedRistretto::from_slice(b).decompress();
         if p.is_none() {
             return Err("public key is not canonical");
         }
-        return Ok(VrfPk { p: p.unwrap() });
+        return Ok(PK { p: p.unwrap() });
     }
 }
 
-impl Clone for VrfPk {
+impl Clone for PK {
     fn clone(&self) -> Self {
-        VrfPk { p: self.p }
+        PK { p: self.p }
     }
 }
 
@@ -131,14 +131,14 @@ fn serialize_point(p: RistrettoPoint) -> [u8; 32] {
 
 /// Generates a crypto-safe secret key using OsRng and the
 /// corresponding public key into a tuple
-pub fn keygen() -> (VrfSk, VrfPk) {
-    let sk = VrfSk::new();
-    let pk = VrfPk::new(&sk);
+pub fn keygen() -> (SK, PK) {
+    let sk = SK::new();
+    let pk = PK::new(&sk);
     return (sk, pk);
 }
 /// The output of a VRF function is the VRF hash and the proof to verify
 /// we generated this hash with the supplied key
-pub fn prove(input: &[u8], privkey: &VrfSk) -> ([u8; 32], VrfProof) {
+pub fn prove(input: &[u8], privkey: &SK) -> ([u8; 32], VrfProof) {
     let h = RistrettoPoint::hash_from_bytes::<Sha3_512>(input);
     let gamma = h * privkey.s;
     let k: Scalar = Scalar::random(&mut OsRng);
@@ -160,7 +160,7 @@ pub fn prove(input: &[u8], privkey: &VrfSk) -> ([u8; 32], VrfProof) {
     (beta, VrfProof { gamma, c, s })
 }
 
-pub fn verify(input: &[u8], pubkey: &VrfPk, output: &[u8; 32], proof: &VrfProof) -> bool {
+pub fn verify(input: &[u8], pubkey: &PK, output: &[u8; 32], proof: &VrfProof) -> bool {
     let c_scalar = Scalar::from_bytes_mod_order(proof.c);
     let u = pubkey.p * c_scalar + g * proof.s;
     let h = RistrettoPoint::hash_from_bytes::<Sha3_512>(input);
@@ -199,8 +199,8 @@ mod tests {
         let sk_serialized = privkey.to_bytes();
         let pk_serialized = pubkey.to_bytes();
         let proof_serialized = proof.to_bytes();
-        assert_eq!(super::VrfSk::from_bytes(&sk_serialized).unwrap(), privkey);
-        assert_eq!(super::VrfPk::from_bytes(&pk_serialized).unwrap(), pubkey);
+        assert_eq!(super::SK::from_bytes(&sk_serialized).unwrap(), privkey);
+        assert_eq!(super::PK::from_bytes(&pk_serialized).unwrap(), pubkey);
         assert_eq!(
             super::VrfProof::from_bytes(&proof_serialized).unwrap(),
             proof

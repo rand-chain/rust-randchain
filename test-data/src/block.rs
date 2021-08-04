@@ -8,7 +8,7 @@ use primitives::hash::H256;
 use rug::Integer;
 use std::cell::Cell;
 use verification::h_g;
-use VrfPk;
+use PK;
 
 thread_local! {
     pub static TIMESTAMP_COUNTER: Cell<u32> = Cell::new(0);
@@ -142,7 +142,7 @@ pub struct BlockHeaderBuilder<F = Identity> {
     parent: H256,
     bits: Compact,
     version: u32,
-    pubkey: VrfPk,
+    pubkey: PK,
     iterations: u32,
     solution: Integer,
 }
@@ -158,7 +158,7 @@ where
             bits: Compact::max_value(),
             // set to 4 to allow creating long test chains
             version: 4,
-            pubkey: VrfPk::from_bytes(&[0; 32]).unwrap(),
+            pubkey: PK::from_bytes(&[0; 32]).unwrap(),
             iterations: 0u32,
             solution: Integer::from(0),
         }
@@ -179,7 +179,7 @@ where
         self
     }
 
-    pub fn pubkey(mut self, pubkey: VrfPk) -> Self {
+    pub fn pubkey(mut self, pubkey: PK) -> Self {
         self.pubkey = pubkey;
         self
     }

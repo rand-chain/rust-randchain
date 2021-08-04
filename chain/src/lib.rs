@@ -17,7 +17,7 @@ mod indexed_header;
 /// `IndexedBlock` extension
 mod read_and_hash;
 
-use crypto::VrfPk;
+use crypto::PK;
 
 pub use primitives::{bigint, bytes, compact, hash};
 
