@@ -1,15 +1,22 @@
 //! Secret with additional network identifier and format type
 
-use std::fmt;
-use std::str::FromStr;
+use base58::{FromBase58, ToBase58};
+use crypto::checksum;
+use display::DisplayLayout;
+use error::Error;
+use hash::{H256, H520};
+use hex::ToHex;
+use network::Network;
 use secp256k1::key;
 use secp256k1::Message as SecpMessage;
-use hex::ToHex;
-use base58::{ToBase58, FromBase58};
-use crypto::checksum;
-use hash::H520;
-use network::Network;
-use {Secret, DisplayLayout, Error, Message, Signature, CompactSignature, SECP256K1};
+use signature::CompactSignature;
+use signature::{Message, Signature};
+use std::fmt;
+use std::str::FromStr;
+use SECP256K1;
+
+/// 32 bytes long secret key
+pub type Secret = H256;
 
 /// Secret with additional network identifier and format type
 #[derive(PartialEq)]
@@ -70,7 +77,10 @@ impl DisplayLayout for Private {
 		result
 	}
 
-	fn from_layout(data: &[u8]) -> Result<Self, Error> where Self: Sized {
+	fn from_layout(data: &[u8]) -> Result<Self, Error>
+	where
+		Self: Sized,
+	{
 		let compressed = match data.len() {
 			37 => false,
 			38 => true,
@@ -122,7 +132,10 @@ impl fmt::Display for Private {
 impl FromStr for Private {
 	type Err = Error;
 
-	fn from_str(s: &str) -> Result<Self, Error> where Self: Sized {
+	fn from_str(s: &str) -> Result<Self, Error>
+	where
+		Self: Sized,
+	{
 		let hex = s.from_base58().map_err(|_| Error::InvalidPrivate)?;
 		Private::from_layout(&hex)
 	}
@@ -136,29 +149,39 @@ impl From<&'static str> for Private {
 
 #[cfg(test)]
 mod tests {
+	use super::Private;
 	use hash::H256;
 	use network::Network;
-	use super::Private;
 
 	#[test]
 	fn test_private_to_string() {
 		let private = Private {
 			network: Network::Mainnet,
-			secret: H256::from_reversed_str("063377054c25f98bc538ac8dd2cf9064dd5d253a725ece0628a34e2f84803bd5"),
+			secret: H256::from_reversed_str(
+				"063377054c25f98bc538ac8dd2cf9064dd5d253a725ece0628a34e2f84803bd5",
+			),
 			compressed: false,
 		};
 
-		assert_eq!("5KSCKP8NUyBZPCCQusxRwgmz9sfvJQEgbGukmmHepWw5Bzp95mu".to_owned(), private.to_string());
+		assert_eq!(
+			"5KSCKP8NUyBZPCCQusxRwgmz9sfvJQEgbGukmmHepWw5Bzp95mu".to_owned(),
+			private.to_string()
+		);
 	}
 
 	#[test]
 	fn test_private_from_str() {
 		let private = Private {
 			network: Network::Mainnet,
-			secret: H256::from_reversed_str("063377054c25f98bc538ac8dd2cf9064dd5d253a725ece0628a34e2f84803bd5"),
+			secret: H256::from_reversed_str(
+				"063377054c25f98bc538ac8dd2cf9064dd5d253a725ece0628a34e2f84803bd5",
+			),
 			compressed: false,
 		};
 
-		assert_eq!(private, "5KSCKP8NUyBZPCCQusxRwgmz9sfvJQEgbGukmmHepWw5Bzp95mu".into());
+		assert_eq!(
+			private,
+			"5KSCKP8NUyBZPCCQusxRwgmz9sfvJQEgbGukmmHepWw5Bzp95mu".into()
+		);
 	}
 }

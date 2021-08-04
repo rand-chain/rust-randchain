@@ -1,10 +1,15 @@
 //! Bitcoin key pair.
 
-use std::fmt;
-use secp256k1::key;
+use address::Address;
+use address::Type;
+use error::Error;
 use hash::{H264, H520};
 use network::Network;
-use {Public, Error, SECP256K1, Address, Type, Private, Secret};
+use private::{Private, Secret};
+use public::Public;
+use secp256k1::key;
+use std::fmt;
+use SECP256K1;
 
 pub struct KeyPair {
 	private: Private,
@@ -87,9 +92,9 @@ impl KeyPair {
 
 #[cfg(test)]
 mod tests {
+	use super::KeyPair;
 	use crypto::dhash256;
 	use Public;
-	use super::KeyPair;
 
 	/// Tests from:
 	/// https://github.com/bitcoin/bitcoin/blob/a6a860796a44a2805a58391a009ba22752f64e32/src/test/key_tests.cpp
@@ -132,7 +137,11 @@ mod tests {
 		kp.public().verify(&message, &signature.into()).unwrap()
 	}
 
-	fn check_sign_compact(secret: &'static str, raw_message: &[u8], signature: &'static str) -> bool {
+	fn check_sign_compact(
+		secret: &'static str,
+		raw_message: &[u8],
+		signature: &'static str,
+	) -> bool {
 		let message = dhash256(raw_message);
 		let kp = KeyPair::from_private(secret.into()).unwrap();
 		kp.private().sign_compact(&message).unwrap() == signature.into()

@@ -5,13 +5,18 @@
 //!
 //! https://en.bitcoin.it/wiki/Address
 
-use std::fmt;
-use std::str::FromStr;
-use std::ops::Deref;
-use base58::{ToBase58, FromBase58};
+use base58::{FromBase58, ToBase58};
 use crypto::checksum;
+use display::DisplayLayout;
+use error::Error;
+use hash::{H160, H256};
 use network::Network;
-use {DisplayLayout, Error, AddressHash};
+use std::fmt;
+use std::ops::Deref;
+use std::str::FromStr;
+
+/// 20 bytes long hash derived from public `ripemd160(sha256(public))`
+pub type AddressHash = H160;
 
 /// There are two address formats currently in use.
 /// https://bitcoin.org/en/developer-reference#address-conversion
@@ -67,7 +72,10 @@ impl DisplayLayout for Address {
 		AddressDisplayLayout(result)
 	}
 
-	fn from_layout(data: &[u8]) -> Result<Self, Error> where Self: Sized {
+	fn from_layout(data: &[u8]) -> Result<Self, Error>
+	where
+		Self: Sized,
+	{
 		if data.len() != 25 {
 			return Err(Error::InvalidAddress);
 		}
@@ -107,7 +115,10 @@ impl fmt::Display for Address {
 impl FromStr for Address {
 	type Err = Error;
 
-	fn from_str(s: &str) -> Result<Self, Error> where Self: Sized {
+	fn from_str(s: &str) -> Result<Self, Error>
+	where
+		Self: Sized,
+	{
 		let hex = s.from_base58().map_err(|_| Error::InvalidAddress)?;
 		Address::from_layout(&hex)
 	}
@@ -121,8 +132,8 @@ impl From<&'static str> for Address {
 
 #[cfg(test)]
 mod tests {
-	use network::Network;
 	use super::{Address, Type};
+	use network::Network;
 
 	#[test]
 	fn test_address_to_string() {
@@ -132,7 +143,10 @@ mod tests {
 			hash: "3f4aa1fedf1f54eeb03b759deadb36676b184911".into(),
 		};
 
-		assert_eq!("16meyfSoQV6twkAAxPe51RtMVz7PGRmWna".to_owned(), address.to_string());
+		assert_eq!(
+			"16meyfSoQV6twkAAxPe51RtMVz7PGRmWna".to_owned(),
+			address.to_string()
+		);
 	}
 
 	#[test]

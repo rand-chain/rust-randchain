@@ -1,5 +1,7 @@
+use error::Error;
+use keypair::KeyPair;
 use network::Network;
-use {Error, KeyPair, SECP256K1};
+use SECP256K1;
 
 pub trait Generator {
 	fn generate(&self) -> Result<KeyPair, Error>;

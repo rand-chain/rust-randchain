@@ -2,10 +2,13 @@
 //!
 //! http://bitcoin.stackexchange.com/q/12554/40688
 
+use error::Error;
+use hash::{H256, H520};
+use hex::{FromHex, ToHex};
 use std::{fmt, ops, str};
-use hex::{ToHex, FromHex};
-use hash::H520;
-use Error;
+
+/// 32 bytes long signable message
+pub type Message = H256;
 
 #[derive(PartialEq)]
 pub struct Signature(Vec<u8>);

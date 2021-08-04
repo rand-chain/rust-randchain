@@ -1,10 +1,17 @@
-use std::{fmt, ops};
-use secp256k1::key;
-use secp256k1::{Message as SecpMessage, RecoveryId, RecoverableSignature, Error as SecpError, Signature as SecpSignature};
-use hex::ToHex;
+use address::AddressHash;
 use crypto::dhash160;
+use error::Error;
 use hash::{H264, H520};
-use {AddressHash, Error, CompactSignature, Signature, Message, SECP256K1};
+use hex::ToHex;
+use secp256k1::key;
+use secp256k1::{
+	Error as SecpError, Message as SecpMessage, RecoverableSignature, RecoveryId,
+	Signature as SecpSignature,
+};
+use signature::CompactSignature;
+use signature::{Message, Signature};
+use std::{fmt, ops};
+use SECP256K1;
 
 /// Secret public key
 pub enum Public {
@@ -21,13 +28,13 @@ impl Public {
 				let mut public = H264::default();
 				public.copy_from_slice(data);
 				Ok(Public::Compressed(public))
-			},
+			}
 			65 => {
 				let mut public = H520::default();
 				public.copy_from_slice(data);
 				Ok(Public::Normal(public))
-			},
-			_ => Err(Error::InvalidPublic)
+			}
+			_ => Err(Error::InvalidPublic),
 		}
 	}
 
@@ -53,7 +60,8 @@ impl Public {
 		let recovery_id = (signature[0] - 27) & 3;
 		let compressed = (signature[0] - 27) & 4 != 0;
 		let recovery_id = RecoveryId::from_i32(recovery_id as i32)?;
-		let signature = RecoverableSignature::from_compact(context, &signature[1..65], recovery_id)?;
+		let signature =
+			RecoverableSignature::from_compact(context, &signature[1..65], recovery_id)?;
 		let message = SecpMessage::from_slice(&**message)?;
 		let pubkey = context.recover(&message, &signature)?;
 		let serialized = pubkey.serialize_vec(context, compressed);
