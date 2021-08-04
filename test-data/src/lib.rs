@@ -1,9 +1,9 @@
 //! Various chain-specific test dummies
 
-extern crate ecvrf;
 extern crate rug;
 extern crate time;
 
+extern crate bitcrypto as crypto;
 extern crate chain;
 extern crate network;
 extern crate primitives;
@@ -11,7 +11,7 @@ extern crate serialization as ser;
 extern crate vdf;
 extern crate verification;
 
-use ecvrf::VrfPk;
+use crypto::VrfPk;
 
 use chain::Block;
 use network::Network::Mainnet;

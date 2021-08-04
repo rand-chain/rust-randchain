@@ -8,7 +8,6 @@ bigint = "1.0"
 bitcrypto = { path = "../crypto" }
 chain = { path = "../chain" }
 db = { path = "../db" }
-ecvrf = "0.4.2"
 heapsize = "0.4"
 network = { path = "../network" }
 primitives = { path = "../primitives" }

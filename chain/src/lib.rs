@@ -1,5 +1,4 @@
 extern crate bitcrypto as crypto;
-extern crate ecvrf;
 extern crate heapsize;
 extern crate primitives;
 extern crate rayon;
@@ -18,7 +17,7 @@ mod indexed_header;
 /// `IndexedBlock` extension
 mod read_and_hash;
 
-use ecvrf::VrfPk;
+use crypto::VrfPk;
 
 pub use primitives::{bigint, bytes, compact, hash};
 

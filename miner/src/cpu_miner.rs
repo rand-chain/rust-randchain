@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use block_assembler::BlockTemplate;
 use chain::BlockHeader;
 use crypto::dhash256;
-use ecvrf::VrfPk;
+use crypto::VrfPk;
 use network::Network;
 use primitives::bytes::Bytes;
 use rug::{integer::Order, Integer};
@@ -173,7 +173,7 @@ pub fn find_solution_dry(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Soluti
 mod tests {
     use super::*;
     use block_assembler::BlockTemplate;
-    use ecvrf::VrfPk;
+    use crypto::VrfPk;
     use primitives::bigint::{Uint, U256};
     use std::time::Duration;
 

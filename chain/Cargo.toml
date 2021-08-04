@@ -5,7 +5,6 @@ authors = [ "debris <marek.kotewicz@gmail.com>" ]
 
 [dependencies]
 bitcrypto = { path = "../crypto" }
-ecvrf = "0.4.2"
 heapsize = "0.4"
 primitives = { path = "../primitives" }
 rayon = "1.0"

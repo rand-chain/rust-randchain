@@ -1,3 +1,4 @@
+/// built upon https://crates.io/crates/ecvrf/0.4.3
 use curve25519_dalek::constants::RISTRETTO_BASEPOINT_POINT as g;
 use curve25519_dalek::ristretto::{CompressedRistretto, RistrettoPoint};
 use curve25519_dalek::scalar::Scalar;

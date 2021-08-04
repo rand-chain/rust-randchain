@@ -211,7 +211,6 @@ name = "chain"
 version = "0.1.0"
 dependencies = [
  "bitcrypto",
- "ecvrf",
  "heapsize 0.4.2",
  "primitives",
  "rayon",
@@ -440,18 +439,6 @@ dependencies = [
  "futures",
  "rand 0.4.6",
  "tokio-core",
-]
-
-[[package]]
-name = "ecvrf"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1ab6ed39d2d69364bfef42c0674e3ef53237f520625ca326444ce4ffeb9fed0"
-dependencies = [
- "curve25519-dalek",
- "rand 0.7.3",
- "rand_core 0.5.1",
- "sha3",
 ]
 
 [[package]]
@@ -915,7 +902,6 @@ dependencies = [
  "bitcrypto",
  "chain",
  "db",
- "ecvrf",
  "heapsize 0.4.2",
  "network",
  "primitives",
@@ -995,8 +981,8 @@ dependencies = [
 name = "network"
 version = "0.1.0"
 dependencies = [
+ "bitcrypto",
  "chain",
- "ecvrf",
  "lazy_static",
  "primitives",
  "rug",
@@ -1799,8 +1785,8 @@ dependencies = [
 name = "test-data"
 version = "0.1.0"
 dependencies = [
+ "bitcrypto",
  "chain",
- "ecvrf",
  "network",
  "primitives",
  "rug",
@@ -2122,7 +2108,6 @@ checksum = "b4ae116fef2b7fea257ed6440d3cfcff7f190865f170cdad00bb6465bf18ecba"
 name = "vdf"
 version = "0.1.0"
 dependencies = [
- "ecvrf",
  "elapsed",
  "lazy_static",
  "rug",
