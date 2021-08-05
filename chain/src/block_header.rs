@@ -8,14 +8,14 @@ use ser::{deserialize, serialize};
 use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use std::fmt;
 use std::io;
-use VrfPk;
+use PK;
 
 #[derive(PartialEq, Clone)]
 pub struct BlockHeader {
     pub version: u32,               // protocol version
     pub previous_header_hash: H256, // previous hash
     pub bits: Compact,              // difficulty
-    pub pubkey: VrfPk,              // pubkey of miner
+    pub pubkey: PK,                 // pubkey of miner
     pub iterations: u32,            // # of iterations
     pub solution: Integer,          // output TODO: move out
 }
@@ -56,7 +56,7 @@ impl Deserializable for BlockHeader {
                 }
                 let mut temp: [u8; 32] = [0; 32];
                 temp.copy_from_slice(pk_bytes.as_ref());
-                match VrfPk::from_bytes(&temp) {
+                match PK::from_bytes(&temp) {
                     Err(_) => return Err(ReaderError::MalformedData),
                     Ok(pk) => pk,
                 }
@@ -101,7 +101,7 @@ mod tests {
     use super::BlockHeader;
     use rug::Integer;
     use ser::{Error as ReaderError, Reader, Stream};
-    use VrfPk;
+    use PK;
 
     // TODO update tests as we changed the block structure
     #[test]
@@ -110,7 +110,7 @@ mod tests {
             version: 1,
             previous_header_hash: [2; 32].into(),
             bits: 5.into(),
-            pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
+            pubkey: PK::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,
             solution: Integer::from(8),
         };
@@ -148,7 +148,7 @@ mod tests {
             version: 1,
             previous_header_hash: [2; 32].into(),
             bits: 5.into(),
-            pubkey: VrfPk::from_bytes(&[6; 32]).unwrap(),
+            pubkey: PK::from_bytes(&[6; 32]).unwrap(),
             iterations: 7,
             solution: Integer::from(8),
         };

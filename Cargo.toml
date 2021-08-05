@@ -12,6 +12,7 @@ chain = { path = "chain" }
 clap = { version = "2", features = [ "yaml" ] }
 db = { path = "db" }
 env_logger = "0.5"
+keys = { path = "keys" }
 libc = "0.2"
 log = "0.4"
 logs = { path = "logs" }

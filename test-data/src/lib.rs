@@ -1,9 +1,9 @@
 //! Various chain-specific test dummies
 
-extern crate ecvrf;
 extern crate rug;
 extern crate time;
 
+extern crate bitcrypto as crypto;
 extern crate chain;
 extern crate network;
 extern crate primitives;
@@ -11,7 +11,7 @@ extern crate serialization as ser;
 extern crate vdf;
 extern crate verification;
 
-use ecvrf::VrfPk;
+use crypto::ecvrf::PK;
 
 use chain::Block;
 use network::Network::Mainnet;
@@ -37,7 +37,7 @@ pub fn block_h0() -> Block {
         .parent(0.into())
         .bits(Compact::max_value())
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
         .evaluated()
         .build()
@@ -51,7 +51,7 @@ pub fn block_h1() -> Block {
         .parent(block_h0().hash())
         .bits(Compact::max_value())
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
         .evaluated()
         .build()
@@ -65,7 +65,7 @@ pub fn block_h2() -> Block {
         .parent(block_h1().hash())
         .bits(Compact::max_value())
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
         .evaluated()
         .build()
@@ -79,7 +79,7 @@ pub fn block_h3() -> Block {
         .parent(block_h2().hash())
         .bits(Compact::max_value())
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
         .evaluated()
         .build()
@@ -93,7 +93,7 @@ pub fn block_h169() -> Block {
         .parent("6868686868686868686868686868686868686868686868686868686868686868".into())
         .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
         .evaluated()
         .build()
@@ -107,7 +107,7 @@ pub fn block_h170() -> Block {
         .parent(block_h169().hash())
         .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(1)
         .evaluated()
         .build()
@@ -121,7 +121,7 @@ pub fn block_h181() -> Block {
         .parent("8080808080808080808080808080808080808080808080808080808080808080".into())
         .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(4)
         .evaluated()
         .build()
@@ -135,7 +135,7 @@ pub fn block_h182() -> Block {
         .parent(block_h181().hash())
         .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(4)
         .evaluated()
         .build()
@@ -149,7 +149,7 @@ pub fn block_h221() -> Block {
         .parent("2020202020202020202020202020202020202020202020202020202020202020".into())
         .bits(Compact::from_u256(Mainnet.max_bits()))
         .version(1)
-        .pubkey(VrfPk::from_bytes(&[0; 32]).unwrap())
+        .pubkey(PK::from_bytes(&[0; 32]).unwrap())
         .iterations(4)
         .evaluated()
         .build()

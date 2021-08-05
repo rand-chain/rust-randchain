@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use block_assembler::BlockTemplate;
 use chain::BlockHeader;
 use crypto::dhash256;
-use ecvrf::VrfPk;
+use crypto::ecvrf::PK;
 use network::Network;
 use primitives::bytes::Bytes;
 use rug::{integer::Order, Integer};
@@ -12,7 +12,7 @@ use sha2::{Digest, Sha256};
 use verification::is_valid_proof_of_work_hash;
 
 // consistent with verification/src/verify_block.rs
-fn h_g(block: &BlockTemplate, pubkey: &VrfPk) -> Integer {
+fn h_g(block: &BlockTemplate, pubkey: &PK) -> Integer {
     let mut stream = Stream::default();
     stream
         .append(&block.version)
@@ -46,7 +46,7 @@ pub struct Solution {
 
 /// SeqPoW.Init()
 #[allow(dead_code)]
-pub fn init(block: &BlockTemplate, pubkey: &VrfPk) -> Solution {
+pub fn init(block: &BlockTemplate, pubkey: &PK) -> Solution {
     Solution {
         iterations: 0u64,
         element: h_g(block, pubkey),
@@ -55,7 +55,7 @@ pub fn init(block: &BlockTemplate, pubkey: &VrfPk) -> Solution {
 }
 
 /// SeqPoW.Solve()
-pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Solution, bool) {
+pub fn solve(block: &BlockTemplate, pubkey: &PK, solution: &Solution) -> (Solution, bool) {
     let step = Network::Mainnet.step_parameter();
     let mut iterations = solution.iterations;
     iterations += step;
@@ -82,7 +82,7 @@ pub fn solve(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> (Sol
 }
 
 /// SeqPoW.Prove()
-pub fn prove(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> Solution {
+pub fn prove(block: &BlockTemplate, pubkey: &PK, solution: &Solution) -> Solution {
     let g = h_g(block, pubkey);
     Solution {
         iterations: solution.iterations,
@@ -92,7 +92,7 @@ pub fn prove(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> Solu
 }
 
 /// SeqPoW.Verify()
-pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> bool {
+pub fn verify(block: &BlockTemplate, pubkey: &PK, solution: &Solution) -> bool {
     let g = h_g(block, pubkey);
     // if VDF verification fails, then fail
     if !vdf::verify(&g, &solution.element, solution.iterations, &solution.proof) {
@@ -114,7 +114,7 @@ pub fn verify(block: &BlockTemplate, pubkey: &VrfPk, solution: &Solution) -> boo
 }
 
 /// Simple randchain cpu miner.
-pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -> Option<Solution> {
+pub fn find_solution(block: &BlockTemplate, pubkey: &PK, timeout: Duration) -> Option<Solution> {
     let start_time = Instant::now();
     let step = Network::Mainnet.step_parameter();
     let g = h_g(block, pubkey);
@@ -155,7 +155,7 @@ pub fn find_solution(block: &BlockTemplate, pubkey: &VrfPk, timeout: Duration) -
 }
 
 /// Dry run miner
-pub fn find_solution_dry(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Solution> {
+pub fn find_solution_dry(block: &BlockTemplate, pubkey: &PK) -> Option<Solution> {
     let g = h_g(block, pubkey);
     let cur_y = g.clone();
     let iterations = 0u64;
@@ -173,7 +173,7 @@ pub fn find_solution_dry(block: &BlockTemplate, pubkey: &VrfPk) -> Option<Soluti
 mod tests {
     use super::*;
     use block_assembler::BlockTemplate;
-    use ecvrf::VrfPk;
+    use crypto::ecvrf::PK;
     use primitives::bigint::{Uint, U256};
     use std::time::Duration;
 
@@ -187,7 +187,7 @@ mod tests {
         };
 
         // generate or load key
-        let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
+        let pubkey: PK = PK::from_bytes(&[0; 32]).unwrap();
         let solution = find_solution(&block_template, &pubkey, Duration::from_secs(0));
         assert!(solution.is_some());
     }
@@ -202,7 +202,7 @@ mod tests {
         };
 
         // generate or load key
-        let pubkey: VrfPk = VrfPk::from_bytes(&[0; 32]).unwrap();
+        let pubkey: PK = PK::from_bytes(&[0; 32]).unwrap();
         let mut solution = init(&block_template, &pubkey);
         loop {
             let (new_solution, valid) = solve(&block_template, &pubkey, &solution);
