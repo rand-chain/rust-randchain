@@ -117,7 +117,7 @@ impl Network {
                             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
                         )
                         .into(), // 0x7ff / (3*16*2) = 21
-                        pubkey: crypto::PK::from_bytes(&[6; 32]).unwrap(),
+                        pubkey: crypto::ecvrf::PK::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
                         solution: rug::Integer::from(8),
                     },
@@ -134,7 +134,7 @@ impl Network {
                             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
                         )
                         .into(), // 0x7ff / (3*16*2) = 21
-                        pubkey: crypto::PK::from_bytes(&[6; 32]).unwrap(),
+                        pubkey: crypto::ecvrf::PK::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
                         solution: rug::Integer::from(8),
                     },
@@ -151,7 +151,7 @@ impl Network {
                             "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
                         )
                         .into(),
-                        pubkey: crypto::PK::from_bytes(&[6; 32]).unwrap(),
+                        pubkey: crypto::ecvrf::PK::from_bytes(&[6; 32]).unwrap(),
                         iterations: 100000,
                         solution: rug::Integer::from(8),
                     },

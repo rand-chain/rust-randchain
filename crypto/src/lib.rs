@@ -7,9 +7,8 @@ extern crate schnorrkel;
 extern crate sha3;
 extern crate siphasher;
 
-mod ecvrf;
+pub mod ecvrf;
 mod hash;
 
-pub use ecvrf::{keygen, vrf_prove, vrf_verify, VrfProof, PK, SK};
 pub use hash::{checksum, dhash160, dhash256, siphash24, DHash160, DHash256};
 pub use rcrypto::digest::Digest;

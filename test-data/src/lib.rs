@@ -11,7 +11,7 @@ extern crate serialization as ser;
 extern crate vdf;
 extern crate verification;
 
-use crypto::PK;
+use crypto::ecvrf::PK;
 
 use chain::Block;
 use network::Network::Mainnet;

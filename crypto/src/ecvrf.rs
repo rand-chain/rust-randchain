@@ -3,7 +3,6 @@ use curve25519_dalek::constants::RISTRETTO_BASEPOINT_POINT as g;
 use curve25519_dalek::ristretto::{CompressedRistretto, RistrettoPoint};
 use curve25519_dalek::scalar::Scalar;
 use rand_core::OsRng;
-use schnorrkel::keys::{Keypair, PublicKey, SecretKey};
 use sha3::{Digest, Sha3_256 as SHA3, Sha3_512};
 
 fn sha3(b: Vec<u8>) -> [u8; 32] {
@@ -31,7 +30,7 @@ pub struct PK {
 
 #[derive(Debug, PartialEq, Eq)]
 /// The proof part of our VRF generation
-pub struct VrfProof {
+pub struct Proof {
     gamma: RistrettoPoint,
     c: [u8; 32],
     s: Scalar,
@@ -83,7 +82,7 @@ impl Clone for PK {
     }
 }
 
-impl VrfProof {
+impl Proof {
     pub fn to_bytes(&self) -> [u8; 96] {
         let mut ret = [0; 96];
         let gamma = self.gamma.compress().to_bytes();
@@ -96,7 +95,7 @@ impl VrfProof {
         }
         ret
     }
-    pub fn from_bytes(input: &[u8; 96]) -> Result<VrfProof, &str> {
+    pub fn from_bytes(input: &[u8; 96]) -> Result<Proof, &str> {
         let mut gamma: [u8; 32] = [0; 32];
         let mut c: [u8; 32] = [0; 32];
         let mut s: [u8; 32] = [0; 32];
@@ -108,7 +107,7 @@ impl VrfProof {
         if gamma_point.is_none() || s_reduced.is_none() {
             return Err("cannot deserialize vrf proof");
         }
-        return Ok(VrfProof {
+        return Ok(Proof {
             gamma: gamma_point.unwrap(),
             c: c,
             s: s_reduced.unwrap(),
@@ -116,9 +115,9 @@ impl VrfProof {
     }
 }
 
-impl Clone for VrfProof {
+impl Clone for Proof {
     fn clone(&self) -> Self {
-        VrfProof {
+        Proof {
             gamma: self.gamma,
             c: self.c,
             s: self.s,
@@ -137,9 +136,9 @@ pub fn keygen() -> (SK, PK) {
     let pk = PK::new(&sk);
     return (sk, pk);
 }
-/// The output of a VRF function is the VRF hash and the proof to vrf_verify
+/// The output of a VRF function is the VRF hash and the proof to verify
 /// we generated this hash with the supplied key
-pub fn vrf_prove(input: &[u8], sk: &SK) -> ([u8; 32], VrfProof) {
+pub fn prove(input: &[u8], sk: &SK) -> ([u8; 32], Proof) {
     let h = RistrettoPoint::hash_from_bytes::<Sha3_512>(input);
     let gamma = h * sk.s;
     let k: Scalar = Scalar::random(&mut OsRng);
@@ -158,10 +157,10 @@ pub fn vrf_prove(input: &[u8], sk: &SK) -> ([u8; 32], VrfProof) {
     let c_scalar = Scalar::from_bytes_mod_order(c);
     let s = k - c_scalar * sk.s;
     let beta = sha3(serialize_point(gamma).to_vec());
-    (beta, VrfProof { gamma, c, s })
+    (beta, Proof { gamma, c, s })
 }
 
-pub fn vrf_verify(input: &[u8], pk: &PK, output: &[u8; 32], proof: &VrfProof) -> bool {
+pub fn verify(input: &[u8], pk: &PK, output: &[u8; 32], proof: &Proof) -> bool {
     let c_scalar = Scalar::from_bytes_mod_order(proof.c);
     let u = pk.p * c_scalar + g * proof.s;
     let h = RistrettoPoint::hash_from_bytes::<Sha3_512>(input);
@@ -188,24 +187,21 @@ mod tests {
     fn correct_proof() {
         let (sk, pk) = super::keygen();
         let input = vec![0xde, 0xad, 0xbe, 0xef];
-        let (output, proof) = super::vrf_prove(&input, &sk);
+        let (output, proof) = super::prove(&input, &sk);
 
-        assert!(super::vrf_verify(&input, &pk, &output, &proof));
+        assert!(super::verify(&input, &pk, &output, &proof));
     }
     #[test]
     fn serialize() {
         let (sk, pk) = super::keygen();
         let input = vec![0xde, 0xad, 0xbe, 0xef];
-        let (_, proof) = super::vrf_prove(&input, &sk);
+        let (_, proof) = super::prove(&input, &sk);
         let sk_serialized = sk.to_bytes();
         let pk_serialized = pk.to_bytes();
         let proof_serialized = proof.to_bytes();
         assert_eq!(super::SK::from_bytes(&sk_serialized).unwrap(), sk);
         assert_eq!(super::PK::from_bytes(&pk_serialized).unwrap(), pk);
-        assert_eq!(
-            super::VrfProof::from_bytes(&proof_serialized).unwrap(),
-            proof
-        );
+        assert_eq!(super::Proof::from_bytes(&proof_serialized).unwrap(), proof);
     }
 
     #[test]
@@ -214,15 +210,15 @@ mod tests {
         let (forge_sk, forge_pk) = super::keygen();
         let input = vec![0xde, 0xad, 0xbe, 0xef];
         let input_forged = vec![0xde, 0xad, 0xbe, 0xed];
-        let (output, proof) = super::vrf_prove(&input, &sk);
-        let (forge_output, forge_proof) = super::vrf_prove(&input, &forge_sk);
+        let (output, proof) = super::prove(&input, &sk);
+        let (forge_output, forge_proof) = super::prove(&input, &forge_sk);
         let mut output_forged = output.clone();
         output_forged[0] += 0x01;
 
-        assert!(!super::vrf_verify(&input_forged, &pk, &output, &proof));
-        assert!(!super::vrf_verify(&input, &pk, &output_forged, &proof));
-        assert!(!super::vrf_verify(&input, &pk, &forge_output, &proof));
-        assert!(!super::vrf_verify(&input, &pk, &output, &forge_proof));
-        assert!(!super::vrf_verify(&input, &forge_pk, &output, &proof));
+        assert!(!super::verify(&input_forged, &pk, &output, &proof));
+        assert!(!super::verify(&input, &pk, &output_forged, &proof));
+        assert!(!super::verify(&input, &pk, &forge_output, &proof));
+        assert!(!super::verify(&input, &pk, &output, &forge_proof));
+        assert!(!super::verify(&input, &forge_pk, &output, &proof));
     }
 }
