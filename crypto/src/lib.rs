@@ -9,6 +9,6 @@ extern crate siphasher;
 mod ed25519;
 mod hash;
 
-pub use ed25519::{keygen, prove, verify, VrfProof, PK, SK};
+pub use ed25519::{keygen, vrf_prove, vrf_verify, VrfProof, PK, SK};
 pub use hash::{checksum, dhash160, dhash256, siphash24, DHash160, DHash256};
 pub use rcrypto::digest::Digest;

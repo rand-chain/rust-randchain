@@ -136,9 +136,9 @@ pub fn keygen() -> (SK, PK) {
     let pk = PK::new(&sk);
     return (sk, pk);
 }
-/// The output of a VRF function is the VRF hash and the proof to verify
+/// The output of a VRF function is the VRF hash and the proof to vrf_verify
 /// we generated this hash with the supplied key
-pub fn prove(input: &[u8], privkey: &SK) -> ([u8; 32], VrfProof) {
+pub fn vrf_prove(input: &[u8], privkey: &SK) -> ([u8; 32], VrfProof) {
     let h = RistrettoPoint::hash_from_bytes::<Sha3_512>(input);
     let gamma = h * privkey.s;
     let k: Scalar = Scalar::random(&mut OsRng);
@@ -160,7 +160,7 @@ pub fn prove(input: &[u8], privkey: &SK) -> ([u8; 32], VrfProof) {
     (beta, VrfProof { gamma, c, s })
 }
 
-pub fn verify(input: &[u8], pubkey: &PK, output: &[u8; 32], proof: &VrfProof) -> bool {
+pub fn vrf_verify(input: &[u8], pubkey: &PK, output: &[u8; 32], proof: &VrfProof) -> bool {
     let c_scalar = Scalar::from_bytes_mod_order(proof.c);
     let u = pubkey.p * c_scalar + g * proof.s;
     let h = RistrettoPoint::hash_from_bytes::<Sha3_512>(input);
@@ -187,15 +187,15 @@ mod tests {
     fn correct_proof() {
         let (privkey, pubkey) = super::keygen();
         let input = vec![0xde, 0xad, 0xbe, 0xef];
-        let (output, proof) = super::prove(&input, &privkey);
+        let (output, proof) = super::vrf_prove(&input, &privkey);
 
-        assert!(super::verify(&input, &pubkey, &output, &proof));
+        assert!(super::vrf_verify(&input, &pubkey, &output, &proof));
     }
     #[test]
     fn serialize() {
         let (privkey, pubkey) = super::keygen();
         let input = vec![0xde, 0xad, 0xbe, 0xef];
-        let (_, proof) = super::prove(&input, &privkey);
+        let (_, proof) = super::vrf_prove(&input, &privkey);
         let sk_serialized = privkey.to_bytes();
         let pk_serialized = pubkey.to_bytes();
         let proof_serialized = proof.to_bytes();
@@ -213,15 +213,15 @@ mod tests {
         let (forge_privkey, forge_pubkey) = super::keygen();
         let input = vec![0xde, 0xad, 0xbe, 0xef];
         let input_forged = vec![0xde, 0xad, 0xbe, 0xed];
-        let (output, proof) = super::prove(&input, &privkey);
-        let (forge_output, forge_proof) = super::prove(&input, &forge_privkey);
+        let (output, proof) = super::vrf_prove(&input, &privkey);
+        let (forge_output, forge_proof) = super::vrf_prove(&input, &forge_privkey);
         let mut output_forged = output.clone();
         output_forged[0] += 0x01;
 
-        assert!(!super::verify(&input_forged, &pubkey, &output, &proof));
-        assert!(!super::verify(&input, &pubkey, &output_forged, &proof));
-        assert!(!super::verify(&input, &pubkey, &forge_output, &proof));
-        assert!(!super::verify(&input, &pubkey, &output, &forge_proof));
-        assert!(!super::verify(&input, &forge_pubkey, &output, &proof));
+        assert!(!super::vrf_verify(&input_forged, &pubkey, &output, &proof));
+        assert!(!super::vrf_verify(&input, &pubkey, &output_forged, &proof));
+        assert!(!super::vrf_verify(&input, &pubkey, &forge_output, &proof));
+        assert!(!super::vrf_verify(&input, &pubkey, &output, &forge_proof));
+        assert!(!super::vrf_verify(&input, &forge_pubkey, &output, &proof));
     }
 }
