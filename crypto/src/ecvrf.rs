@@ -3,6 +3,7 @@ use curve25519_dalek::constants::RISTRETTO_BASEPOINT_POINT as g;
 use curve25519_dalek::ristretto::{CompressedRistretto, RistrettoPoint};
 use curve25519_dalek::scalar::Scalar;
 use rand_core::OsRng;
+use schnorrkel::keys::{Keypair, PublicKey, SecretKey};
 use sha3::{Digest, Sha3_256 as SHA3, Sha3_512};
 
 fn sha3(b: Vec<u8>) -> [u8; 32] {
