@@ -1,3 +1,5 @@
+use schnorrkel::context::signing_context;
+use schnorrkel::vrf::{VRFPreOut, VRFProof};
 use schnorrkel::{ExpansionMode, Keypair, MiniSecretKey, PublicKey, SecretKey, Signature};
 
 pub type SK = SecretKey;
@@ -42,6 +44,33 @@ pub fn verify(pk: &PK, message: &[u8], signature: &[u8]) -> bool {
         Err(_) => return false,
     };
     pk.verify_simple(context, message, &signature).is_ok()
+}
+
+pub fn vrf_eval(sk: &SK, message: &[u8]) -> (Vec<u8>, Vec<u8>) {
+    let context = b"";
+    let ctx = signing_context(context);
+    let keypair = sk.clone().to_keypair();
+    let (inout, proof_struct, _) = keypair.vrf_sign(ctx.bytes(message));
+    let out = inout.to_preout().to_bytes().to_vec();
+    let proof = proof_struct.to_bytes().to_vec();
+    (out, proof)
+}
+
+pub fn vrf_verify(pk: &PK, message: &[u8], out: &[u8], proof: &[u8]) -> bool {
+    let context = b"";
+    let ctx = signing_context(context);
+    let proof_struct = match VRFProof::from_bytes(proof) {
+        Ok(proof_struct) => proof_struct,
+        Err(_) => return false,
+    };
+    let out_struct = match VRFPreOut::from_bytes(out) {
+        Ok(out_struct) => out_struct,
+        Err(_) => return false,
+    };
+    match pk.vrf_verify(ctx.bytes(message), &out_struct, &proof_struct) {
+        Ok(_) => return true,
+        Err(_) => return false,
+    }
 }
 
 #[cfg(test)]
@@ -90,5 +119,15 @@ pub mod tests {
         let signature = sign(&sk, message);
 
         assert!(verify(&pk, message, &signature[..]));
+    }
+
+    #[test]
+    fn can_vrf_verify() {
+        let seed = generate_random_seed();
+        let (sk, pk) = create_keypair(seed.as_slice());
+        let message = b"this is a message";
+        let (vrf_out, vrf_proof) = vrf_eval(&sk, message);
+
+        assert!(vrf_verify(&pk, message, &vrf_out, &vrf_proof));
     }
 }
