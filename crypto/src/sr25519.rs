@@ -35,13 +35,12 @@ pub fn create_keypair(seed: &[u8]) -> (SecretKey, PublicKey) {
 
 /// Sign a message
 ///
-/// The combination of both public and private key must be provided.
-/// This is effectively equivalent to a keypair.
+/// In:
+/// - sk: SecretKey
+/// - message: Arbitrary length UIntArray
 ///
-/// * sk: SecretKey
-/// * message: Arbitrary length UIntArray
-///
-/// * returned vector is the signature consisting of 64 bytes.
+/// Out:
+/// - signature consisting of 64 bytes.
 pub fn sign(sk: &SecretKey, message: &[u8]) -> Vec<u8> {
     let context = b"";
     let pk = sk.to_public();
@@ -50,9 +49,13 @@ pub fn sign(sk: &SecretKey, message: &[u8]) -> Vec<u8> {
 
 /// Verify a message and its corresponding against a public key;
 ///
-/// * signature: UIntArray with 64 element
-/// * message: Arbitrary length UIntArray
-/// * pk: UIntArray with 32 element
+/// In:
+/// - pk: UIntArray with 32 element
+/// - message: Arbitrary length UIntArray
+/// - signature: UIntArray with 64 element
+///
+/// Out:
+/// - verification result in boolean
 pub fn verify(pk: &PublicKey, message: &[u8], signature: &[u8]) -> bool {
     let context = b"";
     let signature = match Signature::from_bytes(signature) {
@@ -83,7 +86,7 @@ pub mod tests {
     }
 
     #[test]
-    fn creates_pair_from_known() {
+    fn can_create_correct_keypair() {
         let seed = hex!("fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e");
         let expected = hex!("46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a");
         let (sk, pk) = create_keypair(&seed);
