@@ -7,6 +7,9 @@ extern crate schnorrkel;
 extern crate sha3;
 extern crate siphasher;
 
+#[macro_use]
+extern crate hex_literal;
+
 pub mod ecvrf;
 mod hash;
 pub mod sr25519;

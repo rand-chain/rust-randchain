@@ -1,21 +1,18 @@
-use schnorrkel::{
-    derive::{ChainCode, Derivation, CHAIN_CODE_LENGTH},
-    ExpansionMode, Keypair, MiniSecretKey, PublicKey, SecretKey, Signature,
-};
+use schnorrkel::{ExpansionMode, Keypair, MiniSecretKey, PublicKey, SecretKey, Signature};
 
-/// ChainCode construction helper
-fn create_cc(data: &[u8]) -> ChainCode {
-    let mut cc = [0u8; CHAIN_CODE_LENGTH];
-
-    cc.copy_from_slice(&data);
-
-    ChainCode(cc)
-}
-
-/// Keypair helper function.
-fn create_from_seed(seed: &[u8]) -> Keypair {
+/// Generate a key pair.
+///
+/// * seed: UIntArray with 32 element
+///
+/// returned vector is the concatenation of
+/// 1. the secret key (64 bytes)
+/// 2. the public key (32 bytes)
+pub fn keypair_from_seed(seed: &[u8]) -> Vec<u8> {
     match MiniSecretKey::from_bytes(seed) {
-        Ok(mini) => return mini.expand_to_keypair(ExpansionMode::Ed25519),
+        Ok(mini) => {
+            let keypair = mini.expand_to_keypair(ExpansionMode::Ed25519);
+            return keypair.to_bytes().to_vec();
+        }
         Err(_) => panic!("Provided seed is invalid."),
     }
 }
@@ -28,14 +25,6 @@ fn create_from_pair(pair: &[u8]) -> Keypair {
     }
 }
 
-/// PublicKey helper
-fn create_public(public_key: &[u8]) -> PublicKey {
-    match PublicKey::from_bytes(public_key) {
-        Ok(public) => return public,
-        Err(_) => panic!("Provided public key is invalid."),
-    }
-}
-
 /// SecretKey helper
 fn create_secret(secret_key: &[u8]) -> SecretKey {
     match SecretKey::from_bytes(secret_key) {
@@ -44,58 +33,12 @@ fn create_secret(secret_key: &[u8]) -> SecretKey {
     }
 }
 
-/// Perform a derivation on a secret
-///
-/// * secret: UIntArray with 64 bytes
-/// * cc: UIntArray with 32 bytes
-///
-/// returned vector the derived keypair as a array of 96 bytes
-pub fn derive_keypair_hard(pair: &[u8], cc: &[u8]) -> Vec<u8> {
-    create_from_pair(pair)
-        .secret
-        .hard_derive_mini_secret_key(Some(create_cc(cc)), &[])
-        .0
-        .expand_to_keypair(ExpansionMode::Ed25519)
-        .to_bytes()
-        .to_vec()
-}
-
-/// Perform a derivation on a secret
-///
-/// * secret: UIntArray with 64 bytes
-/// * cc: UIntArray with 32 bytes
-///
-/// returned vector the derived keypair as a array of 96 bytes
-pub fn derive_keypair_soft(pair: &[u8], cc: &[u8]) -> Vec<u8> {
-    create_from_pair(pair)
-        .derived_key_simple(create_cc(cc), &[])
-        .0
-        .to_bytes()
-        .to_vec()
-}
-
-/// Perform a derivation on a publicKey
-///
-/// * pubkey: UIntArray with 32 bytes
-/// * cc: UIntArray with 32 bytes
-///
-/// returned vector is the derived publicKey as a array of 32 bytes
-pub fn derive_public_soft(public_key: &[u8], cc: &[u8]) -> Vec<u8> {
-    create_public(public_key)
-        .derived_key_simple(create_cc(cc), &[])
-        .0
-        .to_bytes()
-        .to_vec()
-}
-
-/// Generate a key pair.
-///
-/// * seed: UIntArray with 32 element
-///
-/// returned vector is the concatenation of first the private key (64 bytes)
-/// followed by the public key (32) bytes.
-pub fn keypair_from_seed(seed: &[u8]) -> Vec<u8> {
-    create_from_seed(seed).to_bytes().to_vec()
+/// PublicKey helper
+fn create_public(public_key: &[u8]) -> PublicKey {
+    match PublicKey::from_bytes(public_key) {
+        Ok(public) => return public,
+        Err(_) => panic!("Provided public key is invalid."),
+    }
 }
 
 /// Sign a message
@@ -135,9 +78,6 @@ pub fn verify(signature: &[u8], message: &[u8], public_key: &[u8]) -> bool {
 
 #[cfg(test)]
 pub mod tests {
-    extern crate rand;
-    extern crate schnorrkel;
-
     use super::*;
     use hex_literal::hex;
     use schnorrkel::{KEYPAIR_LENGTH, SECRET_KEY_LENGTH, SIGNATURE_LENGTH};
@@ -186,38 +126,5 @@ pub mod tests {
         let signature = sign(public, private, message);
 
         assert!(verify(&signature[..], message, public));
-    }
-
-    #[test]
-    fn soft_derives_pair() {
-        let cc = hex!("0c666f6f00000000000000000000000000000000000000000000000000000000"); // foo
-        let seed = hex!("fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e");
-        let expected = hex!("40b9675df90efa6069ff623b0fdfcf706cd47ca7452a5056c7ad58194d23440a");
-        let keypair = keypair_from_seed(&seed);
-        let derived = derive_keypair_soft(&keypair, &cc);
-        let public = &derived[SECRET_KEY_LENGTH..KEYPAIR_LENGTH];
-
-        assert_eq!(public, expected);
-    }
-
-    #[test]
-    fn soft_derives_public() {
-        let cc = hex!("0c666f6f00000000000000000000000000000000000000000000000000000000"); // foo
-        let public = hex!("46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a");
-        let expected = hex!("40b9675df90efa6069ff623b0fdfcf706cd47ca7452a5056c7ad58194d23440a");
-
-        assert_eq!(derive_public_soft(&public, &cc), expected);
-    }
-
-    #[test]
-    fn hard_derives_pair() {
-        let cc = hex!("14416c6963650000000000000000000000000000000000000000000000000000"); // Alice
-        let seed = hex!("fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e");
-        let expected = hex!("d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d");
-        let keypair = keypair_from_seed(&seed);
-        let derived = derive_keypair_hard(&keypair, &cc);
-        let public = &derived[SECRET_KEY_LENGTH..KEYPAIR_LENGTH];
-
-        assert_eq!(public, expected);
     }
 }
