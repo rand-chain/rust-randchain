@@ -1,29 +1,25 @@
 use schnorrkel::{ExpansionMode, Keypair, MiniSecretKey, PublicKey, SecretKey, Signature};
 
+pub type SK = SecretKey;
+pub type PK = PublicKey;
+
 /// SecretKey helper
-fn create_sk(sk_bytes: &[u8]) -> SecretKey {
-    match SecretKey::from_bytes(sk_bytes) {
+fn create_sk(sk_bytes: &[u8]) -> SK {
+    match SK::from_bytes(sk_bytes) {
         Ok(sk) => return sk,
         Err(_) => panic!("Provided private key is invalid."),
     }
 }
 
 /// PublicKey helper
-fn create_pk(pk_bytes: &[u8]) -> PublicKey {
-    match PublicKey::from_bytes(pk_bytes) {
+fn create_pk(pk_bytes: &[u8]) -> PK {
+    match PK::from_bytes(pk_bytes) {
         Ok(pk) => return pk,
         Err(_) => panic!("Provided public key is invalid."),
     }
 }
 
-/// Generate a key pair.
-/// In:
-/// - seed: UIntArray with 32 element
-///
-/// Out:
-/// - sk: SecretKey
-/// - pk: PublicKey
-pub fn create_keypair(seed: &[u8]) -> (SecretKey, PublicKey) {
+pub fn create_keypair(seed: &[u8]) -> (SK, PK) {
     match MiniSecretKey::from_bytes(seed) {
         Ok(mini) => {
             let keypair = mini.expand_to_keypair(ExpansionMode::Ed25519);
@@ -33,36 +29,18 @@ pub fn create_keypair(seed: &[u8]) -> (SecretKey, PublicKey) {
     }
 }
 
-/// Sign a message
-///
-/// In:
-/// - sk: SecretKey
-/// - message: Arbitrary length UIntArray
-///
-/// Out:
-/// - signature consisting of 64 bytes.
-pub fn sign(sk: &SecretKey, message: &[u8]) -> Vec<u8> {
+pub fn sign(sk: &SK, message: &[u8]) -> Vec<u8> {
     let context = b"";
     let pk = sk.to_public();
     sk.sign_simple(context, message, &pk).to_bytes().to_vec()
 }
 
-/// Verify a message and its corresponding against a public key;
-///
-/// In:
-/// - pk: UIntArray with 32 element
-/// - message: Arbitrary length UIntArray
-/// - signature: UIntArray with 64 element
-///
-/// Out:
-/// - verification result in boolean
-pub fn verify(pk: &PublicKey, message: &[u8], signature: &[u8]) -> bool {
+pub fn verify(pk: &PK, message: &[u8], signature: &[u8]) -> bool {
     let context = b"";
     let signature = match Signature::from_bytes(signature) {
         Ok(signature) => signature,
         Err(_) => return false,
     };
-
     pk.verify_simple(context, message, &signature).is_ok()
 }
 
