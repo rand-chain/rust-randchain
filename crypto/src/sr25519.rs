@@ -108,7 +108,8 @@ pub fn keypair_from_seed(seed: &[u8]) -> Vec<u8> {
 /// * message: Arbitrary length UIntArray
 ///
 /// * returned vector is the signature consisting of 64 bytes.
-pub fn sign(context: &[u8], public_key: &[u8], secret_key: &[u8], message: &[u8]) -> Vec<u8> {
+pub fn sign(public_key: &[u8], secret_key: &[u8], message: &[u8]) -> Vec<u8> {
+    let context = b"";
     create_secret(secret_key)
         .sign_simple(context, message, &create_public(public_key))
         .to_bytes()
@@ -120,7 +121,8 @@ pub fn sign(context: &[u8], public_key: &[u8], secret_key: &[u8], message: &[u8]
 /// * signature: UIntArray with 64 element
 /// * message: Arbitrary length UIntArray
 /// * pubkey: UIntArray with 32 element
-pub fn verify(context: &[u8], signature: &[u8], message: &[u8], public_key: &[u8]) -> bool {
+pub fn verify(signature: &[u8], message: &[u8], public_key: &[u8]) -> bool {
+    let context = b"";
     let signature = match Signature::from_bytes(signature) {
         Ok(signature) => signature,
         Err(_) => return false,
@@ -169,7 +171,7 @@ pub mod tests {
         let private = &keypair[0..SECRET_KEY_LENGTH];
         let public = &keypair[SECRET_KEY_LENGTH..KEYPAIR_LENGTH];
         let message = b"this is a message";
-        let signature = sign(b"", public, private, message);
+        let signature = sign(public, private, message);
 
         assert!(signature.len() == SIGNATURE_LENGTH);
     }
@@ -181,9 +183,9 @@ pub mod tests {
         let private = &keypair[0..SECRET_KEY_LENGTH];
         let public = &keypair[SECRET_KEY_LENGTH..KEYPAIR_LENGTH];
         let message = b"this is a message";
-        let signature = sign(b"", public, private, message);
+        let signature = sign(public, private, message);
 
-        assert!(verify(b"", &signature[..], message, public));
+        assert!(verify(&signature[..], message, public));
     }
 
     #[test]
