@@ -5,7 +5,6 @@ cargo doc --no-deps\
 	-p chain\
 	-p db\
 	-p import\
-	-p keys\
 	-p message\
 	-p miner\
 	-p network\
