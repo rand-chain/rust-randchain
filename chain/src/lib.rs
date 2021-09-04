@@ -17,8 +17,6 @@ mod indexed_header;
 /// `IndexedBlock` extension
 mod read_and_hash;
 
-use crypto::ecvrf::PK;
-
 pub use primitives::{bigint, bytes, compact, hash};
 
 pub use block::Block;

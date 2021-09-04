@@ -10,9 +10,9 @@ extern crate siphasher;
 #[macro_use]
 extern crate hex_literal;
 
-pub mod ecvrf;
 mod hash;
-pub mod sr25519;
+mod sr25519;
 
 pub use hash::{checksum, dhash160, dhash256, siphash24, DHash160, DHash256};
 pub use rcrypto::digest::Digest;
+pub use sr25519::{create_keypair, sign, verify, vrf_eval, vrf_verify, PK, SK};
