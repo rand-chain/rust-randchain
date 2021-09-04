@@ -45,9 +45,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "app_dirs"
-version = "1.2.1"
-source = "git+https://github.com/paritytech/app-dirs-rs#0b37f9481ce29e9d5174ad185bca695b206368eb"
+name = "ansi_term"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee49baf6cb617b853aa8d93bf420db2383fab46d314482ca2803b40d5fde979b"
 dependencies = [
  "ole32-sys",
  "shell32-sys",
