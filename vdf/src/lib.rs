@@ -4,9 +4,8 @@ extern crate serialization_derive;
 extern crate lazy_static;
 
 mod config;
-mod util;
 mod vdf;
 
-pub use crate::config::MODULUS;
-pub use crate::vdf::Proof;
-pub use crate::vdf::{eval, prove, verify};
+pub use config::MODULUS;
+pub use vdf::Proof;
+pub use vdf::{eval, prove, verify};

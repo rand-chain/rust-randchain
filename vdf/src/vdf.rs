@@ -1,8 +1,31 @@
-use rug::Integer;
+use super::config::MODULUS;
+use rug::{integer::Order, Integer};
+use sha2::{Digest, Sha256};
 use std::vec::Vec;
 
-use super::config::MODULUS;
-use super::util;
+/// Fiat–Shamir heuristic non-iterative signature
+pub fn hash_fs(inputs: &[&Integer]) -> Integer {
+    let mut hasher = Sha256::new();
+    for input in inputs {
+        hasher.update(input.to_digits::<u8>(Order::Lsf));
+        hasher.update("\n".as_bytes());
+    }
+    let seed = hasher.finalize();
+    let prefix = "fs_part_".as_bytes();
+    // concat 8 sha256 to a 2048-bit hash
+    let all_2048: Vec<u8> = (0..((2048 / 256) as u8))
+        .map(|index| {
+            let mut hasher = Sha256::new();
+            hasher.update(prefix);
+            hasher.update(vec![index]);
+            hasher.update(seed.clone());
+            hasher.finalize()
+        })
+        .flatten()
+        .collect();
+    let result = Integer::from_digits(&all_2048, Order::Lsf);
+    result.div_rem_floor(MODULUS.clone()).1
+}
 
 pub type Proof = Vec<Integer>;
 
@@ -26,7 +49,7 @@ pub fn prove(g: &Integer, y: &Integer, iterations: u64) -> Proof {
         let two_exp = Integer::from(1) << (t / 2) as u32; // 2^(t/2)
         let mu_i = x_i.clone().pow_mod(&two_exp, &MODULUS).unwrap();
 
-        let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
+        let r_i = hash_fs(&[&x_i, &y_i, &mu_i]);
 
         let xi_ri = x_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
         x_i = (xi_ri * mu_i.clone()).div_rem_floor(MODULUS.clone()).1;
@@ -51,7 +74,7 @@ pub fn verify(g: &Integer, y: &Integer, iterations: u64, proof: &Proof) -> bool 
     let mut t = iterations;
     let two = Integer::from(2);
     for mu_i in proof {
-        let r_i = util::hash_fs(&[&x_i, &y_i, &mu_i]);
+        let r_i = hash_fs(&[&x_i, &y_i, &mu_i]);
 
         let xi_ri = x_i.clone().pow_mod(&r_i, &MODULUS).unwrap();
         x_i = (xi_ri * mu_i.clone()).div_rem_floor(MODULUS.clone()).1;
