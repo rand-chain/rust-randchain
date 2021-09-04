@@ -137,11 +137,14 @@ version = "0.1.0"
 dependencies = [
  "curve25519-dalek",
  "hex-literal",
+ "lazy_static",
  "primitives",
  "rand 0.7.3",
  "rand_core 0.5.1",
+ "rug",
  "rust-crypto",
  "schnorrkel",
+ "sha2",
  "sha3",
  "siphasher",
 ]
