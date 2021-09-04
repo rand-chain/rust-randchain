@@ -1,3 +1,4 @@
+use crypto::vdf;
 use hex::FromHex;
 use ser::deserialize;
 use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};

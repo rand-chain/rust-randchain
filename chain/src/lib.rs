@@ -1,12 +1,10 @@
-extern crate bitcrypto as crypto;
-extern crate ecvrf;
+extern crate crypto;
 extern crate heapsize;
 extern crate primitives;
 extern crate rayon;
 extern crate rug;
 extern crate rustc_hex as hex;
 extern crate serialization as ser;
-extern crate vdf;
 #[macro_use]
 extern crate serialization_derive;
 
@@ -17,8 +15,6 @@ mod indexed_block;
 mod indexed_header;
 /// `IndexedBlock` extension
 mod read_and_hash;
-
-use ecvrf::VrfPk;
 
 pub use primitives::{bigint, bytes, compact, hash};
 

@@ -5,10 +5,9 @@ authors = [ "Ethcore <admin@ethcore.io>" ]
 
 [dependencies]
 bigint = "1.0"
-bitcrypto = { path = "../crypto" }
+crypto = { path = "../crypto" }
 chain = { path = "../chain" }
 db = { path = "../db" }
-ecvrf = "0.4.2"
 heapsize = "0.4"
 network = { path = "../network" }
 primitives = { path = "../primitives" }
@@ -17,7 +16,6 @@ rug = "1.3.0"
 serialization = { path = "../serialization" }
 sha2 = "0.9.1"
 storage = { path = "../storage" }
-vdf = { path = "../vdf" }
 verification = { path = "../verification" }
 
 [dev-dependencies]

@@ -14,11 +14,10 @@ cd primitives
 
 # now let's run clippy
 # clippy does not support multiple packages, so let's run them one after another
-cargo clippy -p bitcrypto
+cargo clippy -p crypto
 cargo clippy -p chain
 cargo clippy -p db
 cargo clippy -p import
-cargo clippy -p keys
 cargo clippy -p message
 cargo clippy -p miner
 cargo clippy -p network
