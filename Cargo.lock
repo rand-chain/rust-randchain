@@ -2204,8 +2204,6 @@ dependencies = [
  "elapsed",
  "lazy_static",
  "rug",
- "serialization",
- "serialization_derive",
  "sha2",
 ]
 
