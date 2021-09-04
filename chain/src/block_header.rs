@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use compact::Compact;
 use crypto::dhash256;
-use crypto::PK;
+use crypto::sr25519::PK;
 use hash::H256;
 use hex::FromHex;
 use rug::Integer;

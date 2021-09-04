@@ -5,7 +5,6 @@ extern crate rayon;
 extern crate rug;
 extern crate rustc_hex as hex;
 extern crate serialization as ser;
-extern crate vdf;
 #[macro_use]
 extern crate serialization_derive;
 

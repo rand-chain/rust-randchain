@@ -8,11 +8,10 @@ extern crate chain;
 extern crate network;
 extern crate primitives;
 extern crate serialization as ser;
-extern crate vdf;
 extern crate verification;
 
 use chain::Block;
-use crypto::PK;
+use crypto::sr25519::PK;
 use network::Network::Mainnet;
 use primitives::compact::Compact;
 

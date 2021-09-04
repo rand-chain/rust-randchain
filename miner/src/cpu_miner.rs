@@ -2,7 +2,8 @@ use std::time::{Duration, Instant};
 
 use block_assembler::BlockTemplate;
 use chain::BlockHeader;
-use crypto::{dhash256, PK};
+use crypto::sr25519::PK;
+use crypto::{dhash256, vdf};
 use network::Network;
 use primitives::bytes::Bytes;
 use rug::{integer::Order, Integer};
@@ -172,7 +173,7 @@ pub fn find_solution_dry(block: &BlockTemplate, pubkey: &PK) -> Option<Solution>
 mod tests {
     use super::*;
     use block_assembler::BlockTemplate;
-    use crypto::PK;
+    use crypto::sr25519::PK;
     use primitives::bigint::{Uint, U256};
     use std::time::Duration;
 

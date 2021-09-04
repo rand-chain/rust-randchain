@@ -137,11 +137,14 @@ version = "0.1.0"
 dependencies = [
  "curve25519-dalek",
  "hex-literal",
+ "lazy_static",
  "primitives",
  "rand 0.7.3",
  "rand_core 0.5.1",
+ "rug",
  "rust-crypto",
  "schnorrkel",
+ "sha2",
  "sha3",
  "siphasher",
 ]
@@ -226,7 +229,6 @@ dependencies = [
  "rustc-hex",
  "serialization",
  "serialization_derive",
- "vdf",
 ]
 
 [[package]]
@@ -467,12 +469,6 @@ name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
-
-[[package]]
-name = "elapsed"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f4e5af126dafd0741c2ad62d47f68b28602550102e5f0dd45c8a97fc8b49c29"
 
 [[package]]
 name = "elastic-array"
@@ -961,7 +957,6 @@ dependencies = [
  "sha2",
  "storage",
  "test-data",
- "vdf",
  "verification",
 ]
 
@@ -1371,7 +1366,6 @@ dependencies = [
  "storage",
  "sync",
  "test-data",
- "vdf",
  "verification",
 ]
 
@@ -1885,7 +1879,6 @@ dependencies = [
  "rug",
  "serialization",
  "time",
- "vdf",
  "verification",
 ]
 
@@ -2198,18 +2191,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4ae116fef2b7fea257ed6440d3cfcff7f190865f170cdad00bb6465bf18ecba"
 
 [[package]]
-name = "vdf"
-version = "0.1.0"
-dependencies = [
- "elapsed",
- "lazy_static",
- "rug",
- "serialization",
- "serialization_derive",
- "sha2",
-]
-
-[[package]]
 name = "vec_map"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2235,7 +2216,6 @@ dependencies = [
  "storage",
  "test-data",
  "time",
- "vdf",
 ]
 
 [[package]]

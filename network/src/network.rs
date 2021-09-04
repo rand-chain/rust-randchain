@@ -2,7 +2,7 @@
 
 use chain::{Block, BlockHeader, IndexedBlock};
 use compact::Compact;
-use crypto::PK;
+use crypto::sr25519::PK;
 use primitives::bigint::U256;
 use primitives::hash::H256;
 

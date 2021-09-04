@@ -10,7 +10,6 @@ extern crate network;
 extern crate primitives;
 extern crate serialization as ser;
 extern crate storage;
-extern crate vdf;
 extern crate verification;
 
 mod block_assembler;

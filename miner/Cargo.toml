@@ -16,7 +16,6 @@ rug = "1.3.0"
 serialization = { path = "../serialization" }
 sha2 = "0.9.1"
 storage = { path = "../storage" }
-vdf = { path = "../vdf" }
 verification = { path = "../verification" }
 
 [dev-dependencies]
