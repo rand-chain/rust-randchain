@@ -11,15 +11,14 @@ extern crate serialization as ser;
 extern crate vdf;
 extern crate verification;
 
-use crypto::ecvrf::PK;
-
 use chain::Block;
+use crypto::PK;
 use network::Network::Mainnet;
 use primitives::compact::Compact;
 
-pub mod block;
-pub mod chain_builder;
-pub mod invoke;
+mod block;
+mod chain_builder;
+mod invoke;
 
 pub use block::{
     block_builder, block_hash_builder, build_n_empty_blocks, build_n_empty_blocks_from,

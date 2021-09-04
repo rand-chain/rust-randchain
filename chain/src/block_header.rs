@@ -1,6 +1,7 @@
 use bytes::Bytes;
 use compact::Compact;
 use crypto::dhash256;
+use crypto::PK;
 use hash::H256;
 use hex::FromHex;
 use rug::Integer;
@@ -8,7 +9,6 @@ use ser::{deserialize, serialize};
 use ser::{Deserializable, Error as ReaderError, Reader, Serializable, Stream};
 use std::fmt;
 use std::io;
-use PK;
 
 #[derive(PartialEq, Clone)]
 pub struct BlockHeader {
