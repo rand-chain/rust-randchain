@@ -12,7 +12,7 @@ extern crate abstract_ns;
 extern crate csv;
 extern crate ns_dns_tokio;
 
-extern crate bitcrypto as crypto;
+extern crate crypto;
 extern crate message;
 extern crate network;
 extern crate primitives;

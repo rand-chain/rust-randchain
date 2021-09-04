@@ -3,8 +3,8 @@
 extern crate rug;
 extern crate time;
 
-extern crate bitcrypto as crypto;
 extern crate chain;
+extern crate crypto;
 extern crate network;
 extern crate primitives;
 extern crate serialization as ser;

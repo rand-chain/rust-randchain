@@ -5,7 +5,7 @@ authors = [ "Ethcore <admin@ethcore.io>" ]
 
 [dependencies]
 bigint = "1.0"
-bitcrypto = { path = "../crypto" }
+crypto = { path = "../crypto" }
 chain = { path = "../chain" }
 db = { path = "../db" }
 heapsize = "0.4"

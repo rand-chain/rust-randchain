@@ -5,7 +5,7 @@ extern crate rustc_hex as hex;
 #[macro_use]
 extern crate lazy_static;
 extern crate base58;
-extern crate bitcrypto as crypto;
+extern crate crypto;
 extern crate primitives;
 extern crate secp256k1;
 

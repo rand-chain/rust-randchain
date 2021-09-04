@@ -3,8 +3,8 @@ extern crate heapsize;
 extern crate rug;
 extern crate sha2;
 
-extern crate bitcrypto as crypto;
 extern crate chain;
+extern crate crypto;
 extern crate db;
 extern crate network;
 extern crate primitives;

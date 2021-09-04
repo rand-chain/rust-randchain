@@ -8,4 +8,4 @@ chain = { path = "../chain" }
 lazy_static = "1.4.0"
 primitives = { path = "../primitives" }
 rug = "1.3.0"
-bitcrypto = { path = "../crypto" }
+crypto = { path = "../crypto" }

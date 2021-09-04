@@ -2,8 +2,8 @@
 extern crate lazy_static;
 extern crate rug;
 
-extern crate bitcrypto as crypto;
 extern crate chain;
+extern crate crypto;
 extern crate primitives;
 
 mod network;
