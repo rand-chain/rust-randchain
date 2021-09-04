@@ -1,4 +1,4 @@
-extern crate bitcrypto as crypto;
+extern crate crypto;
 extern crate heapsize;
 extern crate primitives;
 extern crate rayon;

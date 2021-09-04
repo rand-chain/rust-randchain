@@ -11,4 +11,4 @@ network = { path = "../network" }
 primitives = { path = "../primitives" }
 serialization = { path = "../serialization" }
 verification = { path = "../verification" }
-bitcrypto = { path = "../crypto" }
+crypto = { path = "../crypto" }

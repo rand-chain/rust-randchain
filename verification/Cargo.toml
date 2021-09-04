@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = [ "Nikolay Volf <nikvolf@gmail.com>" ]
 
 [dependencies]
-bitcrypto = { path = "../crypto" }
+crypto = { path = "../crypto" }
 chain = { path = "../chain" }
 lazy_static = "1.0"
 log = "0.4"

@@ -1,6 +1,6 @@
-extern crate bitcrypto;
 extern crate byteorder;
 extern crate chain;
+extern crate crypto;
 extern crate db;
 extern crate storage;
 #[macro_use]

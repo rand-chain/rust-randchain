@@ -5,7 +5,7 @@ authors = [ "debris <marek.kotewicz@gmail.com>" ]
 
 [dependencies]
 abstract-ns = "0.3"
-bitcrypto = { path = "../crypto" }
+crypto = { path = "../crypto" }
 csv = "1"
 futures = "0.1"
 futures-cpupool = "0.1"

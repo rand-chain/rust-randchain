@@ -132,24 +132,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02b4ff8b16e6076c3e14220b39fbc1fabb6737522281a388998046859400895f"
 
 [[package]]
-name = "bitcrypto"
-version = "0.1.0"
-dependencies = [
- "curve25519-dalek",
- "hex-literal",
- "lazy_static",
- "primitives",
- "rand 0.7.3",
- "rand_core 0.5.1",
- "rug",
- "rust-crypto",
- "schnorrkel",
- "sha2",
- "sha3",
- "siphasher",
-]
-
-[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -221,7 +203,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "chain"
 version = "0.1.0"
 dependencies = [
- "bitcrypto",
+ "crypto",
  "heapsize 0.4.2",
  "primitives",
  "rayon",
@@ -364,6 +346,24 @@ checksum = "d82cfc11ce7f2c3faef78d8a684447b40d503d9681acebed6cb728d45940c4db"
 dependencies = [
  "cfg-if 1.0.0",
  "lazy_static",
+]
+
+[[package]]
+name = "crypto"
+version = "0.1.0"
+dependencies = [
+ "curve25519-dalek",
+ "hex-literal",
+ "lazy_static",
+ "primitives",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
+ "rug",
+ "rust-crypto",
+ "schnorrkel",
+ "sha2",
+ "sha3",
+ "siphasher",
 ]
 
 [[package]]
@@ -775,7 +775,7 @@ name = "keys"
 version = "0.1.0"
 dependencies = [
  "base58",
- "bitcrypto",
+ "crypto",
  "lazy_static",
  "parity-secp256k1",
  "primitives",
@@ -925,9 +925,9 @@ dependencies = [
 name = "message"
 version = "0.1.0"
 dependencies = [
- "bitcrypto",
  "byteorder",
  "chain",
+ "crypto",
  "network",
  "primitives",
  "serialization",
@@ -945,8 +945,8 @@ name = "miner"
 version = "0.1.0"
 dependencies = [
  "bigint",
- "bitcrypto",
  "chain",
+ "crypto",
  "db",
  "heapsize 0.4.2",
  "network",
@@ -1026,8 +1026,8 @@ dependencies = [
 name = "network"
 version = "0.1.0"
 dependencies = [
- "bitcrypto",
  "chain",
+ "crypto",
  "lazy_static",
  "primitives",
  "rug",
@@ -1085,7 +1085,7 @@ name = "p2p"
 version = "0.1.0"
 dependencies = [
  "abstract-ns",
- "bitcrypto",
+ "crypto",
  "csv",
  "futures",
  "futures-cpupool",
@@ -1346,9 +1346,9 @@ name = "randchain"
 version = "0.1.0"
 dependencies = [
  "app_dirs",
- "bitcrypto",
  "chain",
  "clap",
+ "crypto",
  "db",
  "env_logger",
  "keys",
@@ -1790,9 +1790,9 @@ name = "sync"
 version = "0.1.0"
 dependencies = [
  "bit-vec",
- "bitcrypto",
  "byteorder",
  "chain",
+ "crypto",
  "db",
  "futures",
  "linked-hash-map 0.3.0",
@@ -1872,8 +1872,8 @@ dependencies = [
 name = "test-data"
 version = "0.1.0"
 dependencies = [
- "bitcrypto",
  "chain",
+ "crypto",
  "network",
  "primitives",
  "rug",
@@ -2201,8 +2201,8 @@ name = "verification"
 version = "0.1.0"
 dependencies = [
  "assert_matches",
- "bitcrypto",
  "chain",
+ "crypto",
  "db",
  "lazy_static",
  "log 0.4.14",

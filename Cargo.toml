@@ -7,7 +7,7 @@ description = "RandChain: Decentralised Randomness Beacon from Sequential Proof-
 
 [dependencies]
 app_dirs = { git = "https://github.com/paritytech/app-dirs-rs" }
-bitcrypto = { path = "crypto" }
+crypto = { path = "crypto" }
 chain = { path = "chain" }
 clap = { version = "2", features = [ "yaml" ] }
 db = { path = "db" }
