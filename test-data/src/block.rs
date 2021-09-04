@@ -2,6 +2,7 @@
 
 use super::genesis;
 use chain;
+use crypto::vdf;
 use invoke::{Identity, Invoke};
 use primitives::compact::Compact;
 use primitives::hash::H256;

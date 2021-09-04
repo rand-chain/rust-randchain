@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use block_assembler::BlockTemplate;
 use chain::BlockHeader;
+use crypto::vdf;
 use crypto::{dhash256, PK};
 use network::Network;
 use primitives::bytes::Bytes;

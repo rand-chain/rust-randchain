@@ -10,6 +10,5 @@ chain = { path = "../chain" , features = ["test-helpers"] }
 network = { path = "../network" }
 primitives = { path = "../primitives" }
 serialization = { path = "../serialization" }
-vdf = { path = "../vdf" }
 verification = { path = "../verification" }
 bitcrypto = { path = "../crypto" }

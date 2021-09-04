@@ -1,4 +1,5 @@
 use block::Block;
+use crypto::vdf;
 use hash::H256;
 use hex::FromHex;
 use indexed_header::IndexedBlockHeader;

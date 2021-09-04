@@ -8,7 +8,6 @@ extern crate chain;
 extern crate network;
 extern crate primitives;
 extern crate serialization as ser;
-extern crate vdf;
 extern crate verification;
 
 use chain::Block;
