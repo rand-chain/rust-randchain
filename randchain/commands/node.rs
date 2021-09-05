@@ -1,4 +1,3 @@
-use super::super::rpc;
 use super::super::utils;
 use clap::ArgMatches;
 use std::net::SocketAddr;
@@ -51,14 +50,14 @@ pub fn start(cfg: config::Config, matches: &ArgMatches) -> Result<(), String> {
 
     let p2p =
         p2p::P2P::new(p2p_cfg, sync_connection_factory, el.handle()).map_err(|x| x.to_string())?;
-    let rpc_deps = rpc::Dependencies {
+    let rpc_deps = utils::rpc::Dependencies {
         network: cfg.network,
         storage: cfg.db,
         local_sync_node: local_sync_node.clone(),
         p2p_context: p2p.context().clone(),
         remote: el.remote(),
     };
-    let _rpc_server = rpc::new_http(cfg.rpc_config, rpc_deps)?;
+    let _rpc_server = utils::rpc::new_http_rpc_server(cfg.rpc_config, rpc_deps)?;
 
     p2p.run().map_err(|_| "Failed to start p2p module")?;
     el.run(p2p::forever()).unwrap();

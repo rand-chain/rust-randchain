@@ -22,8 +22,6 @@ extern crate verification;
 
 mod commands;
 mod config;
-mod rpc;
-mod rpc_apis;
 mod utils;
 
 use app_dirs::AppInfo;
