@@ -1,3 +1,4 @@
+pub mod config;
 mod db;
 pub mod rpc;
 mod seednodes;

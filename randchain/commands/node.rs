@@ -2,15 +2,29 @@ use super::super::utils;
 use clap::ArgMatches;
 use std::net::SocketAddr;
 use sync::{create_local_sync_node, create_sync_connection_factory, create_sync_peers};
-use {config, p2p, PROTOCOL_MINIMUM, PROTOCOL_VERSION};
+use {p2p, LOG_INFO, PROTOCOL_MINIMUM, PROTOCOL_VERSION};
 
-pub fn start(cfg: config::Config, matches: &ArgMatches) -> Result<(), String> {
+pub fn start(matches: &clap::ArgMatches) -> Result<(), String> {
+    // parse matches into Config
+    let cfg = utils::config::parse(matches)?;
+
+    // init logs
+    if !cfg.quiet {
+        if cfg!(windows) {
+            logs::init(LOG_INFO, logs::DateLogFormatter);
+        } else {
+            logs::init(LOG_INFO, logs::DateAndColorLogFormatter);
+        }
+    } else {
+        env_logger::init();
+    }
+    // init event loop
     let mut el = p2p::event_loop();
-
+    // init database
     utils::init_db(&cfg)?;
-
+    // init node table path
     let nodes_path = utils::node_table_path(&cfg);
-
+    // init p2p config
     let p2p_cfg = p2p::Config {
         threads: cfg.p2p_threads,
         inbound_connections: cfg.inbound_connections,
