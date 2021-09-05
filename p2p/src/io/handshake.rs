@@ -294,7 +294,7 @@ mod tests {
                 // services set to 0, because we support nothing
                 from: "00000000000000000000000000000000000000007f000001208d".into(),
                 nonce: 0x3c76a409eb48a227,
-                user_agent: "randchaind".into(),
+                user_agent: "randchain".into(),
                 start_height: 0,
             },
             V70001 { relay: true },

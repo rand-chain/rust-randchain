@@ -3,8 +3,8 @@ version: '3'
 services:
   node:
     tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
+    image: randchain-dev/randchain:latest
+    entrypoint: /bin/randchain
     command: [""]
     cap_add:
       - ALL
@@ -19,8 +19,8 @@ services:
 
   miner:
     tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
+    image: randchain-dev/randchain:latest
+    entrypoint: /bin/randchain
     command: [""]
     cap_add:
       - ALL
