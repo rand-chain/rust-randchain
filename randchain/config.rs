@@ -3,14 +3,13 @@ use message::Services;
 use network::Network;
 use p2p::InternetProtocol;
 use primitives::hash::H256;
-use rpc::HttpConfiguration as RpcHttpConfig;
-use rpc_apis::ApiSet;
-use seednodes::{mainnet_seednodes, testnet_seednodes};
 use std::fs;
 use std::net;
 use storage;
 use sync::VerificationParameters;
-use util::open_db;
+use utils::rpc::ApiSet;
+use utils::rpc::HttpConfiguration as RpcHttpConfig;
+use utils::{mainnet_seednodes, open_db, testnet_seednodes};
 use verification::VerificationLevel;
 use {REGTEST_USER_AGENT, USER_AGENT};
 

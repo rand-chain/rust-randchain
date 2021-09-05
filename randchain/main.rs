@@ -22,10 +22,7 @@ extern crate verification;
 
 mod commands;
 mod config;
-mod rpc;
-mod rpc_apis;
-mod seednodes;
-mod util;
+mod utils;
 
 use app_dirs::AppInfo;
 
@@ -50,7 +47,8 @@ fn main() {
 
 fn run() -> Result<(), String> {
     let yaml = load_yaml!("cli.yml");
-    let matches = clap::App::from_yaml(yaml).get_matches();
+    let app = clap::App::from_yaml(yaml).setting(clap::AppSettings::ArgRequiredElseHelp);
+    let matches = app.get_matches();
     let cfg = config::parse(&matches)?;
 
     if !cfg.quiet {
@@ -63,5 +61,10 @@ fn run() -> Result<(), String> {
         env_logger::init();
     }
 
-    commands::start(cfg)
+    match matches.subcommand() {
+        // ("import", Some(import_matches)) => commands::import(cfg, import_matches),
+        // ("rollback", Some(rollback_matches)) => commands::rollback(cfg, rollback_matches),
+        ("node", Some(_node_matches)) => commands::node::start(cfg, _node_matches),
+        _ => Err("Please specify a subcommand".to_owned()),
+    }
 }
