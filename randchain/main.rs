@@ -24,7 +24,6 @@ mod commands;
 mod config;
 mod rpc;
 mod rpc_apis;
-mod seednodes;
 mod utils;
 
 use app_dirs::AppInfo;

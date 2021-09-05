@@ -5,12 +5,11 @@ use p2p::InternetProtocol;
 use primitives::hash::H256;
 use rpc::HttpConfiguration as RpcHttpConfig;
 use rpc_apis::ApiSet;
-use seednodes::{mainnet_seednodes, testnet_seednodes};
 use std::fs;
 use std::net;
 use storage;
 use sync::VerificationParameters;
-use utils::open_db;
+use utils::{mainnet_seednodes, open_db, testnet_seednodes};
 use verification::VerificationLevel;
 use {REGTEST_USER_AGENT, USER_AGENT};
 
