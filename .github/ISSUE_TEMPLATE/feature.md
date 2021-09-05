@@ -15,7 +15,3 @@ labels: "✨ goal: improvement, 🚦 status: awaiting triage, 💻 aspect: code,
 
 ## Additional context
 <!-- Add any other context about the feature here; or delete the section entirely. -->
-
-## Implementation
-<!-- Replace the [ ] with [x] to check the box. -->
-- [ ] I would be interested in implementing this feature.
