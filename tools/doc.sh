@@ -1,11 +1,10 @@
 #!/bin/bash
 
 cargo doc --no-deps\
-	-p bitcrypto\
+	-p crypto\
 	-p chain\
 	-p db\
 	-p import\
-	-p keys\
 	-p message\
 	-p miner\
 	-p network\

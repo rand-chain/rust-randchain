@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = [ "Nikolay Volf <nikvolf@gmail.com>" ]
 
 [dependencies]
-bitcrypto = { path = "../crypto" }
+crypto = { path = "../crypto" }
 chain = { path = "../chain" }
 lazy_static = "1.0"
 log = "0.4"
@@ -17,7 +17,6 @@ serialization = { path = "../serialization" }
 sha2 = "0.9.1"
 storage = { path = "../storage" }
 time = "0.1"
-vdf = { path = "../vdf" }
 
 [dev-dependencies]
 assert_matches = "1.3.0"

@@ -1,5 +1,5 @@
 use chain::IndexedBlock;
-use crypto::dhash256;
+use crypto::{dhash256, vdf};
 use error::Error;
 use primitives::bytes::Bytes;
 use rug::{integer::Order, Integer};
