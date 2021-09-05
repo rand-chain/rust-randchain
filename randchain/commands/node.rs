@@ -1,4 +1,5 @@
 use super::super::rpc;
+use clap::ArgMatches;
 use primitives::hash::H256;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};

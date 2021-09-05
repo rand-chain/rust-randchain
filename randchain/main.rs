@@ -50,7 +50,8 @@ fn main() {
 
 fn run() -> Result<(), String> {
     let yaml = load_yaml!("cli.yml");
-    let matches = clap::App::from_yaml(yaml).get_matches();
+    let app = clap::App::from_yaml(yaml).setting(clap::AppSettings::ArgRequiredElseHelp);
+    let matches = app.get_matches();
     let cfg = config::parse(&matches)?;
 
     if !cfg.quiet {
@@ -66,7 +67,7 @@ fn run() -> Result<(), String> {
     match matches.subcommand() {
         // ("import", Some(import_matches)) => commands::import(cfg, import_matches),
         // ("rollback", Some(rollback_matches)) => commands::rollback(cfg, rollback_matches),
-        ("node", Some(_node_matches)) => commands::node::start(cfg),
-        _ => commands::node::start(cfg),
+        ("node", Some(_node_matches)) => commands::node::start(cfg, _node_matches),
+        _ => Err("Please specify a subcommand".to_owned()),
     }
 }

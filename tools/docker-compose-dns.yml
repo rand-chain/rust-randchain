@@ -6,7 +6,7 @@ services:
     tty: true
     image: randchain-dev/dnsseeder:latest
     entrypoint: /dnsseeder/dnsseeder
-    command: ["-v", "-netfile", "/dnsseeder/configs/randchain.json"]
+    command: ["node", "-v", "-netfile", "/dnsseeder/configs/randchain.json"]
     cap_add:
       - ALL
     extra_hosts: 
@@ -20,7 +20,7 @@ services:
     tty: true
     image: randchain-dev/randchain:latest
     entrypoint: /bin/randchain
-    command: ["-s", "dnsseed.randchain.org", "-p", "10.0.0.2:8333,10.0.0.3:8333"]
+    command: ["node", "-s", "dnsseed.randchain.org", "-p", "10.0.0.2:8333,10.0.0.3:8333"]
     dns:
       - 10.0.0.200
     cap_add:

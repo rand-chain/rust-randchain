@@ -5,7 +5,7 @@ services:
     tty: true
     image: randchain-dev/randchain:latest
     entrypoint: /bin/randchain
-    command: [""]
+    command: ["node", ""]
     cap_add:
       - ALL
     environment:
@@ -21,7 +21,7 @@ services:
     tty: true
     image: randchain-dev/randchain:latest
     entrypoint: /bin/randchain
-    command: [""]
+    command: ["node", ""]
     cap_add:
       - ALL
     environment:
