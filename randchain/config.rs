@@ -10,7 +10,7 @@ use std::fs;
 use std::net;
 use storage;
 use sync::VerificationParameters;
-use util::open_db;
+use utils::open_db;
 use verification::VerificationLevel;
 use {REGTEST_USER_AGENT, USER_AGENT};
 
