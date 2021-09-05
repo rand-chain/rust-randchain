@@ -2,6 +2,7 @@ name: randchain
 version: "0.1.0"
 author: RandChain
 about: RandChain daemon client
+# TODO: tidy args; some of them are moved to subcommands 
 args:
     - testnet:
         long: testnet

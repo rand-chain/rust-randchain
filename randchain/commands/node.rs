@@ -85,7 +85,7 @@ impl Drop for BlockNotifier {
     }
 }
 
-pub fn start(cfg: config::Config) -> Result<(), String> {
+pub fn start(cfg: config::Config, matches: &ArgMatches) -> Result<(), String> {
     let mut el = p2p::event_loop();
 
     init_db(&cfg)?;
