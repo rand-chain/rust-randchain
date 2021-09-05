@@ -40,25 +40,25 @@ panic = 'abort'
 debug = true
 
 [[bin]]
-path = "randchaind/main.rs"
-name = "randchaind"
+path = "randchain/main.rs"
+name = "randchain"
 
 [workspace]
 members = [
-			"chain",
-			"crypto",
-			"db",
-			"logs",
-			"message",
-			"miner",
-			"network",
-			"p2p",
-			"primitives",
-			"rpc",
-			"serialization",
-			"serialization_derive",
-			"storage",
-			"sync",
-			"test-data",
-			"verification",
+	"chain",
+	"crypto",
+	"db",
+	"logs",
+	"message",
+	"miner",
+	"network",
+	"p2p",
+	"primitives",
+	"rpc",
+	"serialization",
+	"serialization_derive",
+	"storage",
+	"sync",
+	"test-data",
+	"verification",
 ]

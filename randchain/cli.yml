@@ -1,4 +1,4 @@
-name: randchaind
+name: randchain
 version: "0.1.0"
 author: RandChain
 about: RandChain daemon client

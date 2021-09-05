@@ -126,7 +126,7 @@ where
     pub fn on_getheaders(&self, peer_index: PeerIndex, message: types::GetHeaders, id: RequestId) {
         trace!(target: "sync", "Got `getheaders` message from peer#{}", peer_index);
 
-        // simulating randchaind for passing tests: if we are in nearly-saturated state
+        // simulating randchain for passing tests: if we are in nearly-saturated state
         // and peer, which has just provided a new blocks to us, is asking for headers
         // => do not serve getheaders until we have fully process his blocks + wait until headers are served before returning
         let server = Arc::downgrade(&self.server);

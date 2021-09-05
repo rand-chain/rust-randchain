@@ -2,8 +2,8 @@ version: '3'
 services:
   node1:
     tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
+    image: randchain-dev/randchain:latest
+    entrypoint: /bin/randchain
     # command: ["-p", "10.0.0.2:8333,10.0.0.3:8333,10.0.0.4:8333,10.0.0.5:8333"]
     command: ["-P", "/randchain-tools/test-peers.txt", "--verification-level", "none"]
     environment:
@@ -17,8 +17,8 @@ services:
   
   node2:
     tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
+    image: randchain-dev/randchain:latest
+    entrypoint: /bin/randchain
     command: ["-P", "/randchain-tools/test-peers.txt", "--verification-level", "none"]
     environment:
       - RUST_BACKTRACE=full
@@ -33,8 +33,8 @@ services:
     
   node3:
     tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
+    image: randchain-dev/:latest
+    entrypoint: /bin/randchain
     command: ["-P", "/randchain-tools/test-peers.txt", "--verification-level", "none"]
     environment:
       - RUST_BACKTRACE=full
@@ -49,8 +49,8 @@ services:
 
   node4:
     tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
+    image: randchain-dev/randchain:latest
+    entrypoint: /bin/randchain
     command: ["-P", "/randchain-tools/test-peers.txt", "--verification-level", "none"]
     environment:
       - RUST_BACKTRACE=full

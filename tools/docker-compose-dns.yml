@@ -18,8 +18,8 @@ services:
 
   node:
     tty: true
-    image: randchain-dev/randchaind:latest
-    entrypoint: /bin/randchaind
+    image: randchain-dev/randchain:latest
+    entrypoint: /bin/randchain
     command: ["-s", "dnsseed.randchain.org", "-p", "10.0.0.2:8333,10.0.0.3:8333"]
     dns:
       - 10.0.0.200

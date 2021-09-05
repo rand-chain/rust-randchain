@@ -8,7 +8,7 @@ cargo doc --no-deps\
 	-p message\
 	-p miner\
 	-p network\
-	-p randchaind\
+	-p randchain\
 	-p p2p\
 	-p primitives\
 	-p rpc\
