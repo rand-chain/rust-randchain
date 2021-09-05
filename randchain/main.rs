@@ -63,5 +63,10 @@ fn run() -> Result<(), String> {
         env_logger::init();
     }
 
-    commands::start(cfg)
+    match matches.subcommand() {
+        // ("import", Some(import_matches)) => commands::import(cfg, import_matches),
+        // ("rollback", Some(rollback_matches)) => commands::rollback(cfg, rollback_matches),
+        ("node", Some(_node_matches)) => commands::node::start(cfg),
+        _ => commands::node::start(cfg),
+    }
 }
