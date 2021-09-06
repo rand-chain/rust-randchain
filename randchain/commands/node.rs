@@ -23,7 +23,7 @@ pub fn start(matches: &ArgMatches) -> Result<(), String> {
     // init database
     utils::init_db(&cfg)?;
     // init node table path
-    let nodes_path = utils::node_table_path(&cfg);
+    let nodes_path = utils::create_node_table(&cfg);
     // init p2p config
     let p2p_cfg = p2p::Config {
         threads: cfg.p2p_threads,

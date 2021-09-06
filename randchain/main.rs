@@ -27,7 +27,7 @@ use app_dirs::AppInfo;
 
 pub const APP_INFO: AppInfo = AppInfo {
     name: "randchain",
-    author: "RandChain",
+    author: "RandChain Dev Team",
 };
 pub const PROTOCOL_VERSION: u32 = 70_014;
 pub const PROTOCOL_MINIMUM: u32 = 70_001;

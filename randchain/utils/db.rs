@@ -16,7 +16,7 @@ pub fn open_db(data_dir: Option<String>, db_cache: usize) -> storage::SharedStor
     )
 }
 
-pub fn node_table_path(cfg: &Config) -> PathBuf {
+pub fn create_node_table(cfg: &Config) -> PathBuf {
     let mut node_table = match cfg.data_dir.clone() {
         Some(data_dir_str) => custom_path(&data_dir_str, "p2p"),
         None => app_dir(AppDataType::UserData, &APP_INFO, "p2p").expect("Failed to get app dir"),
