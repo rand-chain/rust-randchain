@@ -53,6 +53,7 @@ fn run() -> Result<(), String> {
         // ("import", Some(import_matches)) => commands::import(cfg, import_matches),
         // ("rollback", Some(rollback_matches)) => commands::rollback(cfg, rollback_matches),
         ("node", Some(node_matches)) => commands::node::start(node_matches),
+        ("keys", Some(keys_matches)) => commands::keys::start(keys_matches),
         _ => Err("Please specify a subcommand".to_owned()),
     }
 }

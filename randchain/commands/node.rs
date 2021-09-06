@@ -4,7 +4,7 @@ use std::net::SocketAddr;
 use sync::{create_local_sync_node, create_sync_connection_factory, create_sync_peers};
 use {p2p, LOG_INFO, PROTOCOL_MINIMUM, PROTOCOL_VERSION};
 
-pub fn start(matches: &clap::ArgMatches) -> Result<(), String> {
+pub fn start(matches: &ArgMatches) -> Result<(), String> {
     // parse matches into Config
     let cfg = utils::config::parse(matches)?;
 

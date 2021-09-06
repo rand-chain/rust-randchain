@@ -2,6 +2,9 @@ name: randchain
 version: "0.1.0"
 author: "randchain dev team <https://github.com/rand-chain>"
 subcommands:
+    - keys:
+        about: Manage keys
+        args:
     - node:
         about: Start a node
         args:
