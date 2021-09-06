@@ -6,6 +6,13 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use {storage, APP_INFO};
 
+fn custom_path(data_dir: &str, sub_dir: &str) -> PathBuf {
+    let mut path = PathBuf::from(data_dir);
+    path.push(sub_dir);
+    create_dir_all(&path).expect("Failed to get app dir");
+    path
+}
+
 pub fn open_db(data_dir: Option<String>, db_cache: usize) -> storage::SharedStore {
     let db_path = match data_dir {
         Some(data_dir_str) => custom_path(&data_dir_str, "db"),
@@ -14,15 +21,6 @@ pub fn open_db(data_dir: Option<String>, db_cache: usize) -> storage::SharedStor
     Arc::new(
         db::BlockChainDatabase::open_at_path(db_path, db_cache).expect("Failed to open database"),
     )
-}
-
-pub fn create_node_table(cfg: &Config) -> PathBuf {
-    let mut node_table = match cfg.data_dir.clone() {
-        Some(data_dir_str) => custom_path(&data_dir_str, "p2p"),
-        None => app_dir(AppDataType::UserData, &APP_INFO, "p2p").expect("Failed to get app dir"),
-    };
-    node_table.push("nodes.csv");
-    node_table
 }
 
 pub fn init_db(cfg: &Config) -> Result<(), String> {
@@ -46,9 +44,19 @@ pub fn init_db(cfg: &Config) -> Result<(), String> {
     }
 }
 
-fn custom_path(data_dir: &str, sub_dir: &str) -> PathBuf {
-    let mut path = PathBuf::from(data_dir);
-    path.push(sub_dir);
-    create_dir_all(&path).expect("Failed to get app dir");
-    path
+pub fn create_node_table(cfg: &Config) -> PathBuf {
+    let mut node_table = match cfg.data_dir.clone() {
+        Some(data_dir_str) => custom_path(&data_dir_str, "p2p"),
+        None => app_dir(AppDataType::UserData, &APP_INFO, "p2p").expect("Failed to get app dir"),
+    };
+    node_table.push("nodes.csv");
+    node_table
+}
+
+pub fn create_keys_dir(cfg: &Config) -> PathBuf {
+    let keys_dir = match cfg.data_dir.clone() {
+        Some(keys_dir_str) => custom_path(&keys_dir_str, "keys"),
+        None => app_dir(AppDataType::UserData, &APP_INFO, "keys").expect("Failed to get app dir"),
+    };
+    keys_dir
 }

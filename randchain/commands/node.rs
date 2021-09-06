@@ -22,6 +22,9 @@ pub fn start(matches: &ArgMatches) -> Result<(), String> {
     let mut el = p2p::event_loop();
     // init database
     utils::init_db(&cfg)?;
+    // init keys path
+    // TODO: init keys
+    let keys_dir = utils::create_keys_dir(&cfg);
     // init node table path
     let nodes_path = utils::create_node_table(&cfg);
     // init p2p config
