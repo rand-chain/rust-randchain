@@ -6,9 +6,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use {storage, APP_INFO};
 
-pub fn open_db(data_dir: &Option<String>, db_cache: usize) -> storage::SharedStore {
-    let db_path = match *data_dir {
-        Some(ref data_dir) => custom_path(&data_dir, "db"),
+pub fn open_db(data_dir: Option<String>, db_cache: usize) -> storage::SharedStore {
+    let db_path = match data_dir {
+        Some(data_dir_str) => custom_path(&data_dir_str, "db"),
         None => app_dir(AppDataType::UserData, &APP_INFO, "db").expect("Failed to get app dir"),
     };
     Arc::new(
@@ -17,8 +17,8 @@ pub fn open_db(data_dir: &Option<String>, db_cache: usize) -> storage::SharedSto
 }
 
 pub fn node_table_path(cfg: &Config) -> PathBuf {
-    let mut node_table = match cfg.data_dir {
-        Some(ref data_dir) => custom_path(&data_dir, "p2p"),
+    let mut node_table = match cfg.data_dir.clone() {
+        Some(data_dir_str) => custom_path(&data_dir_str, "p2p"),
         None => app_dir(AppDataType::UserData, &APP_INFO, "p2p").expect("Failed to get app dir"),
     };
     node_table.push("nodes.csv");
