@@ -2,9 +2,43 @@ name: randchain
 version: "0.1.0"
 author: "randchain dev team <https://github.com/rand-chain>"
 subcommands:
-    - keys:
-        about: Manage keys
+    - account:
+        about: Manage accounts
+        setting: SubcommandRequiredElseHelp
         args:
+            - data-dir:
+                short: d
+                long: data-dir
+                value_name: PATH
+                help: Specify the database and configuration directory PATH.
+                takes_value: true
+        subcommands:
+            - new:
+                about: Create a new account (and its associated key).
+                args:
+                    - keys-iterations:
+                        help: Specify the number of iterations to use when deriving key from the password (bigger is more secure).
+                        long: keys-iterations
+                        value_name: NUM
+                        default_value: "10240"
+                        takes_value: true
+                    - password:
+                        help: Provide a file containing a password for unlocking an account. Leading and trailing whitespace is trimmed.
+                        long: password
+                        value_name: FILE
+                        takes_value: true
+            - list:
+                about: List existing accounts.
+            - import:
+                about: Import accounts from JSON UTC keystore files
+                args:
+                    - import-path: 
+                        help: A list of file paths to import.
+                        long: import-path
+                        multiple: true
+                        value_name: PATH
+                        takes_value: true
+                        required: true
     - node:
         about: Start a node
         args:

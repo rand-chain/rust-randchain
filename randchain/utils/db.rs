@@ -53,10 +53,12 @@ pub fn create_node_table(cfg: &Config) -> PathBuf {
     node_table
 }
 
-pub fn create_keys_dir(cfg: &Config) -> PathBuf {
-    let keys_dir = match cfg.data_dir.clone() {
-        Some(keys_dir_str) => custom_path(&keys_dir_str, "keys"),
-        None => app_dir(AppDataType::UserData, &APP_INFO, "keys").expect("Failed to get app dir"),
+pub fn create_account_dir(account_dir: Option<String>) -> PathBuf {
+    let account_dir_pathbuf = match account_dir {
+        Some(account_dir_str) => custom_path(&account_dir_str, "account"),
+        None => {
+            app_dir(AppDataType::UserData, &APP_INFO, "account").expect("Failed to get app dir")
+        }
     };
-    keys_dir
+    account_dir_pathbuf
 }
