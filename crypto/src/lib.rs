@@ -1,5 +1,4 @@
 extern crate crypto as rcrypto;
-extern crate curve25519_dalek;
 extern crate primitives;
 extern crate rand;
 extern crate rand_core;
