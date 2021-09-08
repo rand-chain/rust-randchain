@@ -19,7 +19,6 @@ version = "0.1.0"
 dependencies = [
  "crypto",
  "rpassword",
- "serde",
  "serde_json",
 ]
 
@@ -638,6 +637,12 @@ checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hex-literal"
@@ -1334,6 +1339,7 @@ dependencies = [
  "crypto",
  "db",
  "env_logger",
+ "hex",
  "libc",
  "log 0.4.14",
  "logs",
@@ -1342,6 +1348,7 @@ dependencies = [
  "network",
  "p2p",
  "primitives",
+ "rand 0.7.3",
  "rpc",
  "serialization",
  "serialization_derive",
@@ -1597,9 +1604,6 @@ name = "serde"
 version = "1.0.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f12d06de37cf59146fbdecab66aa99f9fe4f78722e3607577a5375d66bd0c913"
-dependencies = [
- "serde_derive",
-]
 
 [[package]]
 name = "serde_derive"

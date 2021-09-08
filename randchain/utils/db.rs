@@ -44,18 +44,18 @@ pub fn init_db(cfg: &Config) -> Result<(), String> {
     }
 }
 
-pub fn create_node_table(cfg: &Config) -> PathBuf {
-    let mut node_table = match cfg.data_dir.clone() {
-        Some(data_dir_str) => custom_path(&data_dir_str, "p2p"),
+pub fn create_node_table(data_dir: Option<String>) -> PathBuf {
+    let mut node_table = match data_dir {
+        Some(s) => custom_path(&s, "p2p"),
         None => app_dir(AppDataType::UserData, &APP_INFO, "p2p").expect("Failed to get app dir"),
     };
     node_table.push("nodes.csv");
     node_table
 }
 
-pub fn create_account_dir(account_dir: Option<String>) -> PathBuf {
-    let account_dir_pathbuf = match account_dir {
-        Some(account_dir_str) => custom_path(&account_dir_str, "account"),
+pub fn create_account_dir(data_dir: Option<String>) -> PathBuf {
+    let account_dir_pathbuf = match data_dir {
+        Some(s) => custom_path(&s, "account"),
         None => {
             app_dir(AppDataType::UserData, &APP_INFO, "account").expect("Failed to get app dir")
         }

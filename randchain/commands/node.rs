@@ -23,10 +23,10 @@ pub fn start(matches: &ArgMatches) -> Result<(), String> {
     // init database
     utils::init_db(&cfg)?;
     // init account path
-    let account_dir = utils::create_account_dir(cfg.data_dir);
+    let account_dir = utils::create_account_dir(cfg.data_dir.clone());
     // TODO: init account
     // init node table path
-    let nodes_path = utils::create_node_table(&cfg);
+    let nodes_path = utils::create_node_table(cfg.data_dir.clone());
     // init p2p config
     let p2p_cfg = p2p::Config {
         threads: cfg.p2p_threads,
