@@ -14,6 +14,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "account"
+version = "0.1.0"
+dependencies = [
+ "crypto",
+ "rpassword",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "0.6.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1317,6 +1327,7 @@ dependencies = [
 name = "randchain"
 version = "0.1.0"
 dependencies = [
+ "account",
  "app_dirs",
  "chain",
  "clap",
@@ -1331,7 +1342,6 @@ dependencies = [
  "network",
  "p2p",
  "primitives",
- "rpassword",
  "rpc",
  "serialization",
  "serialization_derive",
@@ -1587,6 +1597,9 @@ name = "serde"
 version = "1.0.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f12d06de37cf59146fbdecab66aa99f9fe4f78722e3607577a5375d66bd0c913"
+dependencies = [
+ "serde_derive",
+]
 
 [[package]]
 name = "serde_derive"

@@ -1,7 +1,7 @@
 use clap::ArgMatches;
+use raccount::password::{password_from_file, password_prompt};
 use std::path::PathBuf;
 use utils;
-use utils::password::{password_from_file, password_prompt};
 
 #[derive(Debug, PartialEq)]
 pub struct ListAccounts {

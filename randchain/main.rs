@@ -7,8 +7,8 @@ extern crate log;
 extern crate app_dirs;
 extern crate env_logger;
 extern crate libc;
-extern crate rpassword;
 
+extern crate account as raccount;
 extern crate chain;
 extern crate db;
 extern crate logs;
