@@ -6,9 +6,13 @@ extern crate clap;
 extern crate log;
 extern crate app_dirs;
 extern crate env_logger;
+extern crate hex;
 extern crate libc;
+extern crate rand;
 
+extern crate account as raccount;
 extern crate chain;
+extern crate crypto;
 extern crate db;
 extern crate logs;
 extern crate message;
@@ -27,7 +31,7 @@ use app_dirs::AppInfo;
 
 pub const APP_INFO: AppInfo = AppInfo {
     name: "randchain",
-    author: "RandChain",
+    author: "RandChain Dev Team",
 };
 pub const PROTOCOL_VERSION: u32 = 70_014;
 pub const PROTOCOL_MINIMUM: u32 = 70_001;
@@ -48,21 +52,12 @@ fn run() -> Result<(), String> {
     let yaml = load_yaml!("cli.yml");
     let app = clap::App::from_yaml(yaml).setting(clap::AppSettings::ArgRequiredElseHelp);
     let matches = app.get_matches();
-    // let cfg = config::parse(&matches)?;
-    // if !cfg.quiet {
-    //     if cfg!(windows) {
-    //         logs::init(LOG_INFO, logs::DateLogFormatter);
-    //     } else {
-    //         logs::init(LOG_INFO, logs::DateAndColorLogFormatter);
-    //     }
-    // } else {
-    //     env_logger::init();
-    // }
 
     match matches.subcommand() {
         // ("import", Some(import_matches)) => commands::import(cfg, import_matches),
         // ("rollback", Some(rollback_matches)) => commands::rollback(cfg, rollback_matches),
         ("node", Some(node_matches)) => commands::node::start(node_matches),
+        ("account", Some(account_matches)) => commands::account::start(account_matches),
         _ => Err("Please specify a subcommand".to_owned()),
     }
 }

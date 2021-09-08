@@ -6,23 +6,21 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use {storage, APP_INFO};
 
-pub fn open_db(data_dir: &Option<String>, db_cache: usize) -> storage::SharedStore {
-    let db_path = match *data_dir {
-        Some(ref data_dir) => custom_path(&data_dir, "db"),
+fn custom_path(data_dir: &str, sub_dir: &str) -> PathBuf {
+    let mut path = PathBuf::from(data_dir);
+    path.push(sub_dir);
+    create_dir_all(&path).expect("Failed to get app dir");
+    path
+}
+
+pub fn open_db(data_dir: Option<String>, db_cache: usize) -> storage::SharedStore {
+    let db_path = match data_dir {
+        Some(data_dir_str) => custom_path(&data_dir_str, "db"),
         None => app_dir(AppDataType::UserData, &APP_INFO, "db").expect("Failed to get app dir"),
     };
     Arc::new(
         db::BlockChainDatabase::open_at_path(db_path, db_cache).expect("Failed to open database"),
     )
-}
-
-pub fn node_table_path(cfg: &Config) -> PathBuf {
-    let mut node_table = match cfg.data_dir {
-        Some(ref data_dir) => custom_path(&data_dir, "p2p"),
-        None => app_dir(AppDataType::UserData, &APP_INFO, "p2p").expect("Failed to get app dir"),
-    };
-    node_table.push("nodes.csv");
-    node_table
 }
 
 pub fn init_db(cfg: &Config) -> Result<(), String> {
@@ -46,9 +44,21 @@ pub fn init_db(cfg: &Config) -> Result<(), String> {
     }
 }
 
-fn custom_path(data_dir: &str, sub_dir: &str) -> PathBuf {
-    let mut path = PathBuf::from(data_dir);
-    path.push(sub_dir);
-    create_dir_all(&path).expect("Failed to get app dir");
-    path
+pub fn create_node_table(data_dir: Option<String>) -> PathBuf {
+    let mut node_table = match data_dir {
+        Some(s) => custom_path(&s, "p2p"),
+        None => app_dir(AppDataType::UserData, &APP_INFO, "p2p").expect("Failed to get app dir"),
+    };
+    node_table.push("nodes.csv");
+    node_table
+}
+
+pub fn create_account_dir(data_dir: Option<String>) -> PathBuf {
+    let account_dir_pathbuf = match data_dir {
+        Some(s) => custom_path(&s, "account"),
+        None => {
+            app_dir(AppDataType::UserData, &APP_INFO, "account").expect("Failed to get app dir")
+        }
+    };
+    account_dir_pathbuf
 }

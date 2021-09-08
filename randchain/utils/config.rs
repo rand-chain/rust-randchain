@@ -49,7 +49,7 @@ pub fn parse(matches: &clap::ArgMatches) -> Result<Config, String> {
         None => None,
     };
 
-    let db = open_db(&data_dir, db_cache);
+    let db = open_db(data_dir.clone(), db_cache);
 
     let quiet = matches.is_present("quiet");
     let network = match (matches.is_present("testnet"), matches.is_present("regtest")) {

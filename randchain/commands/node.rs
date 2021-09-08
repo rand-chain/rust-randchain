@@ -4,7 +4,7 @@ use std::net::SocketAddr;
 use sync::{create_local_sync_node, create_sync_connection_factory, create_sync_peers};
 use {p2p, LOG_INFO, PROTOCOL_MINIMUM, PROTOCOL_VERSION};
 
-pub fn start(matches: &clap::ArgMatches) -> Result<(), String> {
+pub fn start(matches: &ArgMatches) -> Result<(), String> {
     // parse matches into Config
     let cfg = utils::config::parse(matches)?;
 
@@ -22,8 +22,11 @@ pub fn start(matches: &clap::ArgMatches) -> Result<(), String> {
     let mut el = p2p::event_loop();
     // init database
     utils::init_db(&cfg)?;
+    // init account path
+    let account_dir = utils::create_account_dir(cfg.data_dir.clone());
+    // TODO: init account
     // init node table path
-    let nodes_path = utils::node_table_path(&cfg);
+    let nodes_path = utils::create_node_table(cfg.data_dir.clone());
     // init p2p config
     let p2p_cfg = p2p::Config {
         threads: cfg.p2p_threads,

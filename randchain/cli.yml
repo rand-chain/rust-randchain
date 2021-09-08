@@ -2,6 +2,28 @@ name: randchain
 version: "0.1.0"
 author: "randchain dev team <https://github.com/rand-chain>"
 subcommands:
+    - account:
+        about: Manage accounts
+        setting: SubcommandRequiredElseHelp
+        args:
+            - data-dir:
+                short: d
+                long: data-dir
+                value_name: PATH
+                help: Specify the database and configuration directory PATH.
+                takes_value: true
+        subcommands:
+            - new:
+                about: Create a new account (and its associated key).
+                args:
+                    - name: 
+                        help: Name of the account
+                        long: name
+                        value_name: NAME
+                        takes_value: true
+                        required: true
+            - list:
+                about: List existing accounts.
     - node:
         about: Start a node
         args:
