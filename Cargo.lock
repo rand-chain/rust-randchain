@@ -365,6 +365,7 @@ dependencies = [
  "rug",
  "rust-crypto",
  "schnorrkel",
+ "serialization",
  "sha2",
  "sha3",
  "siphasher",
