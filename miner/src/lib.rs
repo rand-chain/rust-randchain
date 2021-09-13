@@ -13,8 +13,7 @@ extern crate storage;
 extern crate verification;
 
 mod block_assembler;
-mod cpu_miner;
+mod miner;
 
 pub use block_assembler::{BlockAssembler, BlockTemplate};
-pub use cpu_miner::Solution;
-pub use cpu_miner::{find_solution, find_solution_dry, init, prove, solve, verify};
+pub use miner::{find_solution, find_solution_dry, verify_solution};

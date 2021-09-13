@@ -8,12 +8,14 @@ extern crate siphasher;
 #[macro_use]
 extern crate lazy_static;
 extern crate rug;
+extern crate serialization as ser;
 extern crate sha2;
 
 #[macro_use]
 extern crate hex_literal;
 
 mod hash;
+pub mod seqpow;
 pub mod sr25519;
 pub mod vdf;
 
