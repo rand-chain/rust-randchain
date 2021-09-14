@@ -1,5 +1,6 @@
 use super::config::Config;
 use app_dirs::{app_dir, AppDataType};
+use crypto::sr25519::PK;
 use db;
 use std::fs::create_dir_all;
 use std::path::PathBuf;

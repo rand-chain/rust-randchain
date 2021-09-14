@@ -10,16 +10,23 @@ extern crate hex;
 extern crate libc;
 extern crate rand;
 
+extern crate jsonrpc_core;
+extern crate rustc_hex as rhex;
+extern crate serde_json;
+extern crate ureq;
+
 extern crate account as raccount;
 extern crate chain;
 extern crate crypto;
 extern crate db;
 extern crate logs;
 extern crate message;
+extern crate miner;
 extern crate network;
 extern crate p2p;
 extern crate primitives;
 extern crate rpc as ethcore_rpc;
+extern crate serialization as ser;
 extern crate storage;
 extern crate sync;
 extern crate verification;
@@ -58,6 +65,7 @@ fn run() -> Result<(), String> {
         // ("rollback", Some(rollback_matches)) => commands::rollback(cfg, rollback_matches),
         ("node", Some(node_matches)) => commands::node::start(node_matches),
         ("account", Some(account_matches)) => commands::account::start(account_matches),
+        ("miner", Some(miner_matches)) => commands::miner::start(miner_matches),
         _ => Err("Please specify a subcommand".to_owned()),
     }
 }

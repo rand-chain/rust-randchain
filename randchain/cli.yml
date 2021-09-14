@@ -24,6 +24,19 @@ subcommands:
                         required: true
             - list:
                 about: List existing accounts.
+    - miner:
+        about: Miner
+        args:
+            - key-path:
+                help: Path of the key pair
+                long: key-path
+                value_name: PATH
+                takes_value: true
+            - endpoint:
+                help: Endpoint of the node
+                long: endpoint
+                value_name: IP[:PORT]
+                takes_value: true
     - node:
         about: Start a node
         args:

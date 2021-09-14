@@ -1,4 +1,6 @@
 use crypto::sr25519::{PK, SK};
+use std::fs::File;
+use std::io::prelude::*;
 use std::{fs, path::Path};
 
 pub struct KeyPair {
@@ -18,13 +20,22 @@ impl KeyPair {
     where
         P: AsRef<Path>,
     {
-        let sk_string = match fs::read_to_string(path) {
+        // open key file
+        let mut f = match File::open(path) {
             Ok(s) => s,
-            Err(_) => return Err("read sk file error".to_owned()),
+            Err(err) => return Err(format!("open sk file error: {:?}", err)),
         };
-        let sk_bytes = sk_string.as_bytes();
-
-        let sk = SK::from_bytes(sk_bytes).unwrap();
+        // read key file
+        let mut sk_bytes = Vec::new();
+        match f.read_to_end(&mut sk_bytes) {
+            Ok(_) => (),
+            Err(err) => return Err(format!("read sk file error: {:?}", err)),
+        };
+        // parse key file to keypair
+        let sk = match SK::from_bytes(&sk_bytes) {
+            Ok(s) => s,
+            Err(err) => return Err(format!("parse sk file error: {:?}", err)),
+        };
         Ok(KeyPair::from_sk(sk))
     }
 
