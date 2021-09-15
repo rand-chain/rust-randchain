@@ -15,23 +15,25 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
-#[derive(Debug, PartialEq, Clone)]
-enum Error {
-    SerError,
-}
-
-fn try_req(url: &str, req_id: u64) -> Result<minerBlockTemplate, Error> {
-    let req = ureq::post(url)
+fn try_req(url: &str, req_id: u64) -> Result<minerBlockTemplate, String> {
+    let req_json = ureq::json!({
+       "jsonrpc": "2.0",
+       "method": "getblocktemplate",
+       "params": [{}],
+       "id": format!("\"{}\"", req_id)
+    });
+    log::debug!("send request of getblocktemplate: {:?}", req_json);
+    let resp = ureq::post(url)
         .set("X-My-Header", "Secret")
-        .send_json(ureq::json!({
-           "jsonrpc": "2.0",
-           "method": "getblocktemplate",
-           "params": [{}],
-           "id": format!("\"{}\"", req_id)
-        }));
-    let resp = req.unwrap(); // TODO error handling
+        .send_json(req_json)
+        .unwrap();
     log::debug!("receive response of getblocktemplate: {:?}", resp);
-    let success_resp = resp.into_json::<Success>().unwrap();
+    // TODO START FROM HERE
+    // the server returns error message. What to do?
+    let success_resp = match resp.into_json::<Success>() {
+        Ok(s) => s,
+        Err(err) => return Err(format!("error parsing response into json: {:?}", err)),
+    };
 
     let template =
         serde_json::from_str::<rpcBlockTemplate>(&success_resp.result.to_string()).unwrap();
@@ -46,7 +48,7 @@ fn try_req(url: &str, req_id: u64) -> Result<minerBlockTemplate, Error> {
 }
 
 pub fn start(matches: &clap::ArgMatches) -> Result<(), String> {
-    ::std::env::set_var("RUST_LOG", "info");
+    ::std::env::set_var("RUST_LOG", "trace");
     env_logger::init();
 
     // obtain endpoint
