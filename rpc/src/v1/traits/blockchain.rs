@@ -7,22 +7,22 @@ build_rpc_trait! {
     /// Parity-randchain blockchain data interface.
     pub trait BlockChain {
         /// Get hash of best block.
-        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getbestblockhash", "params": [], "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
+        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getbestblockhash", "params": [], "id": "1" }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getbestblockhash")]
         fn best_block_hash(&self) -> Result<H256, Error>;
 
         /// Get height of best block.
-        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblockcount", "params": [], "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
+        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblockcount", "params": [], "id": "1" }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getblockcount")]
         fn block_count(&self) -> Result<u32, Error>;
 
         /// Get hash of block at given height.
-        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblockhash", "params": [0], "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
+        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblockhash", "params": [0], "id": "1" }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getblockhash")]
         fn block_hash(&self, u32) -> Result<H256, Error>;
 
         /// Get proof-of-work difficulty as a multiple of the minimum difficulty
-        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getdifficulty", "params": [], "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
+        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getdifficulty", "params": [], "id": "1" }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getdifficulty")]
         fn difficulty(&self) -> Result<f64, Error>;
 
@@ -33,12 +33,12 @@ build_rpc_trait! {
 
         /// Get blockchain info
         /// Example: https://github.com/bitcoin/bitcoin/blob/master/src/rpc/blockchain.cpp#L1411-L1518
-        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblockchaininfo", "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
+        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblockchaininfo", "id": "1" }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getblockchaininfo")]
         fn blockchain_info(&self) -> Result<BlockchainInfo, Error>;
 
         /// Get metadata of a number of blocks
-        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblocks", "params": [0, 10], "id":1 }' -H 'content-type: application/json' http://127.0.0.1:8332/
+        /// @curl-example: curl --data-binary '{"jsonrpc": "2.0", "method": "getblocks", "params": [0, 10], "id": "1" }' -H 'content-type: application/json' http://127.0.0.1:8332/
         #[rpc(name = "getblocks")]
         fn blocks(&self, u32, u32) -> Result<Vec<BlockMetadata>, Error>;
     }
