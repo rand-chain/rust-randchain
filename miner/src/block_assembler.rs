@@ -1,6 +1,9 @@
+use crypto::sr25519::PK;
 use network::Network;
+use primitives::bytes::Bytes;
 use primitives::compact::Compact;
 use primitives::hash::H256;
+use ser::{serialize, Stream};
 use storage::SharedStore;
 use verification::work_required;
 
@@ -18,6 +21,18 @@ pub struct BlockTemplate {
     pub bits: Compact,
     /// Block height
     pub height: u32,
+}
+
+impl BlockTemplate {
+    pub fn to_bytes(&self, pk: &PK) -> Bytes {
+        let mut stream = Stream::default();
+        stream
+            .append(&self.version)
+            .append(&self.previous_header_hash)
+            .append(&self.bits)
+            .append(&Bytes::from(pk.to_bytes().to_vec()));
+        stream.out()
+    }
 }
 
 /// Block assembler

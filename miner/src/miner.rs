@@ -12,13 +12,14 @@ use verification::is_valid_proof_of_work_hash;
 
 /// Simple randchain cpu miner.
 pub fn find_solution(pk: &PK, block: &BlockTemplate) -> seqpow::Solution {
-    let mut stream = Stream::default();
-    stream
-        .append(&block.version)
-        .append(&block.previous_header_hash)
-        .append(&block.bits)
-        .append(&Bytes::from(pk.to_bytes().to_vec()));
-    let data = stream.out();
+    // let mut stream = Stream::default();
+    // stream
+    //     .append(&block.version)
+    //     .append(&block.previous_header_hash)
+    //     .append(&block.bits)
+    //     .append(&Bytes::from(pk.to_bytes().to_vec()));
+    // let data = stream.out();
+    let data = block.to_bytes(pk);
 
     let mut solution = seqpow::init(&data, pk);
     loop {
@@ -33,27 +34,26 @@ pub fn find_solution(pk: &PK, block: &BlockTemplate) -> seqpow::Solution {
 
 /// Dry run miner
 pub fn find_solution_dry(pk: &PK, block: &BlockTemplate) -> seqpow::Solution {
-    let mut stream = Stream::default();
-    stream
-        .append(&block.version)
-        .append(&block.previous_header_hash)
-        .append(&block.bits)
-        .append(&Bytes::from(pk.to_bytes().to_vec()));
-    let data = stream.out();
-
-    let solution = seqpow::init(&data, pk);
-
-    solution
+    // let mut stream = Stream::default();
+    // stream
+    //     .append(&block.version)
+    //     .append(&block.previous_header_hash)
+    //     .append(&block.bits)
+    //     .append(&Bytes::from(pk.to_bytes().to_vec()));
+    // let data = stream.out();
+    let data = block.to_bytes(pk);
+    seqpow::init(&data, pk)
 }
 
 pub fn verify_solution(pk: &PK, block: &BlockTemplate, solution: &seqpow::Solution) -> bool {
-    let mut stream = Stream::default();
-    stream
-        .append(&block.version)
-        .append(&block.previous_header_hash)
-        .append(&block.bits)
-        .append(&Bytes::from(pk.to_bytes().to_vec()));
-    let data = stream.out();
+    // let mut stream = Stream::default();
+    // stream
+    //     .append(&block.version)
+    //     .append(&block.previous_header_hash)
+    //     .append(&block.bits)
+    //     .append(&Bytes::from(pk.to_bytes().to_vec()));
+    // let data = stream.out();
+    let data = block.to_bytes(pk);
 
     if !seqpow::verify(pk, &data, solution, block.bits) {
         return false;

@@ -74,7 +74,7 @@ impl<T> Miner for MinerClient<T>
 where
     T: MinerClientCoreApi,
 {
-    fn get_block_template(&self, _request: BlockTemplateRequest) -> Result<BlockTemplate, Error> {
+    fn get_block_template(&self) -> Result<BlockTemplate, Error> {
         let tpl: BlockTemplate = match self.core.get_block_template() {
             Ok(tpl) => {
                 trace!(
@@ -153,7 +153,7 @@ pub mod tests {
                 "jsonrpc": "2.0",
                 "method": "getblocktemplate",
                 "params": [{}],
-                "id": 1
+                "id": "1"
             }"#),
             )
             .unwrap();
