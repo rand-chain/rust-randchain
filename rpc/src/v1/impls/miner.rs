@@ -153,7 +153,7 @@ pub mod tests {
                 "jsonrpc": "2.0",
                 "method": "getblocktemplate",
                 "params": [{}],
-                "id": 1
+                "id": "1"
             }"#),
             )
             .unwrap();

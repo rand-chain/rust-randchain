@@ -300,7 +300,7 @@ pub mod tests {
 				"jsonrpc": "2.0",
 				"method": "getbestblockhash",
 				"params": [],
-				"id": 1
+				"id": "1"
 			}"#),
             )
             .unwrap();
@@ -326,7 +326,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblockcount",
                     	"params": [],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
             )
             .unwrap();
@@ -347,7 +347,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblockhash",
                     	"params": [0],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
             )
             .unwrap();
@@ -373,7 +373,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblockhash",
                     	"params": [0],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
             )
             .unwrap();
@@ -397,7 +397,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getdifficulty",
                     	"params": [],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
             )
             .unwrap();
@@ -484,7 +484,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblock",
                     	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8", false],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
              )
              .unwrap();
@@ -498,7 +498,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblock",
                     	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8"],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
             )
             .unwrap();
@@ -518,7 +518,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblock",
                     	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", false],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
             )
             .unwrap();
@@ -542,7 +542,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblock",
                     	"params": ["c5a1de8ad5d4fdb816cd9cd36b870ddaef07f0b383a4462d0fd9153d30374ea8",true],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
              )
              .unwrap();
@@ -566,7 +566,7 @@ pub mod tests {
                     	"jsonrpc": "2.0",
                     	"method": "getblock",
                     	"params": ["000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd", true],
-                    	"id": 1
+                    	"id": "1"
                     }"#),
              )
              .unwrap();
