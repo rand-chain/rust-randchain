@@ -19,8 +19,7 @@ fn try_req(url: &str, req_id: u64) -> Result<minerBlockTemplate, String> {
     let req_json = ureq::json!({
        "jsonrpc": "2.0",
        "method": "getblocktemplate",
-       "params": [{}],
-       "id": format!("\"{}\"", req_id)
+       "id": format!("\"{}\"", req_id) // id should be a string, otherwise server will return error
     });
     log::debug!("send request of getblocktemplate: {:?}", req_json);
     let resp = ureq::post(url)
@@ -48,7 +47,7 @@ fn try_req(url: &str, req_id: u64) -> Result<minerBlockTemplate, String> {
 }
 
 pub fn start(matches: &clap::ArgMatches) -> Result<(), String> {
-    ::std::env::set_var("RUST_LOG", "trace");
+    ::std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
 
     // obtain endpoint
